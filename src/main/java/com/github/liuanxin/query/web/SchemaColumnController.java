@@ -17,6 +17,7 @@ public class SchemaColumnController {
     private boolean online;
 
     private final QuerySchemaInfoHandler schemaInfoConfig;
+
     public SchemaColumnController(QuerySchemaInfoHandler schemaInfoConfig) {
         this.schemaInfoConfig = schemaInfoConfig;
     }
@@ -28,6 +29,6 @@ public class SchemaColumnController {
 
     @PostMapping
     public Object query(@RequestBody RequestInfo req) {
-        return schemaInfoConfig.query(req);
+        return req == null ? null : schemaInfoConfig.query(req);
     }
 }
