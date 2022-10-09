@@ -1,0 +1,21 @@
+
+English Readme | [[README-cn.org][中文说明]]
+
+-----
+
+** Comment
+
+
+** Usage
+
+add maven
+#+BEGIN_SRC xml
+<dependency>
+    <groupId>com.github.liuanxin</groupId>
+    <artifactId>schema-column</artifactId>
+    <version>0.0.1</version>
+</dependency>
+#+END_SRC
+
+add config for this
+

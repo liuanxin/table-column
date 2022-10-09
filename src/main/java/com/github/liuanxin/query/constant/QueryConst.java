@@ -1,0 +1,68 @@
+package com.github.liuanxin.query.constant;
+
+import java.math.BigDecimal;
+import java.util.*;
+
+public final class QueryConst {
+
+    public static final String DB_SQL = "SELECT DATABASE()";
+    public static final String SCHEMA_SQL = "SELECT `TABLE_NAME` tn, `TABLE_COMMENT` tc" +
+            " FROM `information_schema`.`TABLES`" +
+            " WHERE `TABLE_SCHEMA` = ?";
+    public static final String COLUMN_SQL = "SELECT `TABLE_NAME` tn, `COLUMN_NAME` cn, `COLUMN_TYPE` ct," +
+            " `COLUMN_COMMENT` cc, `COLUMN_KEY` ck, `CHARACTER_MAXIMUM_LENGTH` cml" +
+            " FROM `information_schema`.`COLUMNS`" +
+            " WHERE `TABLE_SCHEMA` = ?" +
+            " ORDER BY `TABLE_NAME`, `ORDINAL_POSITION`";
+    public static final String RELATION_SQL = "SELECT `REFERENCED_TABLE_NAME` ftn, `REFERENCED_COLUMN_NAME` fcn," +
+            " `TABLE_NAME` tn, `COLUMN_NAME` cn" +
+            " FROM `information_schema`.`KEY_COLUMN_USAGE`" +
+            " WHERE `REFERENCED_TABLE_SCHEMA` = ?";
+    public static final String INDEX_SQL = "SELECT `TABLE_NAME` tn, `COLUMN_NAME` cn" +
+            " FROM `information_schema`.`STATISTICS`" +
+            " WHERE `NON_UNIQUE` = 0 AND `TABLE_SCHEMA` = ?" +
+            " GROUP BY tn, cn" +
+            " HAVING COUNT(`SEQ_IN_INDEX`) = 1";
+
+    public static final Map<String, Class<?>> DB_TYPE_MAP = new LinkedHashMap<>();
+    static {
+        DB_TYPE_MAP.put("tinyint(1) unsigned", Integer.class);
+        DB_TYPE_MAP.put("tinyint(1)", Boolean.class);
+        DB_TYPE_MAP.put("bigint", Long.class);
+        DB_TYPE_MAP.put("int", Integer.class);
+
+        DB_TYPE_MAP.put("char", String.class);
+        DB_TYPE_MAP.put("text", String.class);
+
+        DB_TYPE_MAP.put("date", Date.class);
+        DB_TYPE_MAP.put("time", Date.class);
+        DB_TYPE_MAP.put("year", Date.class);
+
+        DB_TYPE_MAP.put("decimal", BigDecimal.class);
+        DB_TYPE_MAP.put("float", Float.class);
+        DB_TYPE_MAP.put("double", Double.class);
+    }
+
+    public static final String SCHEMA_PREFIX = "schema-";
+    public static final String COLUMN_PREFIX = "column-";
+
+
+    public static final Integer MIN_LIMIT = 10;
+    public static final Set<Integer> LIMIT_SET = new HashSet<>(Arrays.asList(
+            MIN_LIMIT, 20, 50, 100, 200, 500, 1000)
+    );
+
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final List<String> DATE_FORMAT_LIST = Arrays.asList(
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm",
+            "yyyy/MM/dd",
+            DEFAULT_DATE_FORMAT,
+            "yyyy-MM-dd HH:mm",
+            "yyyy-MM-dd",
+            "HH:mm:ss",
+            "HH:mm"
+    );
+}

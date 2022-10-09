@@ -1,0 +1,18 @@
+{
+  "properties": [
+    {
+      "name": "query.scan-packages",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "sourceType": "com.github.liuanxin.query.config.QuerySchemaInfoHandler",
+      "description": "存放关联表的类的包地址, 多个用英文逗号隔开."
+    },
+    {
+      "name": "query.deep-max-page-size",
+      "type": "java.lang.Integer",
+      "defaultValue": "10000",
+      "sourceType": "com.github.liuanxin.query.config.QuerySchemaInfoHandler",
+      "description": "当要请求的数据页(page * limit)大于当前值时, sql 会先查出 id 再查具体的数据."
+    }
+  ]
+}
