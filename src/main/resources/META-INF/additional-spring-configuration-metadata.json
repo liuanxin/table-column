@@ -1,6 +1,13 @@
 {
   "properties": [
     {
+      "name": "query.online",
+      "type": "java.lang.Boolean",
+      "defaultValue": "false",
+      "sourceType": "com.github.liuanxin.query.web.SchemaColumnController",
+      "description": "设置为 true 则表字段结构接口返回空数据."
+    },
+    {
       "name": "query.scan-packages",
       "type": "java.lang.String",
       "defaultValue": "",
