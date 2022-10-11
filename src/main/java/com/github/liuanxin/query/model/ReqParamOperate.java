@@ -96,9 +96,7 @@ public class ReqParamOperate {
     /** 条件 */
     private List<Object> conditions;
 
-    public ReqParamOperate() {
-    }
-
+    public ReqParamOperate() {}
     public ReqParamOperate(String schema, OperateType operate, List<Object> conditions) {
         this.schema = schema;
         this.operate = operate;
@@ -108,7 +106,6 @@ public class ReqParamOperate {
     public String getSchema() {
         return schema;
     }
-
     public void setSchema(String schema) {
         this.schema = schema;
     }
@@ -116,7 +113,6 @@ public class ReqParamOperate {
     public OperateType getOperate() {
         return operate;
     }
-
     public void setOperate(OperateType operate) {
         this.operate = operate;
     }
@@ -124,7 +120,6 @@ public class ReqParamOperate {
     public List<Object> getConditions() {
         return conditions;
     }
-
     public void setConditions(List<Object> conditions) {
         this.conditions = conditions;
     }

@@ -1,4 +1,4 @@
-package com.github.liuanxin.query.model;
+package com.github.liuanxin.query.util;
 
 import java.io.Serializable;
 import java.util.function.Supplier;

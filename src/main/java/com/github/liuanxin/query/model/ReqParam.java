@@ -15,7 +15,7 @@ import java.util.*;
  *   "query": ...
  *   "sort": { "createTime": "desc", "id", "asc" },
  *   "page": [ 1, 20 ],
- *   "noCount": true  -- true 表示不发起 SELECT COUNT(*) 查询(移动端瀑布流时有用), 不设置则默认是 false
+ *   "notCount": true  -- true 表示不发起 SELECT COUNT(*) 查询(移动端瀑布流时有用), 不设置则默认是 false
  * }
  * </pre>
  */
@@ -28,22 +28,19 @@ public class ReqParam {
     /** 分页信息 [ 当前页, 每页行数 ], 每页行数在「10, 20, 50, 100, 200, 500, 1000」中, 省略则默认是 10 */
     private List<Integer> page;
     /** 当上面的分页信息有值且当前值是 true 时表示不发起 SELECT COUNT(*) 查询 */
-    private Boolean noCount;
+    private Boolean notCount;
 
-    public ReqParam() {
-    }
-
-    public ReqParam(ReqParamOperate query, Map<String, String> sort, List<Integer> page, Boolean noCount) {
+    public ReqParam() {}
+    public ReqParam(ReqParamOperate query, Map<String, String> sort, List<Integer> page, Boolean notCount) {
         this.query = query;
         this.sort = sort;
         this.page = page;
-        this.noCount = noCount;
+        this.notCount = notCount;
     }
 
     public ReqParamOperate getQuery() {
         return query;
     }
-
     public void setQuery(ReqParamOperate query) {
         this.query = query;
     }
@@ -51,7 +48,6 @@ public class ReqParam {
     public Map<String, String> getSort() {
         return sort;
     }
-
     public void setSort(Map<String, String> sort) {
         this.sort = sort;
     }
@@ -59,17 +55,15 @@ public class ReqParam {
     public List<Integer> getPage() {
         return page;
     }
-
     public void setPage(List<Integer> page) {
         this.page = page;
     }
 
-    public Boolean getNoCount() {
-        return noCount;
+    public Boolean getNotCount() {
+        return notCount;
     }
-
-    public void setNoCount(Boolean noCount) {
-        this.noCount = noCount;
+    public void setNotCount(Boolean notCount) {
+        this.notCount = notCount;
     }
 
     @Override
@@ -78,12 +72,12 @@ public class ReqParam {
         if (!(o instanceof ReqParam)) return false;
         ReqParam reqParam = (ReqParam) o;
         return Objects.equals(query, reqParam.query) && Objects.equals(sort, reqParam.sort)
-                && Objects.equals(page, reqParam.page) && Objects.equals(noCount, reqParam.noCount);
+                && Objects.equals(page, reqParam.page) && Objects.equals(notCount, reqParam.notCount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(query, sort, page, noCount);
+        return Objects.hash(query, sort, page, notCount);
     }
 
     @Override
@@ -92,7 +86,7 @@ public class ReqParam {
                 "query=" + query +
                 ", sort=" + sort +
                 ", page=" + page +
-                ", noCount=" + noCount +
+                ", notCount=" + notCount +
                 '}';
     }
 
@@ -155,7 +149,7 @@ public class ReqParam {
         return page != null && !page.isEmpty();
     }
     public boolean needQueryCount() {
-        return noCount == null || !noCount;
+        return notCount == null || !notCount;
     }
     public boolean needQueryCurrentPage(long count) {
         if (count <= 0) {

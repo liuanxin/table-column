@@ -23,9 +23,7 @@ public class Schema {
     /** 主键列 */
     private List<String> idKey;
 
-    public Schema() {
-    }
-
+    public Schema() {}
     public Schema(String name, String desc, String alias, Map<String, SchemaColumn> columnMap) {
         this.name = name;
         this.desc = desc;
@@ -43,10 +41,10 @@ public class Schema {
         this.idKey = idKey;
     }
 
+
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -54,7 +52,6 @@ public class Schema {
     public String getDesc() {
         return desc;
     }
-
     public void setDesc(String desc) {
         this.desc = desc;
     }
@@ -62,7 +59,6 @@ public class Schema {
     public String getAlias() {
         return alias;
     }
-
     public void setAlias(String alias) {
         this.alias = alias;
     }
@@ -70,7 +66,6 @@ public class Schema {
     public Map<String, SchemaColumn> getColumnMap() {
         return columnMap;
     }
-
     public void setColumnMap(Map<String, SchemaColumn> columnMap) {
         this.columnMap = columnMap;
     }
@@ -78,7 +73,6 @@ public class Schema {
     public List<String> getIdKey() {
         return idKey;
     }
-
     public void setIdKey(List<String> idKey) {
         this.idKey = idKey;
     }
@@ -109,6 +103,7 @@ public class Schema {
                 '}';
     }
 
+
     public String idWhere(boolean needAlias) {
         if (idKey.size() == 1) {
             String column = QuerySqlUtil.toSqlField(idKey.get(0));
@@ -136,10 +131,10 @@ public class Schema {
 
 
     public <T> String generateInsert(T obj, boolean generateNullField, List<Object> params) {
-        return firstInsert(obj, generateNullField, new ArrayList<>(), params);
+        return firstInsert(obj, obj.getClass(), generateNullField, new ArrayList<>(), params);
     }
-    private <T> String firstInsert(T obj, boolean generateNullField, List<String> placeholderList, List<Object> params) {
-        Class<?> clazz = obj.getClass();
+    private <T> String firstInsert(T obj, Class<?> clazz, boolean generateNullField,
+                                   List<String> placeholderList, List<Object> params) {
         List<String> fieldList = new ArrayList<>();
         for (SchemaColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
@@ -168,14 +163,17 @@ public class Schema {
     }
     public <T> String generateBatchInsert(List<T> list, boolean generateNullField, List<Object> params) {
         T first = QueryUtil.first(list);
+        Class<?> clazz = first.getClass();
         List<String> placeholderList = new ArrayList<>();
-        String sql = firstInsert(first, generateNullField, placeholderList, params);
-        if (placeholderList.isEmpty() || sql == null) {
+        String sql = firstInsert(first, clazz, generateNullField, placeholderList, params);
+        if (sql == null) {
             return null;
         }
-        List<String> valueList = new ArrayList<>();
+
+        List<String> multiValues = new ArrayList<>();
         if (list.size() > 1) {
-            Class<?> clazz = first.getClass();
+            List<String> errorList = new ArrayList<>();
+            int ps = placeholderList.size();
             for (int i = 1; i < list.size(); i++) {
                 T obj = list.get(i);
                 List<String> values = new ArrayList<>();
@@ -191,21 +189,24 @@ public class Schema {
                                 params.add(fieldInfo);
                             }
                         } catch (IllegalAccessException e) {
-                            throw new RuntimeException(String.format("obj(%s) get field(%s) exception", obj, fieldName), e);
+                            throw new RuntimeException(String.format("index(%s) obj(%s) get field(%s) exception",
+                                    (i + 1), obj, fieldName), e);
                         }
                     }
                 }
                 int vs = values.size();
-                int ps = placeholderList.size();
                 if (vs != ps) {
-                    throw new RuntimeException("Collection index(" + i + ") fields number(" + vs + ") != first number(" + ps + ")");
+                    errorList.add((i + 1) + " : " + vs);
                 }
                 if (!values.isEmpty()) {
-                    valueList.add("(" + String.join(", ", values) + ")");
+                    multiValues.add("(" + String.join(", ", values) + ")");
                 }
             }
+            if (!errorList.isEmpty()) {
+                throw new RuntimeException("field number error. 1 : " + ps + " but " + multiValues);
+            }
         }
-        return sql + (valueList.isEmpty() ? "" : ("," + String.join(", ", valueList)));
+        return multiValues.isEmpty() ? sql : (sql + ", " + String.join(", ", multiValues));
     }
 
     public String generateDelete(SingleSchemaWhere query, SchemaColumnInfo scInfo, List<Object> params) {
@@ -241,6 +242,7 @@ public class Schema {
         if (setList.isEmpty()) {
             return null;
         }
+
         String where = query.generateSql(name, scInfo, params);
         if (where == null || where.isEmpty()) {
             return null;

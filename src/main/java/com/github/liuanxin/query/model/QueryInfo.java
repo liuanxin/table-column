@@ -17,9 +17,7 @@ public class QueryInfo {
     /** 列信息 */
     private List<QueryColumn> columnList;
 
-    public QueryInfo() {
-    }
-
+    public QueryInfo() {}
     public QueryInfo(String name, String desc, List<QueryColumn> columnList) {
         this.name = name;
         this.desc = desc;
@@ -29,7 +27,6 @@ public class QueryInfo {
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -37,7 +34,6 @@ public class QueryInfo {
     public String getDesc() {
         return desc;
     }
-
     public void setDesc(String desc) {
         this.desc = desc;
     }
@@ -45,7 +41,6 @@ public class QueryInfo {
     public List<QueryColumn> getColumnList() {
         return columnList;
     }
-
     public void setColumnList(List<QueryColumn> columnList) {
         this.columnList = columnList;
     }
@@ -91,9 +86,7 @@ public class QueryInfo {
         /** 关联信息 */
         private String relation;
 
-        public QueryColumn() {
-        }
-
+        public QueryColumn() {}
         public QueryColumn(String name, String desc, String type, Integer length, String relation) {
             this.name = name;
             this.desc = desc;
@@ -105,7 +98,6 @@ public class QueryInfo {
         public String getName() {
             return name;
         }
-
         public void setName(String name) {
             this.name = name;
         }
@@ -113,7 +105,6 @@ public class QueryInfo {
         public String getDesc() {
             return desc;
         }
-
         public void setDesc(String desc) {
             this.desc = desc;
         }
@@ -121,7 +112,6 @@ public class QueryInfo {
         public String getType() {
             return type;
         }
-
         public void setType(String type) {
             this.type = type;
         }
@@ -129,7 +119,6 @@ public class QueryInfo {
         public Integer getLength() {
             return length;
         }
-
         public void setLength(Integer length) {
             this.length = length;
         }
@@ -137,7 +126,6 @@ public class QueryInfo {
         public String getRelation() {
             return relation;
         }
-
         public void setRelation(String relation) {
             this.relation = relation;
         }

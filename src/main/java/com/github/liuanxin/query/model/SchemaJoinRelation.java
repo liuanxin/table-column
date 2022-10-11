@@ -11,9 +11,7 @@ public class SchemaJoinRelation {
     private JoinType joinType;
     private Schema childSchema;
 
-    public SchemaJoinRelation() {
-    }
-
+    public SchemaJoinRelation() {}
     public SchemaJoinRelation(Schema masterSchema, JoinType joinType, Schema childSchema) {
         this.masterSchema = masterSchema;
         this.joinType = joinType;
@@ -23,7 +21,6 @@ public class SchemaJoinRelation {
     public Schema getMasterSchema() {
         return masterSchema;
     }
-
     public void setMasterSchema(Schema masterSchema) {
         this.masterSchema = masterSchema;
     }
@@ -31,7 +28,6 @@ public class SchemaJoinRelation {
     public JoinType getJoinType() {
         return joinType;
     }
-
     public void setJoinType(JoinType joinType) {
         this.joinType = joinType;
     }
@@ -39,7 +35,6 @@ public class SchemaJoinRelation {
     public Schema getChildSchema() {
         return childSchema;
     }
-
     public void setChildSchema(Schema childSchema) {
         this.childSchema = childSchema;
     }

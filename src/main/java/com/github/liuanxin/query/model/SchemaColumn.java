@@ -25,9 +25,7 @@ public class SchemaColumn {
     /** 表列对应的实体的列名 */
     private String fieldName;
 
-    public SchemaColumn() {
-    }
-
+    public SchemaColumn() {}
     public SchemaColumn(String name, String desc, String alias, boolean primary,
                         Integer strLen, Class<?> columnType, String fieldName) {
         this.name = name;
@@ -42,7 +40,6 @@ public class SchemaColumn {
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -50,7 +47,6 @@ public class SchemaColumn {
     public String getDesc() {
         return desc;
     }
-
     public void setDesc(String desc) {
         this.desc = desc;
     }
@@ -58,7 +54,6 @@ public class SchemaColumn {
     public String getAlias() {
         return alias;
     }
-
     public void setAlias(String alias) {
         this.alias = alias;
     }
@@ -66,7 +61,6 @@ public class SchemaColumn {
     public boolean isPrimary() {
         return primary;
     }
-
     public void setPrimary(boolean primary) {
         this.primary = primary;
     }
@@ -74,7 +68,6 @@ public class SchemaColumn {
     public Integer getStrLen() {
         return strLen;
     }
-
     public void setStrLen(Integer strLen) {
         this.strLen = strLen;
     }
@@ -82,7 +75,6 @@ public class SchemaColumn {
     public Class<?> getColumnType() {
         return columnType;
     }
-
     public void setColumnType(Class<?> columnType) {
         this.columnType = columnType;
     }
@@ -90,7 +82,6 @@ public class SchemaColumn {
     public String getFieldName() {
         return fieldName;
     }
-
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
     }
@@ -100,9 +91,10 @@ public class SchemaColumn {
         if (this == o) return true;
         if (!(o instanceof SchemaColumn)) return false;
         SchemaColumn that = (SchemaColumn) o;
-        return primary == that.primary && strLen == that.strLen && name.equals(that.name)
-                && desc.equals(that.desc) && alias.equals(that.alias)
-                && columnType.equals(that.columnType) && fieldName.equals(that.fieldName);
+        return primary == that.primary && Objects.equals(name, that.name)
+                && Objects.equals(desc, that.desc) && Objects.equals(alias, that.alias)
+                && Objects.equals(strLen, that.strLen) && Objects.equals(columnType, that.columnType)
+                && Objects.equals(fieldName, that.fieldName);
     }
 
     @Override

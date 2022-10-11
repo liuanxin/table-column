@@ -19,9 +19,7 @@ public class RequestInfo {
     /** { [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderPrice" ] ] */
     private List<List<String>> relation;
 
-    public RequestInfo() {
-    }
-
+    public RequestInfo() {}
     public RequestInfo(String schema, ReqParam param, ResultType type, ReqResult result, List<List<String>> relation) {
         this.schema = schema;
         this.param = param;
@@ -33,7 +31,6 @@ public class RequestInfo {
     public String getSchema() {
         return schema;
     }
-
     public void setSchema(String schema) {
         this.schema = schema;
     }
@@ -41,7 +38,6 @@ public class RequestInfo {
     public ReqParam getParam() {
         return param;
     }
-
     public void setParam(ReqParam param) {
         this.param = param;
     }
@@ -49,7 +45,6 @@ public class RequestInfo {
     public ResultType getType() {
         return type;
     }
-
     public void setType(ResultType type) {
         this.type = type;
     }
@@ -57,7 +52,6 @@ public class RequestInfo {
     public ReqResult getResult() {
         return result;
     }
-
     public void setResult(ReqResult result) {
         this.result = result;
     }
@@ -65,7 +59,6 @@ public class RequestInfo {
     public List<List<String>> getRelation() {
         return relation;
     }
-
     public void setRelation(List<List<String>> relation) {
         this.relation = relation;
     }

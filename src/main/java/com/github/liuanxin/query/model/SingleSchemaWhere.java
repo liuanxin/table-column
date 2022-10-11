@@ -95,9 +95,7 @@ public class SingleSchemaWhere {
     /** 条件 */
     private List<Object> conditions;
 
-    public SingleSchemaWhere() {
-    }
-
+    public SingleSchemaWhere() {}
     public SingleSchemaWhere(OperateType operate, List<Object> conditions) {
         this.operate = operate;
         this.conditions = conditions;
@@ -106,7 +104,6 @@ public class SingleSchemaWhere {
     public OperateType getOperate() {
         return operate;
     }
-
     public void setOperate(OperateType operate) {
         this.operate = operate;
     }
@@ -114,7 +111,6 @@ public class SingleSchemaWhere {
     public List<Object> getConditions() {
         return conditions;
     }
-
     public void setConditions(List<Object> conditions) {
         this.conditions = conditions;
     }

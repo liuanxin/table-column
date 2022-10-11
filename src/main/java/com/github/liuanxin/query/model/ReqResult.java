@@ -71,9 +71,7 @@ public class ReqResult {
     /** 表里的列 */
     private List<Object> columns;
 
-    public ReqResult() {
-    }
-
+    public ReqResult() {}
     public ReqResult(String schema, List<Object> columns) {
         this.schema = schema;
         this.columns = columns;
@@ -82,7 +80,6 @@ public class ReqResult {
     public String getSchema() {
         return schema;
     }
-
     public void setSchema(String schema) {
         this.schema = schema;
     }
@@ -90,7 +87,6 @@ public class ReqResult {
     public List<Object> getColumns() {
         return columns;
     }
-
     public void setColumns(List<Object> columns) {
         this.columns = columns;
     }

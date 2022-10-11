@@ -12,7 +12,9 @@ public class SchemaColumnRelation {
     private String oneOrManySchema;
     private String oneOrManyColumn;
 
-    public SchemaColumnRelation(String oneSchema, String oneColumn, SchemaRelationType type, String oneOrManySchema, String oneOrManyColumn) {
+    public SchemaColumnRelation() {}
+    public SchemaColumnRelation(String oneSchema, String oneColumn, SchemaRelationType type,
+                                String oneOrManySchema, String oneOrManyColumn) {
         this.oneSchema = oneSchema;
         this.oneColumn = oneColumn;
         this.type = type;
@@ -23,7 +25,6 @@ public class SchemaColumnRelation {
     public String getOneSchema() {
         return oneSchema;
     }
-
     public void setOneSchema(String oneSchema) {
         this.oneSchema = oneSchema;
     }
@@ -31,7 +32,6 @@ public class SchemaColumnRelation {
     public String getOneColumn() {
         return oneColumn;
     }
-
     public void setOneColumn(String oneColumn) {
         this.oneColumn = oneColumn;
     }
@@ -39,7 +39,6 @@ public class SchemaColumnRelation {
     public SchemaRelationType getType() {
         return type;
     }
-
     public void setType(SchemaRelationType type) {
         this.type = type;
     }
@@ -47,7 +46,6 @@ public class SchemaColumnRelation {
     public String getOneOrManySchema() {
         return oneOrManySchema;
     }
-
     public void setOneOrManySchema(String oneOrManySchema) {
         this.oneOrManySchema = oneOrManySchema;
     }
@@ -55,7 +53,6 @@ public class SchemaColumnRelation {
     public String getOneOrManyColumn() {
         return oneOrManyColumn;
     }
-
     public void setOneOrManyColumn(String oneOrManyColumn) {
         this.oneOrManyColumn = oneOrManyColumn;
     }

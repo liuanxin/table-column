@@ -8,19 +8,16 @@ import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QueryScanUtil;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
-public class QuerySchemaInfoHandler {
-
-    private static final Lock LOCK = new ReentrantLock();
+public class QuerySchemaInfoHandler implements InitializingBean {
 
     @Value("${query.scan-packages:}")
     private String scanPackages;
@@ -31,37 +28,16 @@ public class QuerySchemaInfoHandler {
     private SchemaColumnInfo scInfo;
 
     private final JdbcTemplate jdbcTemplate;
+
     public QuerySchemaInfoHandler(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void setScanPackages(String scanPackages) {
-        String oldPackages = this.scanPackages;
-        this.scanPackages = scanPackages;
-        if (!Objects.equals(oldPackages, scanPackages)) {
-            init();
-        }
-    }
-    public void setDeepMaxPageSize(int deepMaxPageSize) {
-        this.deepMaxPageSize = deepMaxPageSize;
+    @Override
+    public void afterPropertiesSet() {
+        scInfo = (scanPackages == null || scanPackages.isEmpty()) ? initWithDb() : QueryScanUtil.scanSchema(scanPackages);
     }
 
-    private void init() {
-        if (scInfo == null) {
-            LOCK.lock();
-            try {
-                if (scInfo == null) {
-                    if (scanPackages == null || scanPackages.isEmpty()) {
-                        scInfo = initWithDb();
-                    } else {
-                        scInfo = QueryScanUtil.scanSchema(scanPackages);
-                    }
-                }
-            } finally {
-                LOCK.unlock();
-            }
-        }
-    }
     private SchemaColumnInfo initWithDb() {
         Map<String, String> aliasMap = new HashMap<>();
         Map<String, Schema> schemaMap = new LinkedHashMap<>();
@@ -148,7 +124,6 @@ public class QuerySchemaInfoHandler {
 
 
     public List<QueryInfo> info(String schemas) {
-        init();
         Set<String> schemaSet = new LinkedHashSet<>();
         if (schemas != null && !schemas.isEmpty()) {
             for (String te : schemas.split(",")) {
@@ -185,7 +160,6 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(obj.getClass());
         if (schema == null) {
             return 0;
@@ -204,12 +178,15 @@ public class QuerySchemaInfoHandler {
         return insertBatch(list, 500, false);
     }
 
+    public <T> int insertBatch(List<T> list, int singleCount) {
+        return insertBatch(list, singleCount, false);
+    }
+
     public <T> int insertBatch(List<T> list, int singleCount, boolean generateNullField) {
         if (list == null || list.isEmpty()) {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(list.get(0).getClass());
         if (schema == null) {
             return 0;
@@ -233,7 +210,6 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(clazz);
         if (schema == null) {
             return 0;
@@ -246,7 +222,6 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(clazz);
         if (schema == null) {
             return 0;
@@ -259,7 +234,6 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(clazz);
         if (schema == null) {
             return 0;
@@ -280,7 +254,6 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(updateObj.getClass());
         if (schema == null) {
             return 0;
@@ -293,7 +266,6 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(updateObj.getClass());
         if (schema == null) {
             return 0;
@@ -310,7 +282,6 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
-        init();
         Schema schema = scInfo.findSchemaByClass(updateObj.getClass());
         if (schema == null) {
             return 0;
@@ -327,7 +298,6 @@ public class QuerySchemaInfoHandler {
 
 
     public Object query(RequestInfo req) {
-        init();
         req.checkSchema(scInfo);
         Set<String> paramSchemaSet = req.checkParam(scInfo);
 

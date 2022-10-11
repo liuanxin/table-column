@@ -2,7 +2,6 @@ package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.annotation.ColumnInfo;
 import com.github.liuanxin.query.annotation.SchemaInfo;
-import com.github.liuanxin.query.model.SupplierSerialize;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
