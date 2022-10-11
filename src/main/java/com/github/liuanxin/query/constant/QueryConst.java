@@ -53,7 +53,7 @@ public final class QueryConst {
     );
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    public static final List<String> DATE_FORMAT_LIST = Arrays.asList(
+    public static final List<String> DATE_PATTERN_LIST = Arrays.asList(
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
             "yyyy-MM-dd'T'HH:mm:ss",
             "yyyy/MM/dd HH:mm:ss",

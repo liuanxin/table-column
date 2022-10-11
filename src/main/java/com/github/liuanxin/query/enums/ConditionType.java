@@ -212,7 +212,7 @@ public enum ConditionType {
         return value + "(" + msg + ")";
     }
 
-    public void checkTypeAndValue(Class<?> type, String column, Object value, int strLen) {
+    public void checkTypeAndValue(Class<?> type, String column, Object value, Integer strLen) {
         checkType(type);
         checkValue(type, column, value, strLen);
     }
@@ -346,7 +346,7 @@ public enum ConditionType {
         }
     }
 
-    private void checkValue(Class<?> type, String column, Object value, int strLen) {
+    private void checkValue(Class<?> type, String column, Object value, Integer strLen) {
         if (value != null) {
             if (MULTI_TYPE.contains(this)) {
                 if (value instanceof Collection<?>) {
@@ -363,13 +363,13 @@ public enum ConditionType {
             }
         }
     }
-    private void checkValueType(Class<?> type, String column, Object value, int strLen) {
+    private void checkValueType(Class<?> type, String column, Object value, Integer strLen) {
         Object obj = toValue(type, value);
         if (obj == null) {
             throw new RuntimeException(String.format("column(%s) data(%s) has not %s type",
                     column, value, type.getSimpleName().toLowerCase()));
         }
-        if (strLen > 0 && obj.toString().length() > strLen) {
+        if (strLen != null && strLen > 0 && obj.toString().length() > strLen) {
             throw new RuntimeException(String.format("column(%s) data(%s) length can only be <= %s", column, value, strLen));
         }
     }

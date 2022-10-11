@@ -5,6 +5,7 @@ import com.github.liuanxin.query.enums.ResultType;
 import com.github.liuanxin.query.enums.SchemaRelationType;
 import com.github.liuanxin.query.model.*;
 import com.github.liuanxin.query.util.QueryJsonUtil;
+import com.github.liuanxin.query.util.QueryScanUtil;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +14,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 public class QuerySchemaInfoHandler {
+
+    private static final Lock LOCK = new ReentrantLock();
 
     @Value("${query.scan-packages:}")
     private String scanPackages;
@@ -23,16 +28,38 @@ public class QuerySchemaInfoHandler {
     @Value("${query.deep-max-page-size:10000}")
     private int deepMaxPageSize;
 
-    private final JdbcTemplate jdbcTemplate;
-    private final SchemaColumnInfo scInfo;
+    private SchemaColumnInfo scInfo;
 
+    private final JdbcTemplate jdbcTemplate;
     public QuerySchemaInfoHandler(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
 
-        if (scanPackages == null || scanPackages.isEmpty()) {
-            this.scInfo = initWithDb();
-        } else {
-            this.scInfo = QueryUtil.scanSchema(scanPackages);
+    public void setScanPackages(String scanPackages) {
+        String oldPackages = this.scanPackages;
+        this.scanPackages = scanPackages;
+        if (!Objects.equals(oldPackages, scanPackages)) {
+            init();
+        }
+    }
+    public void setDeepMaxPageSize(int deepMaxPageSize) {
+        this.deepMaxPageSize = deepMaxPageSize;
+    }
+
+    private void init() {
+        if (scInfo == null) {
+            LOCK.lock();
+            try {
+                if (scInfo == null) {
+                    if (scanPackages == null || scanPackages.isEmpty()) {
+                        scInfo = initWithDb();
+                    } else {
+                        scInfo = QueryScanUtil.scanSchema(scanPackages);
+                    }
+                }
+            } finally {
+                LOCK.unlock();
+            }
         }
     }
     private SchemaColumnInfo initWithDb() {
@@ -89,7 +116,7 @@ public class QuerySchemaInfoHandler {
                 String columnAlias = QueryUtil.columnNameToAlias(columnName);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
-                int strLen = QueryUtil.toInt(QueryUtil.toStr(columnInfo.get("cml")));
+                Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
 
                 aliasMap.put(QueryConst.COLUMN_PREFIX + columnName, columnAlias);
                 columnMap.put(columnAlias, new SchemaColumn(columnName, columnDesc,
@@ -121,6 +148,7 @@ public class QuerySchemaInfoHandler {
 
 
     public List<QueryInfo> info(String schemas) {
+        init();
         Set<String> schemaSet = new LinkedHashSet<>();
         if (schemas != null && !schemas.isEmpty()) {
             for (String te : schemas.split(",")) {
@@ -136,7 +164,7 @@ public class QuerySchemaInfoHandler {
                 List<QueryInfo.QueryColumn> columnList = new ArrayList<>();
                 for (SchemaColumn sc : schema.getColumnMap().values()) {
                     String type = sc.getColumnType().getSimpleName();
-                    Integer length = (sc.getStrLen() == 0) ? null : sc.getStrLen();
+                    Integer length = sc.getStrLen();
                     SchemaColumnRelation relation = scInfo.findRelationByChild(schema.getName(), sc.getName());
                     String schemaColumn = (relation == null) ? null : (relation.getOneSchema() + "." + relation.getOneColumn());
                     columnList.add(new QueryInfo.QueryColumn(sc.getAlias(), sc.getDesc(), type, length, schemaColumn));
@@ -157,6 +185,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(obj.getClass());
         if (schema == null) {
             return 0;
@@ -180,6 +209,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(list.get(0).getClass());
         if (schema == null) {
             return 0;
@@ -203,6 +233,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(clazz);
         if (schema == null) {
             return 0;
@@ -215,6 +246,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(clazz);
         if (schema == null) {
             return 0;
@@ -227,6 +259,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(clazz);
         if (schema == null) {
             return 0;
@@ -247,6 +280,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(updateObj.getClass());
         if (schema == null) {
             return 0;
@@ -259,6 +293,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(updateObj.getClass());
         if (schema == null) {
             return 0;
@@ -275,6 +310,7 @@ public class QuerySchemaInfoHandler {
             return 0;
         }
 
+        init();
         Schema schema = scInfo.findSchemaByClass(updateObj.getClass());
         if (schema == null) {
             return 0;
@@ -291,6 +327,7 @@ public class QuerySchemaInfoHandler {
 
 
     public Object query(RequestInfo req) {
+        init();
         req.checkSchema(scInfo);
         Set<String> paramSchemaSet = req.checkParam(scInfo);
 

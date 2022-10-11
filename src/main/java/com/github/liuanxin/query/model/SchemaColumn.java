@@ -17,7 +17,7 @@ public class SchemaColumn {
     private boolean primary;
 
     /** 字符串长度 */
-    private int strLen;
+    private Integer strLen;
 
     /** 表列对应的实体的类型 */
     private Class<?> columnType;
@@ -29,7 +29,7 @@ public class SchemaColumn {
     }
 
     public SchemaColumn(String name, String desc, String alias, boolean primary,
-                        int strLen, Class<?> columnType, String fieldName) {
+                        Integer strLen, Class<?> columnType, String fieldName) {
         this.name = name;
         this.desc = desc;
         this.alias = alias;
@@ -71,11 +71,11 @@ public class SchemaColumn {
         this.primary = primary;
     }
 
-    public int getStrLen() {
+    public Integer getStrLen() {
         return strLen;
     }
 
-    public void setStrLen(int strLen) {
+    public void setStrLen(Integer strLen) {
         this.strLen = strLen;
     }
 
