@@ -60,8 +60,8 @@ import java.util.*;
  *     [ "stu", "group_concat", "name", "lks", "aaa" ]
  *   ]
  * }
- * 第一个参数表示接口响应回去时的属性, 第二个参数是函数(只支持上面 6 种), 第三个参数是函数中的列,
- * 每四个和第五个参数表示 HAVING 过滤时的条件, 只支持 AND 条件过滤, 复杂的嵌套暂没有想到好的抽象方式
+ * 第一个参数表示接口响应回去时的属性, 第二个参数是函数(只支持 COUNT SUM MIN MAX AVG GROUP_CONCAT 这几种)
+ * 第三个参数是函数中的列, 每四个和第五个参数表示 HAVING 过滤时的条件
  * </pre>
  */
 public class ReqResult {
@@ -390,6 +390,7 @@ public class ReqResult {
     }
 
     public String generateHavingSql(String mainSchema, boolean needAlias, SchemaColumnInfo scInfo, List<Object> params) {
+        // 只支持 AND 条件过滤, 复杂的嵌套暂没有想到好的抽象方式
         StringJoiner groupSj = new StringJoiner(" AND ");
         for (Object obj : columns) {
             if (obj instanceof List<?>) {
