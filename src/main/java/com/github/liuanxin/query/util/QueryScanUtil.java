@@ -113,7 +113,7 @@ public class QueryScanUtil {
                     columnDesc = columnInfo.desc();
                     columnAlias = QueryUtil.defaultIfBlank(columnInfo.alias(), columnName);
                     primary = columnInfo.primary();
-                    strLen = (columnInfo.varcharLength() <= 0) ? null : columnInfo.varcharLength();
+                    strLen = columnInfo.varcharLength();
 
                     // 用类名 + 列名
                     String schemaAndColumn = schemaName + "." + columnName;
@@ -137,8 +137,8 @@ public class QueryScanUtil {
                 columnAliasSet.add(columnAlias);
 
                 aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
-                columnMap.put(columnName, new SchemaColumn(columnName, columnDesc,
-                        columnAlias, primary, strLen, fieldType, fieldName));
+                columnMap.put(columnName, new SchemaColumn(columnName, columnDesc, columnAlias, primary,
+                        ((strLen == null || strLen <= 0) ? null : strLen), fieldType, fieldName));
             }
             aliasMap.put(QueryConst.SCHEMA_PREFIX + schemaAlias, schemaName);
             schemaClassMap.put(clazz.getName(), schemaName);

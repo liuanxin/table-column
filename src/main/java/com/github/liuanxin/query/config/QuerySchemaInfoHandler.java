@@ -119,8 +119,8 @@ public class QuerySchemaInfoHandler {
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
 
                 aliasMap.put(QueryConst.COLUMN_PREFIX + columnName, columnAlias);
-                columnMap.put(columnAlias, new SchemaColumn(columnName, columnDesc,
-                        columnAlias, primary, strLen, fieldType, columnAlias));
+                columnMap.put(columnAlias, new SchemaColumn(columnName, columnDesc, columnAlias, primary,
+                        ((strLen == null || strLen <= 0) ? null : strLen), fieldType, columnAlias));
             }
             aliasMap.put(QueryConst.SCHEMA_PREFIX + schemaName, schemaAlias);
             schemaMap.put(schemaAlias, new Schema(schemaName, schemaDesc, schemaAlias, columnMap));
