@@ -1,6 +1,6 @@
 package com.github.liuanxin.query.enums;
 
-public enum SchemaRelationType {
+public enum TableRelationType {
 
     NULL,
 

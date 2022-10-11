@@ -88,15 +88,15 @@ import java.util.*;
  * }
  * </pre>
  */
-public class SingleSchemaWhere {
+public class SingleTableWhere {
 
     /** 条件拼接类型: 并且(and) 和 或者(or) 两种, 不设置则默认是 and */
     private OperateType operate;
     /** 条件 */
     private List<Object> conditions;
 
-    public SingleSchemaWhere() {}
-    public SingleSchemaWhere(OperateType operate, List<Object> conditions) {
+    public SingleTableWhere() {}
+    public SingleTableWhere(OperateType operate, List<Object> conditions) {
         this.operate = operate;
         this.conditions = conditions;
     }
@@ -118,8 +118,8 @@ public class SingleSchemaWhere {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SingleSchemaWhere)) return false;
-        SingleSchemaWhere that = (SingleSchemaWhere) o;
+        if (!(o instanceof SingleTableWhere)) return false;
+        SingleTableWhere that = (SingleTableWhere) o;
         return operate == that.operate && Objects.equals(conditions, that.conditions);
     }
 
@@ -130,26 +130,26 @@ public class SingleSchemaWhere {
 
     @Override
     public String toString() {
-        return "SingleSchemaWhere{" +
+        return "SingleTableWhere{" +
                 "operate=" + operate +
                 ", conditions=" + conditions +
                 '}';
     }
 
 
-    public static SingleSchemaWhere buildId(String idField, Serializable id) {
-        return new SingleSchemaWhere(null, Collections.singletonList(
+    public static SingleTableWhere buildId(String idField, Serializable id) {
+        return new SingleTableWhere(null, Collections.singletonList(
                 Arrays.asList(idField, id)
         ));
     }
 
-    public static SingleSchemaWhere buildIds(String idField, List<Serializable> ids) {
-        return new SingleSchemaWhere(null, Collections.singletonList(
+    public static SingleTableWhere buildIds(String idField, List<Serializable> ids) {
+        return new SingleTableWhere(null, Collections.singletonList(
                 Arrays.asList(idField, ConditionType.IN, ids)
         ));
     }
 
-    public String generateSql(String schema, SchemaColumnInfo scInfo, List<Object> params) {
+    public String generateSql(String table, TableColumnInfo tcInfo, List<Object> params) {
         if (conditions == null || conditions.isEmpty()) {
             return "";
         }
@@ -167,8 +167,8 @@ public class SingleSchemaWhere {
                         Object value = list.get(standardSize ? 1 : 2);
                         ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
 
-                        Class<?> columnType = scInfo.findSchemaColumn(schema, column).getColumnType();
-                        String useColumn = QueryUtil.getUseColumn(false, column, schema, scInfo);
+                        Class<?> columnType = tcInfo.findTableColumn(table, column).getColumnType();
+                        String useColumn = QueryUtil.getUseColumn(false, column, table, tcInfo);
                         String sql = type.generateSql(useColumn, columnType, value, params);
                         if (!sql.isEmpty()) {
                             sj.add(sql);
@@ -177,7 +177,7 @@ public class SingleSchemaWhere {
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (compose != null) {
-                        String innerWhereSql = compose.generateSql(schema, scInfo, false, params);
+                        String innerWhereSql = compose.generateSql(table, tcInfo, false, params);
                         if (!innerWhereSql.isEmpty()) {
                             sj.add("( " + innerWhereSql + " )");
                         }

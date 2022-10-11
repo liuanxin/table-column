@@ -1,7 +1,7 @@
 package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.annotation.ColumnInfo;
-import com.github.liuanxin.query.annotation.SchemaInfo;
+import com.github.liuanxin.query.annotation.TableInfo;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
@@ -73,10 +73,10 @@ public final class QueryLambdaUtil {
         }
     }
 
-    public static SchemaInfo lambdaToSchemaInfo(SupplierSerialize<?> supplier) {
+    public static TableInfo lambdaToTableInfo(SupplierSerialize<?> supplier) {
         SerializedLambda lambda = toLambdaMataInfo(supplier);
         Class<?> clazz = lambdaToClass(lambda);
-        return clazz.getAnnotation(SchemaInfo.class);
+        return clazz.getAnnotation(TableInfo.class);
     }
 
     public static ColumnInfo lambdaToColumnInfo(SupplierSerialize<?> supplier) {

@@ -6,7 +6,7 @@ import com.github.liuanxin.query.util.QueryUtil;
 import java.lang.reflect.Field;
 import java.util.*;
 
-public class Schema {
+public class Table {
 
     /** 表名 */
     private String name;
@@ -18,13 +18,13 @@ public class Schema {
     private String alias;
 
     /** 列信息 */
-    private Map<String, SchemaColumn> columnMap;
+    private Map<String, TableColumn> columnMap;
 
     /** 主键列 */
     private List<String> idKey;
 
-    public Schema() {}
-    public Schema(String name, String desc, String alias, Map<String, SchemaColumn> columnMap) {
+    public Table() {}
+    public Table(String name, String desc, String alias, Map<String, TableColumn> columnMap) {
         this.name = name;
         this.desc = desc;
         this.alias = alias;
@@ -32,9 +32,9 @@ public class Schema {
 
         List<String> idKey = new ArrayList<>();
         if (!columnMap.isEmpty()) {
-            for (SchemaColumn schemaColumn : columnMap.values()) {
-                if (schemaColumn.isPrimary()) {
-                    idKey.add(schemaColumn.getName());
+            for (TableColumn tableColumn : columnMap.values()) {
+                if (tableColumn.isPrimary()) {
+                    idKey.add(tableColumn.getName());
                 }
             }
         }
@@ -63,10 +63,10 @@ public class Schema {
         this.alias = alias;
     }
 
-    public Map<String, SchemaColumn> getColumnMap() {
+    public Map<String, TableColumn> getColumnMap() {
         return columnMap;
     }
-    public void setColumnMap(Map<String, SchemaColumn> columnMap) {
+    public void setColumnMap(Map<String, TableColumn> columnMap) {
         this.columnMap = columnMap;
     }
 
@@ -80,11 +80,11 @@ public class Schema {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Schema)) return false;
-        Schema schema = (Schema) o;
-        return Objects.equals(name, schema.name) && Objects.equals(desc, schema.desc)
-                && Objects.equals(alias, schema.alias) && Objects.equals(columnMap, schema.columnMap)
-                && Objects.equals(idKey, schema.idKey);
+        if (!(o instanceof Table)) return false;
+        Table table = (Table) o;
+        return Objects.equals(name, table.name) && Objects.equals(desc, table.desc)
+                && Objects.equals(alias, table.alias) && Objects.equals(columnMap, table.columnMap)
+                && Objects.equals(idKey, table.idKey);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class Schema {
 
     @Override
     public String toString() {
-        return "Schema{" +
+        return "Table{" +
                 "name='" + name + '\'' +
                 ", desc='" + desc + '\'' +
                 ", alias='" + alias + '\'' +
@@ -130,13 +130,71 @@ public class Schema {
     }
 
 
+    public String generateInsertMap(Map<String, Object> data, boolean generateNullField, List<Object> params) {
+        return firstInsertMap(data, generateNullField, new ArrayList<>(), params);
+    }
+    private <T> String firstInsertMap(Map<String, Object> data, boolean generateNullField,
+                                   List<String> placeholderList, List<Object> params) {
+        StringJoiner sj = new StringJoiner(", ");
+        for (TableColumn column : columnMap.values()) {
+            Object obj = data.get(column.getAlias());
+            if (obj != null || generateNullField) {
+                sj.add(QuerySqlUtil.toSqlField(column.getName()));
+                placeholderList.add("?");
+                params.add(obj);
+            }
+        }
+        if (sj.length() == 0) {
+            return null;
+        }
+        String table = QuerySqlUtil.toSqlField(name);
+        String values = String.join(", ", placeholderList);
+        return "INSERT INTO " + table + "(" + sj + ") VALUES (" + values + ")";
+    }
+    public String generateBatchInsertMap(List<Map<String, Object>> list, boolean generateNullField, List<Object> params) {
+        Map<String, Object> first = QueryUtil.first(list);
+        List<String> placeholderList = new ArrayList<>();
+        String sql = firstInsertMap(first, generateNullField, placeholderList, params);
+        if (sql == null) {
+            return null;
+        }
+
+        StringJoiner sj = new StringJoiner(", ");
+        if (list.size() > 1) {
+            List<String> errorList = new ArrayList<>();
+            int ps = placeholderList.size();
+            for (int i = 1; i < list.size(); i++) {
+                Map<String, Object> data = list.get(i);
+                List<String> values = new ArrayList<>();
+                for (TableColumn column : columnMap.values()) {
+                    Object obj = data.get(column.getAlias());
+                    if (obj != null || generateNullField) {
+                        values.add("?");
+                        params.add(obj);
+                    }
+                }
+                int vs = values.size();
+                if (vs != ps) {
+                    errorList.add((i + 1) + " : " + vs);
+                }
+                if (!values.isEmpty()) {
+                    sj.add("(" + String.join(", ", values) + ")");
+                }
+            }
+            if (!errorList.isEmpty()) {
+                throw new RuntimeException("field number error. 1 : " + ps + " but " + errorList);
+            }
+        }
+        return (sj.length() == 0) ? sql : (sql + ", " + sj);
+    }
+
     public <T> String generateInsert(T obj, boolean generateNullField, List<Object> params) {
         return firstInsert(obj, obj.getClass(), generateNullField, new ArrayList<>(), params);
     }
     private <T> String firstInsert(T obj, Class<?> clazz, boolean generateNullField,
                                    List<String> placeholderList, List<Object> params) {
         List<String> fieldList = new ArrayList<>();
-        for (SchemaColumn column : columnMap.values()) {
+        for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
             Field field = QueryUtil.getField(clazz, fieldName);
             if (field != null) {
@@ -153,13 +211,13 @@ public class Schema {
                 }
             }
         }
-        if (fieldList.isEmpty() || placeholderList.isEmpty()) {
+        if (fieldList.isEmpty()) {
             return null;
         }
-        String schema = QuerySqlUtil.toSqlField(name);
+        String table = QuerySqlUtil.toSqlField(name);
         String fields = String.join(", ", fieldList);
         String values = String.join(", ", placeholderList);
-        return "INSERT INTO " + schema + "(" + fields + ") VALUES (" + values + ")";
+        return "INSERT INTO " + table + "(" + fields + ") VALUES (" + values + ")";
     }
     public <T> String generateBatchInsert(List<T> list, boolean generateNullField, List<Object> params) {
         T first = QueryUtil.first(list);
@@ -177,7 +235,7 @@ public class Schema {
             for (int i = 1; i < list.size(); i++) {
                 T obj = list.get(i);
                 List<String> values = new ArrayList<>();
-                for (SchemaColumn column : columnMap.values()) {
+                for (TableColumn column : columnMap.values()) {
                     String fieldName = column.getFieldName();
                     Field field = QueryUtil.getField(clazz, fieldName);
                     if (field != null) {
@@ -209,21 +267,36 @@ public class Schema {
         return multiValues.isEmpty() ? sql : (sql + ", " + String.join(", ", multiValues));
     }
 
-    public String generateDelete(SingleSchemaWhere query, SchemaColumnInfo scInfo, List<Object> params) {
+
+    public String generateDelete(SingleTableWhere query, TableColumnInfo scInfo, List<Object> params) {
         String where = query.generateSql(name, scInfo, params);
         if (where == null || where.isEmpty()) {
             return null;
         }
 
-        String schema = QuerySqlUtil.toSqlField(name);
-        return "DELETE FROM " + schema + " WHERE " + where;
+        String table = QuerySqlUtil.toSqlField(name);
+        return "DELETE FROM " + table + " WHERE " + where;
     }
 
-    public <T> String generateUpdate(T updateObj, boolean generateNullField, SingleSchemaWhere query,
-                                     SchemaColumnInfo scInfo, List<Object> params) {
+
+    public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField, SingleTableWhere query,
+                                 TableColumnInfo scInfo, List<Object> params) {
+        List<String> setList = new ArrayList<>();
+        for (TableColumn column : columnMap.values()) {
+            Object data = updateObj.get(column.getAlias());
+            if (data != null || generateNullField) {
+                setList.add(QuerySqlUtil.toSqlField(column.getName()) + " = ?");
+                params.add(data);
+            }
+        }
+        return update(query, scInfo, params, setList);
+    }
+
+    public <T> String generateUpdate(T updateObj, boolean generateNullField, SingleTableWhere query,
+                                     TableColumnInfo scInfo, List<Object> params) {
         List<String> setList = new ArrayList<>();
         Class<?> clazz = updateObj.getClass();
-        for (SchemaColumn column : columnMap.values()) {
+        for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
             Field field = QueryUtil.getField(clazz, fieldName);
             if (field != null) {
@@ -239,6 +312,10 @@ public class Schema {
                 }
             }
         }
+        return update(query, scInfo, params, setList);
+    }
+
+    private String update(SingleTableWhere query, TableColumnInfo scInfo, List<Object> params, List<String> setList) {
         if (setList.isEmpty()) {
             return null;
         }
@@ -249,7 +326,7 @@ public class Schema {
         }
 
         String set = String.join(", ", setList);
-        String schema = QuerySqlUtil.toSqlField(name);
-        return "UPDATE " + schema + " SET " + set + " WHERE " + where;
+        String table = QuerySqlUtil.toSqlField(name);
+        return "UPDATE " + table + " SET " + set + " WHERE " + where;
     }
 }

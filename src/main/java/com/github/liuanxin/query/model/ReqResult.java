@@ -27,11 +27,11 @@ import java.util.*;
  *     "update_time",  -- format pattern default: yyyy-MM-dd HH:mm:ss
  *     {
  *       "address": {
- *         "schema": "orderAddress",
+ *         "table": "orderAddress",
  *         "columns": [ "id", "address", "phone" ]
  *       },
  *       "items": {
- *         "schema": "orderItem",
+ *         "table": "orderItem",
  *         "columns": [ "id", "name", "price" ]
  *       }
  *     }
@@ -67,21 +67,21 @@ import java.util.*;
 public class ReqResult {
 
     /** 表 */
-    private String schema;
+    private String table;
     /** 表里的列 */
     private List<Object> columns;
 
     public ReqResult() {}
-    public ReqResult(String schema, List<Object> columns) {
-        this.schema = schema;
+    public ReqResult(String table, List<Object> columns) {
+        this.table = table;
         this.columns = columns;
     }
 
-    public String getSchema() {
-        return schema;
+    public String getTable() {
+        return table;
     }
-    public void setSchema(String schema) {
-        this.schema = schema;
+    public void setTable(String table) {
+        this.table = table;
     }
 
     public List<Object> getColumns() {
@@ -96,34 +96,34 @@ public class ReqResult {
         if (this == o) return true;
         if (!(o instanceof ReqResult)) return false;
         ReqResult reqResult = (ReqResult) o;
-        return Objects.equals(schema, reqResult.schema) && Objects.equals(columns, reqResult.columns);
+        return Objects.equals(table, reqResult.table) && Objects.equals(columns, reqResult.columns);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(schema, columns);
+        return Objects.hash(table, columns);
     }
 
     @Override
     public String toString() {
         return "ReqResult{" +
-                "schema='" + schema + '\'' +
+                "table='" + table + '\'' +
                 ", columns=" + columns +
                 '}';
     }
 
 
-    public Set<String> checkResult(String mainSchema, SchemaColumnInfo scInfo, Set<String> allSchemaSet) {
-        String currentSchema = (schema == null || schema.trim().isEmpty()) ? mainSchema : schema.trim();
-        Schema schemaInfo = scInfo.findSchema(currentSchema);
-        if (schemaInfo == null) {
-            throw new RuntimeException("result has no defined schema(" + currentSchema + ")");
+    public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo, Set<String> allTableSet) {
+        String currentTable = (table == null || table.trim().isEmpty()) ? mainTable : table.trim();
+        Table tableInfo = tcInfo.findTable(currentTable);
+        if (tableInfo == null) {
+            throw new RuntimeException("result has no defined table(" + currentTable + ")");
         }
         if (columns == null || columns.isEmpty()) {
-            throw new RuntimeException("result schema(" + currentSchema + ") need columns");
+            throw new RuntimeException("result table(" + currentTable + ") need columns");
         }
 
-        Set<String> resultFunctionSchemaSet = new LinkedHashSet<>();
+        Set<String> resultFunctionTableSet = new LinkedHashSet<>();
         Set<String> columnCheckRepeatedSet = new HashSet<>();
         List<Object> innerList = new ArrayList<>();
         boolean hasColumnOrFunction = false;
@@ -131,55 +131,55 @@ public class ReqResult {
             if (obj != null) {
                 if (obj instanceof String) {
                     String column = (String) obj;
-                    allSchemaSet.add(checkColumn(column, currentSchema, scInfo, columnCheckRepeatedSet).getName());
+                    allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getName());
                     hasColumnOrFunction = true;
                 } else if (obj instanceof List<?>) {
                     List<?> groups = (List<?>) obj;
                     if (groups.isEmpty()) {
-                        throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") error");
+                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") error");
                     }
                     int size = groups.size();
                     if (size < 3) {
-                        throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") data error");
+                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") data error");
                     }
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
                     if (group == null) {
-                        throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") type error");
+                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") type error");
                     }
                     String column = QueryUtil.toStr(groups.get(2));
                     if (column.isEmpty()) {
-                        throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") column error");
+                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") column error");
                     }
 
                     if (group == ResultGroup.COUNT_DISTINCT) {
                         for (String col : column.split(",")) {
-                            Schema sa = scInfo.findSchema(QueryUtil.getSchemaName(col.trim(), currentSchema));
+                            Table sa = tcInfo.findTable(QueryUtil.getTableName(col.trim(), currentTable));
                             if (sa == null) {
-                                throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") has no defined schema");
+                                throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined table");
                             }
-                            if (scInfo.findSchemaColumn(sa, QueryUtil.getColumnName(col.trim())) == null) {
-                                throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") has no defined column");
+                            if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(col.trim())) == null) {
+                                throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined column");
                             }
-                            resultFunctionSchemaSet.add(sa.getName());
-                            allSchemaSet.add(sa.getName());
+                            resultFunctionTableSet.add(sa.getName());
+                            allTableSet.add(sa.getName());
                         }
                     } else {
                         if (!(group == ResultGroup.COUNT && new HashSet<>(Arrays.asList("*", "1")).contains(column))) {
-                            Schema sa = scInfo.findSchema(QueryUtil.getSchemaName(column, currentSchema));
+                            Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
                             if (sa == null) {
-                                throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") has no defined schema");
+                                throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined table");
                             }
-                            if (scInfo.findSchemaColumn(sa, QueryUtil.getColumnName(column)) == null) {
-                                throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") has no defined column");
+                            if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column)) == null) {
+                                throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined column");
                             }
-                            resultFunctionSchemaSet.add(sa.getName());
-                            allSchemaSet.add(sa.getName());
+                            resultFunctionTableSet.add(sa.getName());
+                            allTableSet.add(sa.getName());
                         }
                     }
 
                     String functionColumn = group.generateColumn(column);
                     if (columnCheckRepeatedSet.contains(functionColumn)) {
-                        throw new RuntimeException("result schema(" + currentSchema + ") function(" + groups + ") has repeated");
+                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has repeated");
                     }
                     columnCheckRepeatedSet.add(functionColumn);
 
@@ -189,13 +189,13 @@ public class ReqResult {
                         for (int i = 3; i < evenSize; i += 2) {
                             ConditionType conditionType = ConditionType.deserializer(groups.get(i));
                             if (conditionType == null) {
-                                throw new RuntimeException("result schema(" + currentSchema + ") function("
+                                throw new RuntimeException("result table(" + currentTable + ") function("
                                         + groups + ") having condition error");
                             }
 
                             Object value = groups.get(i + 1);
                             if (group.checkNotHavingValue(value)) {
-                                throw new RuntimeException("result schema(" + currentSchema + ") function("
+                                throw new RuntimeException("result table(" + currentTable + ") function("
                                         + groups + ") having condition value(" + value + ") type error");
                             }
                         }
@@ -205,7 +205,7 @@ public class ReqResult {
                     Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
                     if (dateColumn != null) {
                         for (String column : dateColumn.keySet()) {
-                            allSchemaSet.add(checkColumn(column, currentSchema, scInfo, columnCheckRepeatedSet).getName());
+                            allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getName());
                         }
                         hasColumnOrFunction = true;
                     } else {
@@ -215,84 +215,84 @@ public class ReqResult {
             }
         }
         if (!hasColumnOrFunction) {
-            throw new RuntimeException("result schema(" + currentSchema + ") no columns");
+            throw new RuntimeException("result table(" + currentTable + ") no columns");
         }
 
         for (Object obj : innerList) {
             Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
             if (inner == null) {
-                throw new RuntimeException("result schema(" + currentSchema + ") relation(" + obj + ") error");
+                throw new RuntimeException("result table(" + currentTable + ") relation(" + obj + ") error");
             }
             for (Map.Entry<String, ReqResult> entry : inner.entrySet()) {
                 String column = entry.getKey();
                 ReqResult innerResult = entry.getValue();
                 if (innerResult == null) {
-                    throw new RuntimeException("result schema(" + currentSchema + ") relation column(" + column + ") error");
+                    throw new RuntimeException("result table(" + currentTable + ") relation column(" + column + ") error");
                 }
                 if (columnCheckRepeatedSet.contains(column)) {
-                    throw new RuntimeException("result schema(" + currentSchema + ") relation column(" + column + ") has repeated");
+                    throw new RuntimeException("result table(" + currentTable + ") relation column(" + column + ") has repeated");
                 }
                 columnCheckRepeatedSet.add(column);
-                String innerSchema = innerResult.getSchema();
-                if (innerSchema == null || innerSchema.isEmpty()) {
-                    throw new RuntimeException("result schema(" + currentSchema + ") inner(" + column + ") need schema");
+                String innerTable = innerResult.getTable();
+                if (innerTable == null || innerTable.isEmpty()) {
+                    throw new RuntimeException("result table(" + currentTable + ") inner(" + column + ") need table");
                 }
-                if (scInfo.findRelationByMasterChild(currentSchema, innerSchema) == null) {
-                    throw new RuntimeException("result " + currentSchema + " - " + column + " -" + innerSchema + " has no relation");
+                if (tcInfo.findRelationByMasterChild(currentTable, innerTable) == null) {
+                    throw new RuntimeException("result " + currentTable + " - " + column + " -" + innerTable + " has no relation");
                 }
-                innerResult.checkResult(innerSchema, scInfo, allSchemaSet);
+                innerResult.checkResult(innerTable, tcInfo, allTableSet);
             }
         }
-        return resultFunctionSchemaSet;
+        return resultFunctionTableSet;
     }
-    private Schema checkColumn(String column, String currentSchema, SchemaColumnInfo scInfo, Set<String> columnSet) {
+    private Table checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
         if (column.trim().isEmpty()) {
-            throw new RuntimeException("result schema(" + currentSchema + ") column can't be blank");
+            throw new RuntimeException("result table(" + currentTable + ") column can't be blank");
         }
 
         String col = column.trim();
-        Schema sa = scInfo.findSchema(QueryUtil.getSchemaName(col, currentSchema));
+        Table sa = tcInfo.findTable(QueryUtil.getTableName(col, currentTable));
         if (sa == null) {
-            throw new RuntimeException("result schema(" + currentSchema + ") column(" + col + ") has no defined schema");
+            throw new RuntimeException("result table(" + currentTable + ") column(" + col + ") has no defined table");
         }
-        if (scInfo.findSchemaColumn(sa, QueryUtil.getColumnName(col)) == null) {
-            throw new RuntimeException("result schema(" + currentSchema + ") column(" + col + ") has no defined column");
+        if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(col)) == null) {
+            throw new RuntimeException("result table(" + currentTable + ") column(" + col + ") has no defined column");
         }
 
         if (columnSet.contains(col)) {
-            throw new RuntimeException("result schema(" + currentSchema + ") column(" + col + ") has repeated");
+            throw new RuntimeException("result table(" + currentTable + ") column(" + col + ") has repeated");
         }
         columnSet.add(col);
         return sa;
     }
 
-    public String generateAllSelectSql(String mainSchema, SchemaColumnInfo scInfo, Set<String> schemaSet) {
+    public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, Set<String> tableSet) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        columnNameSet.addAll(selectColumn(mainSchema, scInfo, schemaSet));
-        columnNameSet.addAll(innerColumn(mainSchema, scInfo, !schemaSet.isEmpty()));
+        columnNameSet.addAll(selectColumn(mainTable, tcInfo, tableSet));
+        columnNameSet.addAll(innerColumn(mainTable, tcInfo, !tableSet.isEmpty()));
         return String.join(", ", columnNameSet);
     }
 
-    public Set<String> selectColumn(String mainSchema, SchemaColumnInfo scInfo, Set<String> schemaSet) {
+    public Set<String> selectColumn(String mainTable, TableColumnInfo tcInfo, Set<String> tableSet) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        boolean needAlias = !schemaSet.isEmpty();
-        String currentSchemaName = (schema == null || schema.isEmpty()) ? mainSchema : schema.trim();
-        columnNameSet.add(scInfo.findSchema(currentSchemaName).idSelect(needAlias));
+        boolean needAlias = !tableSet.isEmpty();
+        String currentTableName = (table == null || table.isEmpty()) ? mainTable : table.trim();
+        columnNameSet.add(tcInfo.findTable(currentTableName).idSelect(needAlias));
         for (Object obj : columns) {
             if (obj instanceof String) {
                 String col = ((String) obj).trim();
-                String schemaName = QueryUtil.getSchemaName(col, currentSchemaName);
-                if (schemaName.equals(currentSchemaName) || schemaSet.contains(schemaName)) {
-                    columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, col, currentSchemaName, scInfo));
+                String tableName = QueryUtil.getTableName(col, currentTableName);
+                if (tableName.equals(currentTableName) || tableSet.contains(tableName)) {
+                    columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, col, currentTableName, tcInfo));
                 }
             } else {
                 Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
                 if (dateColumn != null) {
                     for (String column : dateColumn.keySet()) {
                         String col = column.trim();
-                        String schemaName = QueryUtil.getSchemaName(col, currentSchemaName);
-                        if (schemaName.equals(currentSchemaName) || schemaSet.contains(schemaName)) {
-                            columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, col, currentSchemaName, scInfo));
+                        String tableName = QueryUtil.getTableName(col, currentTableName);
+                        if (tableName.equals(currentTableName) || tableSet.contains(tableName)) {
+                            columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, col, currentTableName, tcInfo));
                         }
                     }
                 }
@@ -301,16 +301,16 @@ public class ReqResult {
         return columnNameSet;
     }
 
-    public Set<String> innerColumn(String mainSchema, SchemaColumnInfo scInfo, boolean needAlias) {
+    public Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        String currentSchemaName = (schema == null || schema.isEmpty()) ? mainSchema : schema.trim();
+        String currentTableName = (table == null || table.isEmpty()) ? mainTable : table.trim();
         for (Object obj : columns) {
             if (!(obj instanceof String)  && !(obj instanceof List<?>)) {
                 Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
                 if (inner != null) {
                     for (ReqResult innerResult : inner.values()) {
-                        String column = scInfo.findRelationByMasterChild(currentSchemaName, innerResult.getSchema()).getOneColumn();
-                        columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, column, currentSchemaName, scInfo));
+                        String column = tcInfo.findRelationByMasterChild(currentTableName, innerResult.getTable()).getOneColumn();
+                        columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, column, currentTableName, tcInfo));
                     }
                 }
             }
@@ -331,7 +331,7 @@ public class ReqResult {
         return returnMap;
     }
 
-    public String generateFunctionSql(String mainSchema, boolean needAlias, SchemaColumnInfo scInfo) {
+    public String generateFunctionSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
         StringJoiner sj = new StringJoiner(", ");
         for (Object obj : columns) {
             if (obj instanceof List<?>) {
@@ -341,11 +341,11 @@ public class ReqResult {
                 if (group == ResultGroup.COUNT_DISTINCT) {
                     StringJoiner funSj = new StringJoiner(", ");
                     for (String col : column.split(",")) {
-                        funSj.add(QueryUtil.getUseColumn(needAlias, col.trim(), mainSchema, scInfo));
+                        funSj.add(QueryUtil.getUseColumn(needAlias, col.trim(), mainTable, tcInfo));
                     }
                     sj.add(group.generateColumn(funSj.toString()));
                 } else {
-                    sj.add(group.generateColumn(QueryUtil.getUseColumn(needAlias, column, mainSchema, scInfo)));
+                    sj.add(group.generateColumn(QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo)));
                 }
             }
         }
@@ -370,14 +370,14 @@ public class ReqResult {
         }
         return hasColumn && hasGroup;
     }
-    public String generateGroupSql(String mainSchema, boolean needAlias, SchemaColumnInfo scInfo) {
+    public String generateGroupSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
         StringJoiner sj = new StringJoiner(", ");
         boolean hasGroup = false;
         for (Object obj : columns) {
             if (obj instanceof String) {
                 String column = (String) obj;
                 if (!column.isEmpty()) {
-                    sj.add(QueryUtil.getUseColumn(needAlias, column, mainSchema, scInfo));
+                    sj.add(QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo));
                 }
             } else if (obj instanceof List<?>) {
                 List<?> groups = (List<?>) obj;
@@ -389,7 +389,7 @@ public class ReqResult {
         return (hasGroup && sj.length() > 0) ? (" GROUP BY " + sj) : "";
     }
 
-    public String generateHavingSql(String mainSchema, boolean needAlias, SchemaColumnInfo scInfo, List<Object> params) {
+    public String generateHavingSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo, List<Object> params) {
         // 只支持 AND 条件过滤, 复杂的嵌套暂没有想到好的抽象方式
         StringJoiner groupSj = new StringJoiner(" AND ");
         for (Object obj : columns) {
@@ -399,12 +399,12 @@ public class ReqResult {
                 if (size > 4) {
                     String column = QueryUtil.toStr(groups.get(2));
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
-                    String useColumn = QueryUtil.getUseColumn(needAlias, column, mainSchema, scInfo);
+                    String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
                     String havingColumn = group.generateColumn(useColumn);
 
-                    String schemaName = QueryUtil.getSchemaName(column, mainSchema);
+                    String tableName = QueryUtil.getTableName(column, mainTable);
                     String columnName = QueryUtil.getColumnName(column);
-                    Class<?> columnType = scInfo.findSchemaColumn(schemaName, columnName).getColumnType();
+                    Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
                     // 先右移 1 位除以 2, 再左移 1 位乘以 2, 变成偶数
                     int evenSize = size >> 1 << 1;
                     for (int i = 3; i < evenSize; i += 2) {
@@ -424,15 +424,15 @@ public class ReqResult {
     }
 
 
-    public void handleDateType(Map<String, Object> data, String mainSchema, SchemaColumnInfo scInfo) {
-        String currentSchemaName = (schema == null || schema.isEmpty()) ? mainSchema : schema.trim();
+    public void handleDateType(Map<String, Object> data, String mainTable, TableColumnInfo tcInfo) {
+        String currentTableName = (table == null || table.isEmpty()) ? mainTable : table.trim();
         for (Object obj : columns) {
             if (obj != null) {
                 if (obj instanceof String) {
                     String column = (String) obj;
-                    String schemaName = QueryUtil.getSchemaName(column, currentSchemaName);
+                    String tableName = QueryUtil.getTableName(column, currentTableName);
                     String columnName = QueryUtil.getColumnName(column);
-                    Class<?> columnType = scInfo.findSchemaColumn(schemaName, columnName).getColumnType();
+                    Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
                     if (Date.class.isAssignableFrom(columnType)) {
                         Date date = QueryUtil.toDate(data.get(columnName));
                         if (date != null) {

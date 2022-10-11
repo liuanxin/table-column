@@ -10,9 +10,9 @@
     </parent>
 
     <groupId>com.github.liuanxin</groupId>
-    <artifactId>schema-column</artifactId>
+    <artifactId>table-column</artifactId>
     <version>0.0.1</version>
-    <description>operate mysql schema column, dynamic with frontend</description>
+    <description>operate MySQL/MariaDB table column, dynamic with frontend</description>
 
     <developers>
         <developer>

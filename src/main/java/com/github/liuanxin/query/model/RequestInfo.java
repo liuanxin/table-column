@@ -8,7 +8,7 @@ import java.util.*;
 public class RequestInfo {
 
     /** 主表 */
-    private String schema;
+    private String table;
     /** 入参 */
     private ReqParam param;
     /** 出参类型, 对象(obj)还是数组(arr), 不设置则是数组 */
@@ -20,19 +20,19 @@ public class RequestInfo {
     private List<List<String>> relation;
 
     public RequestInfo() {}
-    public RequestInfo(String schema, ReqParam param, ResultType type, ReqResult result, List<List<String>> relation) {
-        this.schema = schema;
+    public RequestInfo(String table, ReqParam param, ResultType type, ReqResult result, List<List<String>> relation) {
+        this.table = table;
         this.param = param;
         this.type = type;
         this.result = result;
         this.relation = relation;
     }
 
-    public String getSchema() {
-        return schema;
+    public String getTable() {
+        return table;
     }
-    public void setSchema(String schema) {
-        this.schema = schema;
+    public void setTable(String table) {
+        this.table = table;
     }
 
     public ReqParam getParam() {
@@ -68,20 +68,20 @@ public class RequestInfo {
         if (this == o) return true;
         if (!(o instanceof RequestInfo)) return false;
         RequestInfo that = (RequestInfo) o;
-        return Objects.equals(schema, that.schema) && Objects.equals(param, that.param)
+        return Objects.equals(table, that.table) && Objects.equals(param, that.param)
                 && type == that.type && Objects.equals(result, that.result)
                 && Objects.equals(relation, that.relation);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(schema, param, type, result, relation);
+        return Objects.hash(table, param, type, result, relation);
     }
 
     @Override
     public String toString() {
         return "RequestInfo{" +
-                "schema='" + schema + '\'' +
+                "table='" + table + '\'' +
                 ", param=" + param +
                 ", type=" + type +
                 ", result=" + result +
@@ -90,54 +90,54 @@ public class RequestInfo {
     }
 
 
-    public void checkSchema(SchemaColumnInfo scInfo) {
-        if (schema == null || schema.isEmpty()) {
-            throw new RuntimeException("request need schema");
+    public void checkTable(TableColumnInfo tcInfo) {
+        if (table == null || table.isEmpty()) {
+            throw new RuntimeException("request need table");
         }
-        if (scInfo.findSchema(schema) == null) {
-            throw new RuntimeException("request has no defined schema(" + schema + ")");
+        if (tcInfo.findTable(table) == null) {
+            throw new RuntimeException("request has no defined table(" + table + ")");
         }
     }
 
-    public Set<String> checkParam(SchemaColumnInfo scInfo) {
+    public Set<String> checkParam(TableColumnInfo tcInfo) {
         if (param == null) {
             throw new RuntimeException("request need param");
         }
-        return param.checkParam(schema, scInfo);
+        return param.checkParam(table, tcInfo);
     }
 
-    public Set<String> checkResult(SchemaColumnInfo scInfo, Set<String> allResultSchema) {
+    public Set<String> checkResult(TableColumnInfo tcInfo, Set<String> allResultTable) {
         if (result == null) {
             throw new RuntimeException("request need result");
         }
-        return result.checkResult(schema, scInfo, allResultSchema);
+        return result.checkResult(table, tcInfo, allResultTable);
     }
 
-    public void checkAllSchema(SchemaColumnInfo scInfo, Set<String> allSchemaSet,
-                               Set<String> paramSchemaSet, Set<String> resultSchemaSet) {
-        paramSchemaSet.remove(schema);
-        resultSchemaSet.remove(schema);
+    public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet,
+                               Set<String> paramTableSet, Set<String> resultTableSet) {
+        paramTableSet.remove(table);
+        resultTableSet.remove(table);
         if (relation == null || relation.isEmpty()) {
-            if (!paramSchemaSet.isEmpty() || !resultSchemaSet.isEmpty()) {
+            if (!paramTableSet.isEmpty() || !resultTableSet.isEmpty()) {
                 throw new RuntimeException("request need relation");
             }
         }
-        checkRelation(scInfo);
+        checkRelation(tcInfo);
 
-        for (String paramSchema : paramSchemaSet) {
-            if (!allSchemaSet.contains(paramSchema)) {
-                throw new RuntimeException("relation need param schema(" + paramSchema + ")");
+        for (String paramTable : paramTableSet) {
+            if (!allTableSet.contains(paramTable)) {
+                throw new RuntimeException("relation need param table(" + paramTable + ")");
             }
         }
-        for (String resultSchema : resultSchemaSet) {
-            if (!allSchemaSet.contains(resultSchema)) {
-                throw new RuntimeException("relation need result schema(" + resultSchema + ")");
+        for (String resultTable : resultTableSet) {
+            if (!allTableSet.contains(resultTable)) {
+                throw new RuntimeException("relation need result table(" + resultTable + ")");
             }
         }
     }
-    private void checkRelation(SchemaColumnInfo scInfo) {
+    private void checkRelation(TableColumnInfo tcInfo) {
         if (relation != null && !relation.isEmpty()) {
-            Set<String> schemaRelation = new HashSet<>();
+            Set<String> tableRelation = new HashSet<>();
             for (List<String> values : relation) {
                 if (values.size() < 3) {
                     throw new RuntimeException("relation error");
@@ -146,89 +146,89 @@ public class RequestInfo {
                 if (joinType == null) {
                     throw new RuntimeException("relation join type error");
                 }
-                String masterSchema = values.get(0);
-                String childSchema = values.get(2);
-                if (scInfo.findRelationByMasterChild(masterSchema, childSchema) == null) {
-                    throw new RuntimeException("relation " + masterSchema + " and " + childSchema + " has no relation");
+                String masterTable = values.get(0);
+                String childTable = values.get(2);
+                if (tcInfo.findRelationByMasterChild(masterTable, childTable) == null) {
+                    throw new RuntimeException("relation " + masterTable + " and " + childTable + " has no relation");
                 }
 
-                String key = masterSchema + "<->" + childSchema;
-                if (schemaRelation.contains(key)) {
-                    throw new RuntimeException("relation " + masterSchema + " and " + childSchema + " can only has one relation");
+                String key = masterTable + "<->" + childTable;
+                if (tableRelation.contains(key)) {
+                    throw new RuntimeException("relation " + masterTable + " and " + childTable + " can only has one relation");
                 }
-                schemaRelation.add(key);
+                tableRelation.add(key);
             }
             boolean hasMain = false;
-            for (String schema : schemaRelation) {
-                if (schema.startsWith(schema + ".")) {
+            for (String table : tableRelation) {
+                if (table.startsWith(table + ".")) {
                     hasMain = true;
                     break;
                 }
             }
             if (!hasMain) {
-                throw new RuntimeException("relation has no " + schema + "'s info");
+                throw new RuntimeException("relation has no " + table + "'s info");
             }
         }
     }
 
-    public List<SchemaJoinRelation> allRelationList(SchemaColumnInfo scInfo) {
-        Map<String, Set<SchemaJoinRelation>> relationMap = new HashMap<>();
+    public List<TableJoinRelation> allRelationList(TableColumnInfo tcInfo) {
+        Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
         if (relation != null && !relation.isEmpty()) {
             for (List<String> values : relation) {
-                Schema masterSchema = scInfo.findSchema(values.get(0));
-                Schema childSchema = scInfo.findSchema(values.get(2));
+                Table masterTable = tcInfo.findTable(values.get(0));
+                Table childTable = tcInfo.findTable(values.get(2));
                 JoinType joinType = JoinType.deserializer(values.get(1));
-                SchemaJoinRelation joinRelation = new SchemaJoinRelation(masterSchema, joinType, childSchema);
-                Set<SchemaJoinRelation> relationSet = relationMap.getOrDefault(masterSchema.getName(), new LinkedHashSet<>());
+                TableJoinRelation joinRelation = new TableJoinRelation(masterTable, joinType, childTable);
+                Set<TableJoinRelation> relationSet = relationMap.getOrDefault(masterTable.getName(), new LinkedHashSet<>());
                 relationSet.add(joinRelation);
-                relationMap.put(masterSchema.getName(), relationSet);
+                relationMap.put(masterTable.getName(), relationSet);
             }
         }
-        return handleRelation(schema, relationMap);
+        return handleRelation(table, relationMap);
     }
-    private List<SchemaJoinRelation> handleRelation(String mainSchema, Map<String, Set<SchemaJoinRelation>> relationMap) {
-        Set<SchemaJoinRelation> relationSet = new LinkedHashSet<>();
-        Set<String> schemaSet = new HashSet<>();
-        Set<SchemaJoinRelation> mainSet = relationMap.remove(mainSchema);
+    private List<TableJoinRelation> handleRelation(String mainTable, Map<String, Set<TableJoinRelation>> relationMap) {
+        Set<TableJoinRelation> relationSet = new LinkedHashSet<>();
+        Set<String> tableSet = new HashSet<>();
+        Set<TableJoinRelation> mainSet = relationMap.remove(mainTable);
         if (mainSet != null && !mainSet.isEmpty()) {
-            for (SchemaJoinRelation relation : mainSet) {
+            for (TableJoinRelation relation : mainSet) {
                 relationSet.add(relation);
-                schemaSet.add(relation.getMasterSchema().getName());
-                schemaSet.add(relation.getChildSchema().getName());
+                tableSet.add(relation.getMasterTable().getName());
+                tableSet.add(relation.getChildTable().getName());
             }
         }
         for (int i = 0; i < relationMap.size(); i++) {
-            for (Map.Entry<String, Set<SchemaJoinRelation>> entry : relationMap.entrySet()) {
-                if (schemaSet.contains(entry.getKey())) {
-                    for (SchemaJoinRelation relation : entry.getValue()) {
+            for (Map.Entry<String, Set<TableJoinRelation>> entry : relationMap.entrySet()) {
+                if (tableSet.contains(entry.getKey())) {
+                    for (TableJoinRelation relation : entry.getValue()) {
                         relationSet.add(relation);
-                        schemaSet.add(relation.getMasterSchema().getName());
-                        schemaSet.add(relation.getChildSchema().getName());
+                        tableSet.add(relation.getMasterTable().getName());
+                        tableSet.add(relation.getChildTable().getName());
                     }
                 }
             }
         }
         return new ArrayList<>(relationSet);
     }
-    public List<SchemaJoinRelation> paramRelationList(SchemaColumnInfo scInfo, Set<String> paramSchemaSet,
-                                                      Set<String> resultFunctionSchemaSet) {
-        Map<String, Set<SchemaJoinRelation>> relationMap = new HashMap<>();
+    public List<TableJoinRelation> paramRelationList(TableColumnInfo tcInfo, Set<String> paramTableSet,
+                                                     Set<String> resultFunctionTableSet) {
+        Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
         if (relation != null && !relation.isEmpty()) {
             for (List<String> values : relation) {
-                Schema masterSchema = scInfo.findSchema(values.get(0));
-                Schema childSchema = scInfo.findSchema(values.get(2));
-                String mn = masterSchema.getName();
-                String cn = childSchema.getName();
-                if ((paramSchemaSet.contains(mn) && paramSchemaSet.contains(cn))
-                        || (resultFunctionSchemaSet.contains(mn) && resultFunctionSchemaSet.contains(cn))) {
-                    Set<SchemaJoinRelation> relationSet = relationMap.getOrDefault(masterSchema.getName(), new LinkedHashSet<>());
+                Table masterTable = tcInfo.findTable(values.get(0));
+                Table childTable = tcInfo.findTable(values.get(2));
+                String mn = masterTable.getName();
+                String cn = childTable.getName();
+                if ((paramTableSet.contains(mn) && paramTableSet.contains(cn))
+                        || (resultFunctionTableSet.contains(mn) && resultFunctionTableSet.contains(cn))) {
+                    Set<TableJoinRelation> relationSet = relationMap.getOrDefault(masterTable.getName(), new LinkedHashSet<>());
                     JoinType joinType = JoinType.deserializer(values.get(1));
-                    SchemaJoinRelation joinRelation = new SchemaJoinRelation(masterSchema, joinType, childSchema);
+                    TableJoinRelation joinRelation = new TableJoinRelation(masterTable, joinType, childTable);
                     relationSet.add(joinRelation);
-                    relationMap.put(masterSchema.getName(), relationSet);
+                    relationMap.put(masterTable.getName(), relationSet);
                 }
             }
         }
-        return handleRelation(schema, relationMap);
+        return handleRelation(table, relationMap);
     }
 }

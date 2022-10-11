@@ -12,7 +12,7 @@ import java.util.*;
  * name like 'abc%'   and gender = 1   and age between 18 and 40
  * and province in ( 'x', 'y', 'z' )   and city like '%xx%'   and time >= now()
  * {
- *   -- "schema": "order",   -- 不设置则从 requestInfo 中获取
+ *   -- "table": "order",   -- 不设置则从 requestInfo 中获取
  *   -- "operate": "and",    -- 并且(and) 和 或者(or) 两种, 不设置则默认是 and
  *   "conditions": [
  *     [ "name", "rl", "abc" ],
@@ -90,24 +90,24 @@ import java.util.*;
  */
 public class ReqParamOperate {
 
-    private String schema;
+    private String table;
     /** 条件拼接类型: 并且(and) 和 或者(or) 两种, 不设置则默认是 and */
     private OperateType operate;
     /** 条件 */
     private List<Object> conditions;
 
     public ReqParamOperate() {}
-    public ReqParamOperate(String schema, OperateType operate, List<Object> conditions) {
-        this.schema = schema;
+    public ReqParamOperate(String table, OperateType operate, List<Object> conditions) {
+        this.table = table;
         this.operate = operate;
         this.conditions = conditions;
     }
 
-    public String getSchema() {
-        return schema;
+    public String getTable() {
+        return table;
     }
-    public void setSchema(String schema) {
-        this.schema = schema;
+    public void setTable(String table) {
+        this.table = table;
     }
 
     public OperateType getOperate() {
@@ -129,32 +129,32 @@ public class ReqParamOperate {
         if (this == o) return true;
         if (!(o instanceof ReqParamOperate)) return false;
         ReqParamOperate that = (ReqParamOperate) o;
-        return Objects.equals(schema, that.schema) && operate == that.operate
+        return Objects.equals(table, that.table) && operate == that.operate
                 && Objects.equals(conditions, that.conditions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(schema, operate, conditions);
+        return Objects.hash(table, operate, conditions);
     }
 
     @Override
     public String toString() {
         return "ReqParamOperate{" +
-                "schema='" + schema + '\'' +
+                "table='" + table + '\'' +
                 ", operate=" + operate +
                 ", conditions=" + conditions +
                 '}';
     }
 
 
-    public Set<String> checkCondition(String mainSchema, SchemaColumnInfo scInfo) {
+    public Set<String> checkCondition(String mainTable, TableColumnInfo tcInfo) {
         if (conditions == null || conditions.isEmpty()) {
             return Collections.emptySet();
         }
 
-        Set<String> querySchemaSet = new LinkedHashSet<>();
-        String currentSchema = (schema == null || schema.trim().isEmpty()) ? mainSchema : schema.trim();
+        Set<String> queryTableSet = new LinkedHashSet<>();
+        String currentTable = (table == null || table.trim().isEmpty()) ? mainTable : table.trim();
         for (Object condition : conditions) {
             if (condition != null) {
                 if (condition instanceof List<?>) {
@@ -171,11 +171,11 @@ public class ReqParamOperate {
                         throw new RuntimeException("param condition(" + condition + ") column can't be blank");
                     }
 
-                    Schema sa = scInfo.findSchema(QueryUtil.getSchemaName(column, currentSchema));
+                    Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
                     if (sa == null) {
-                        throw new RuntimeException("param condition(" + condition + ") column has no schema info");
+                        throw new RuntimeException("param condition(" + condition + ") column has no table info");
                     }
-                    querySchemaSet.add(sa.getName());
+                    queryTableSet.add(sa.getName());
 
                     boolean standardSize = (size == 2);
                     ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
@@ -183,31 +183,31 @@ public class ReqParamOperate {
                         throw new RuntimeException(String.format("param condition column(%s) need type", column));
                     }
 
-                    SchemaColumn schemaColumn = scInfo.findSchemaColumn(sa, QueryUtil.getColumnName(column));
-                    if (schemaColumn == null) {
+                    TableColumn tableColumn = tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column));
+                    if (tableColumn == null) {
                         throw new RuntimeException(String.format("param condition column(%s) has no column info", column));
                     }
-                    type.checkTypeAndValue(schemaColumn.getColumnType(), column, list.get(standardSize ? 1 : 2), schemaColumn.getStrLen());
+                    type.checkTypeAndValue(tableColumn.getColumnType(), column, list.get(standardSize ? 1 : 2), tableColumn.getStrLen());
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (compose == null) {
                         throw new RuntimeException("compose condition(" + condition + ") error");
                     }
-                    compose.checkCondition(currentSchema, scInfo);
+                    compose.checkCondition(currentTable, tcInfo);
                 }
             }
         }
-        return querySchemaSet;
+        return queryTableSet;
     }
 
-    public String generateSql(String mainSchema, SchemaColumnInfo scInfo, boolean needAlias, List<Object> params) {
+    public String generateSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params) {
         if (conditions == null || conditions.isEmpty()) {
             return "";
         }
 
         String operateType = (operate == null ? OperateType.AND : operate).name().toUpperCase();
         StringJoiner sj = new StringJoiner(" " + operateType + " ");
-        String currentSchema = (schema == null || schema.trim().isEmpty()) ? mainSchema : schema.trim();
+        String currentTable = (table == null || table.trim().isEmpty()) ? mainTable : table.trim();
         for (Object condition : conditions) {
             if (condition != null) {
                 if (condition instanceof List<?>) {
@@ -220,10 +220,10 @@ public class ReqParamOperate {
                         ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
                         Object value = list.get(standardSize ? 1 : 2);
 
-                        String schemaName = QueryUtil.getSchemaName(column, currentSchema);
+                        String tableName = QueryUtil.getTableName(column, currentTable);
                         String columnName = QueryUtil.getColumnName(column);
-                        Class<?> columnType = scInfo.findSchemaColumn(schemaName, columnName).getColumnType();
-                        String useColumn = QueryUtil.getUseColumn(needAlias, column, currentSchema, scInfo);
+                        Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
+                        String useColumn = QueryUtil.getUseColumn(needAlias, column, currentTable, tcInfo);
                         String sql = type.generateSql(useColumn, columnType, value, params);
                         if (!sql.isEmpty()) {
                             sj.add(sql);
@@ -232,7 +232,7 @@ public class ReqParamOperate {
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (compose != null) {
-                        String innerWhereSql = compose.generateSql(currentSchema, scInfo, needAlias, params);
+                        String innerWhereSql = compose.generateSql(currentTable, tcInfo, needAlias, params);
                         if (!innerWhereSql.isEmpty()) {
                             sj.add("( " + innerWhereSql + " )");
                         }

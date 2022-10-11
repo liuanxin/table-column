@@ -1,9 +1,9 @@
 package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.constant.QueryConst;
-import com.github.liuanxin.query.model.Schema;
-import com.github.liuanxin.query.model.SchemaColumn;
-import com.github.liuanxin.query.model.SchemaColumnInfo;
+import com.github.liuanxin.query.model.Table;
+import com.github.liuanxin.query.model.TableColumn;
+import com.github.liuanxin.query.model.TableColumnInfo;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -18,7 +18,7 @@ public class QueryUtil {
 
 
     /** UserInfo --> user_info */
-    public static String aliasToSchemaName(String className) {
+    public static String aliasToTableName(String className) {
         StringBuilder sbd = new StringBuilder();
         char[] chars = className.toCharArray();
         int len = chars.length;
@@ -50,12 +50,12 @@ public class QueryUtil {
     }
 
     /** user_info | USER_INFO --> UserInfo */
-    public static String schemaNameToAlias(String schemaName) {
-        if (schemaName.toLowerCase().startsWith("t_")) {
-            schemaName = schemaName.substring(2);
+    public static String tableNameToAlias(String tableName) {
+        if (tableName.toLowerCase().startsWith("t_")) {
+            tableName = tableName.substring(2);
         }
         StringBuilder sbd = new StringBuilder();
-        char[] chars = schemaName.toCharArray();
+        char[] chars = tableName.toCharArray();
         sbd.append(Character.toUpperCase(chars[0]));
         int len = chars.length;
         for (int i = 1; i < len; i++) {
@@ -281,41 +281,41 @@ public class QueryUtil {
     }
 
 
-    public static String getSchemaName(String column, String mainSchema) {
-        return column.contains(".") ? column.split("\\.")[0].trim() : mainSchema;
+    public static String getTableName(String column, String mainTable) {
+        return column.contains(".") ? column.split("\\.")[0].trim() : mainTable;
     }
 
     public static String getColumnName(String column) {
         return column.contains(".") ? column.split("\\.")[1].trim() : column.trim();
     }
 
-    public static String getUseColumn(boolean needAlias, String column, String mainSchema, SchemaColumnInfo scInfo) {
-        String schemaName = getSchemaName(column, mainSchema);
+    public static String getUseColumn(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
+        String tableName = getTableName(column, mainTable);
         String columnName = getColumnName(column);
-        Schema schema = scInfo.findSchema(schemaName);
-        SchemaColumn schemaColumn = scInfo.findSchemaColumn(schema, columnName);
-        String useColumnName = QuerySqlUtil.toSqlField(schemaColumn.getName());
+        Table table = tcInfo.findTable(tableName);
+        TableColumn tableColumn = tcInfo.findTableColumn(table, columnName);
+        String useColumnName = QuerySqlUtil.toSqlField(tableColumn.getName());
         if (needAlias) {
-            String alias = schema.getAlias();
-            return QuerySqlUtil.toSqlField(alias) + "." + useColumnName + " AS " + alias + "_" + schemaColumn.getName();
+            String alias = table.getAlias();
+            return QuerySqlUtil.toSqlField(alias) + "." + useColumnName + " AS " + alias + "_" + tableColumn.getName();
         } else {
             return useColumnName;
         }
     }
 
-    public static String getUseQueryColumn(boolean needAlias, String column, String mainSchema, SchemaColumnInfo scInfo) {
-        String schemaName = getSchemaName(column, mainSchema);
+    public static String getUseQueryColumn(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
+        String tableName = getTableName(column, mainTable);
         String columnName = getColumnName(column);
-        Schema schema = scInfo.findSchema(schemaName);
-        SchemaColumn schemaColumn = scInfo.findSchemaColumn(schema, columnName);
-        String schemaColumnName = schemaColumn.getName();
-        String schemaColumnAlias = schemaColumn.getAlias();
-        String useColumnName = QuerySqlUtil.toSqlField(schemaColumnName);
+        Table table = tcInfo.findTable(tableName);
+        TableColumn tableColumn = tcInfo.findTableColumn(table, columnName);
+        String tableColumnName = tableColumn.getName();
+        String tableColumnAlias = tableColumn.getAlias();
+        String useColumnName = QuerySqlUtil.toSqlField(tableColumnName);
         if (needAlias) {
-            String alias = schema.getAlias();
-            return QuerySqlUtil.toSqlField(alias) + "." + useColumnName + " AS " + alias + "_" + schemaColumnAlias;
+            String alias = table.getAlias();
+            return QuerySqlUtil.toSqlField(alias) + "." + useColumnName + " AS " + alias + "_" + tableColumnAlias;
         } else {
-            return useColumnName + (schemaColumnName.equals(schemaColumnAlias) ? "" : (" AS " + schemaColumnAlias));
+            return useColumnName + (tableColumnName.equals(tableColumnAlias) ? "" : (" AS " + tableColumnAlias));
         }
     }
 }

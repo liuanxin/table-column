@@ -2,7 +2,7 @@ package com.github.liuanxin.query.model;
 
 import java.util.Objects;
 
-public class SchemaColumn {
+public class TableColumn {
 
     /** 表列名 */
     private String name;
@@ -25,9 +25,9 @@ public class SchemaColumn {
     /** 表列对应的实体的列名 */
     private String fieldName;
 
-    public SchemaColumn() {}
-    public SchemaColumn(String name, String desc, String alias, boolean primary,
-                        Integer strLen, Class<?> columnType, String fieldName) {
+    public TableColumn() {}
+    public TableColumn(String name, String desc, String alias, boolean primary,
+                       Integer strLen, Class<?> columnType, String fieldName) {
         this.name = name;
         this.desc = desc;
         this.alias = alias;
@@ -89,8 +89,8 @@ public class SchemaColumn {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SchemaColumn)) return false;
-        SchemaColumn that = (SchemaColumn) o;
+        if (!(o instanceof TableColumn)) return false;
+        TableColumn that = (TableColumn) o;
         return primary == that.primary && Objects.equals(name, that.name)
                 && Objects.equals(desc, that.desc) && Objects.equals(alias, that.alias)
                 && Objects.equals(strLen, that.strLen) && Objects.equals(columnType, that.columnType)
@@ -104,7 +104,7 @@ public class SchemaColumn {
 
     @Override
     public String toString() {
-        return "SchemaColumn{" +
+        return "TableColumn{" +
                 "name='" + name + '\'' +
                 ", desc='" + desc + '\'' +
                 ", alias='" + alias + '\'' +

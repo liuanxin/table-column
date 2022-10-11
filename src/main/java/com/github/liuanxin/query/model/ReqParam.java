@@ -91,23 +91,23 @@ public class ReqParam {
     }
 
 
-    public Set<String> checkParam(String mainSchema, SchemaColumnInfo scInfo) {
-        Set<String> paramSchemaSet = new LinkedHashSet<>();
+    public Set<String> checkParam(String mainTable, TableColumnInfo tcInfo) {
+        Set<String> paramTableSet = new LinkedHashSet<>();
         if (query != null) {
-            paramSchemaSet.addAll(query.checkCondition(mainSchema, scInfo));
+            paramTableSet.addAll(query.checkCondition(mainTable, tcInfo));
         }
 
         if (sort != null && !sort.isEmpty()) {
             for (String column : sort.keySet()) {
-                String schemaName = QueryUtil.getSchemaName(column, mainSchema);
-                Schema schema = scInfo.findSchema(schemaName);
-                if (schema == null) {
-                    throw new RuntimeException("param sort(" + column + ") has no defined schema");
+                String tableName = QueryUtil.getTableName(column, mainTable);
+                Table table = tcInfo.findTable(tableName);
+                if (table == null) {
+                    throw new RuntimeException("param sort(" + column + ") has no defined table");
                 }
-                if (scInfo.findSchemaColumn(schema, QueryUtil.getColumnName(column)) == null) {
+                if (tcInfo.findTableColumn(table, QueryUtil.getColumnName(column)) == null) {
                     throw new RuntimeException("param sort(" + column + ") has no defined column");
                 }
-                paramSchemaSet.add(schema.getName());
+                paramTableSet.add(table.getName());
             }
         }
 
@@ -117,25 +117,25 @@ public class ReqParam {
                 throw new RuntimeException("param page error");
             }
         }
-        return paramSchemaSet;
+        return paramTableSet;
     }
 
-    public String generateWhereSql(String mainSchema, SchemaColumnInfo scInfo, boolean needAlias, List<Object> params) {
+    public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params) {
         if (query == null) {
             return "";
         } else {
-            String where = query.generateSql(mainSchema, scInfo, needAlias, params);
+            String where = query.generateSql(mainTable, tcInfo, needAlias, params);
             return where.isEmpty() ? "" : (" WHERE " + where);
         }
     }
 
-    public String generateOrderSql(String mainSchema, boolean needAlias, SchemaColumnInfo scInfo) {
+    public String generateOrderSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
         if (sort != null && !sort.isEmpty()) {
             StringJoiner orderSj = new StringJoiner(", ");
             for (Map.Entry<String, String> entry : sort.entrySet()) {
                 String value = entry.getValue().toLowerCase();
                 String desc = ("asc".equals(value) || "a".equals(value)) ? "" : " DESC";
-                orderSj.add(QueryUtil.getUseColumn(needAlias, entry.getKey(), mainSchema, scInfo) + desc);
+                orderSj.add(QueryUtil.getUseColumn(needAlias, entry.getKey(), mainTable, tcInfo) + desc);
             }
             String orderBy = orderSj.toString();
             if (!orderBy.isEmpty()) {
