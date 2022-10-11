@@ -4,7 +4,6 @@ import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.enums.ResultType;
 import com.github.liuanxin.query.enums.SchemaRelationType;
 import com.github.liuanxin.query.model.*;
-import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QueryScanUtil;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
@@ -468,7 +467,7 @@ public class QuerySchemaInfoHandler implements InitializingBean {
             }
 
             Map<String, ReqResult> innerMap = result.innerResult();
-            Map<String, List<Map<String, Object>>> innerColumnMap = queryInnerData(schema, result);
+            Map<String, List<Map<String, Object>>> innerColumnMap = queryInnerData(schema, innerMap);
             for (Map<String, Object> data : mapList) {
                 fillInnerData(data, idKeyList, innerMap, innerColumnMap);
                 removeColumnList.forEach(data::remove);
@@ -478,23 +477,16 @@ public class QuerySchemaInfoHandler implements InitializingBean {
         return mapList;
     }
 
-    private Map<String, List<Map<String, Object>>> queryInnerData(Schema mainSchema, ReqResult result) {
+    private Map<String, List<Map<String, Object>>> queryInnerData(Schema mainSchema, Map<String, ReqResult> innerMap) {
         // todo
-        Map<String, List<Map<String, Object>>> innerMap = new HashMap<>();
-        for (Object obj : result.getColumns()) {
-            if (obj != null) {
-                if (!(obj instanceof String) && !(obj instanceof List<?>)) {
-                    Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
-                    if (inner != null) {
-                        for (Map.Entry<String, ReqResult> entry : inner.entrySet()) {
-                            String innerName = entry.getKey();
-                            innerMap.put(innerName + "-id", queryInnerData(entry.getValue()));
-                        }
-                    }
-                }
+        Map<String, List<Map<String, Object>>> innerDataMap = new HashMap<>();
+        if (innerMap != null && !innerMap.isEmpty()) {
+            for (Map.Entry<String, ReqResult> entry : innerMap.entrySet()) {
+                String innerName = entry.getKey();
+                innerDataMap.put(innerName + "-id", queryInnerData(entry.getValue()));
             }
         }
-        return innerMap;
+        return innerDataMap;
     }
     private List<Map<String, Object>> queryInnerData(ReqResult result) {
         return null;
