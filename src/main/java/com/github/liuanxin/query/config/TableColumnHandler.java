@@ -632,9 +632,11 @@ public class TableColumnHandler implements InitializingBean {
     private void fillInnerData(Map<String, Object> data, List<String> idKeyList, Map<String, ReqResult> innerMap,
                                Map<String, List<Map<String, Object>>> innerColumnMap) {
         // todo
-        for (Map.Entry<String, ReqResult> entry : innerMap.entrySet()) {
-            String innerColumn = entry.getKey();
-            data.put(innerColumn, innerColumnMap.get(innerColumn));
+        if (innerMap != null && !innerMap.isEmpty()) {
+            for (Map.Entry<String, ReqResult> entry : innerMap.entrySet()) {
+                String innerColumn = entry.getKey();
+                data.put(innerColumn, innerColumnMap.get(innerColumn));
+            }
         }
     }
 }
