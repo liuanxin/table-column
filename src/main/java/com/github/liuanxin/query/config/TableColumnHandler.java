@@ -2,9 +2,8 @@ package com.github.liuanxin.query.config;
 
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.enums.ResultType;
-import com.github.liuanxin.query.enums.TableRelationType;
 import com.github.liuanxin.query.model.*;
-import com.github.liuanxin.query.util.QueryScanUtil;
+import com.github.liuanxin.query.util.QueryInfoUtil;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 import org.springframework.beans.factory.InitializingBean;
@@ -27,98 +26,26 @@ public class TableColumnHandler implements InitializingBean {
     private TableColumnInfo tcInfo;
 
     private final JdbcTemplate jdbcTemplate;
-
     public TableColumnHandler(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void afterPropertiesSet() {
-        tcInfo = (scanPackages == null || scanPackages.isEmpty()) ? initWithDb() : QueryScanUtil.scanTable(scanPackages);
-    }
-
-    private TableColumnInfo initWithDb() {
-        Map<String, String> aliasMap = new HashMap<>();
-        Map<String, Table> tableMap = new LinkedHashMap<>();
-        List<TableColumnRelation> relationList = new ArrayList<>();
-
-        String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
-        // table_name, table_comment
-        List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
-        // table_name, column_name, column_type, column_comment, has_pri, varchar_length
-        List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
-        // table_name, column_name, relation_table_name, relation_column_name (relation : one or many)
-        List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
-        // table_name, column_name, has_single_unique
-        List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
-
-        Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
-        if (!tableColumnList.isEmpty()) {
-            for (Map<String, Object> tableColumn : tableColumnList) {
-                String key = QueryUtil.toStr(tableColumn.get("tn"));
-                tableColumnMap.computeIfAbsent(key, (k1) -> new ArrayList<>()).add(tableColumn);
-            }
+        if (scanPackages != null && !scanPackages.isEmpty()) {
+            tcInfo = QueryInfoUtil.infoWithScan(scanPackages);
+        } else {
+            String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
+            // table_name, table_comment
+            List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
+            // table_name, column_name, column_type, column_comment, has_pri, varchar_length
+            List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
+            // table_name, column_name, relation_table_name, relation_column_name (relation : one or many)
+            List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
+            // table_name, column_name, has_single_unique
+            List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
+            tcInfo = QueryInfoUtil.infoWithDb(tableList, tableColumnList, relationColumnList, indexList);
         }
-        Map<String, Map<String, Map<String, Object>>> relationColumnMap = new HashMap<>();
-        if (!relationColumnList.isEmpty()) {
-            for (Map<String, Object> relationColumn : relationColumnList) {
-                String tableName = QueryUtil.toStr(relationColumn.get("tn"));
-                Map<String, Map<String, Object>> columnMap = relationColumnMap.getOrDefault(tableName, new HashMap<>());
-                columnMap.put(QueryUtil.toStr(relationColumn.get("cn")), relationColumn);
-                relationColumnMap.put(tableName, columnMap);
-            }
-        }
-        Map<String, Set<String>> columnUniqueMap = new HashMap<>();
-        if (!indexList.isEmpty()) {
-            for (Map<String, Object> index : indexList) {
-                String tableName = QueryUtil.toStr(index.get("tn"));
-                Set<String> uniqueColumnSet = columnUniqueMap.getOrDefault(tableName, new HashSet<>());
-                uniqueColumnSet.add(QueryUtil.toStr(index.get("cn")));
-                columnUniqueMap.put(tableName, uniqueColumnSet);
-            }
-        }
-
-        for (Map<String, Object> tableInfo : tableList) {
-            String tableName = QueryUtil.toStr(tableInfo.get("tn"));
-            String tableAlias = QueryUtil.tableNameToAlias(tableName);
-            String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
-            Map<String, TableColumn> columnMap = new LinkedHashMap<>();
-
-            List<Map<String, Object>> columnList = tableColumnMap.get(tableName);
-            for (Map<String, Object> columnInfo : columnList) {
-                Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
-                String columnName = QueryUtil.toStr(columnInfo.get("cn"));
-                String columnAlias = QueryUtil.columnNameToAlias(columnName);
-                String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
-                boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
-                Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
-
-                aliasMap.put(QueryConst.COLUMN_PREFIX + columnName, columnAlias);
-                columnMap.put(columnAlias, new TableColumn(columnName, columnDesc, columnAlias, primary,
-                        ((strLen == null || strLen <= 0) ? null : strLen), fieldType, columnAlias));
-            }
-            aliasMap.put(QueryConst.TABLE_PREFIX + tableName, tableAlias);
-            tableMap.put(tableAlias, new Table(tableName, tableDesc, tableAlias, columnMap));
-        }
-
-        if (!relationColumnMap.isEmpty()) {
-            for (Map.Entry<String, Map<String, Map<String, Object>>> entry : relationColumnMap.entrySet()) {
-                String relationTable = entry.getKey();
-                Set<String> uniqueColumnSet = columnUniqueMap.get(relationTable);
-                for (Map.Entry<String, Map<String, Object>> columnEntry : entry.getValue().entrySet()) {
-                    String relationColumn = columnEntry.getKey();
-                    TableRelationType type = uniqueColumnSet.contains(relationColumn)
-                            ? TableRelationType.ONE_TO_ONE : TableRelationType.ONE_TO_MANY;
-
-                    Map<String, Object> relationInfoMap = columnEntry.getValue();
-                    String oneTable = QueryUtil.toStr(relationInfoMap.get("ftn"));
-                    String oneColumn = QueryUtil.toStr(relationInfoMap.get("fcn"));
-
-                    relationList.add(new TableColumnRelation(oneTable, oneColumn, type, relationTable, relationColumn));
-                }
-            }
-        }
-        return new TableColumnInfo(aliasMap, new HashMap<>(), tableMap, relationList);
     }
 
 
@@ -140,7 +67,14 @@ public class TableColumnHandler implements InitializingBean {
                     String type = sc.getColumnType().getSimpleName();
                     Integer length = sc.getStrLen();
                     TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), sc.getName());
-                    String tableColumn = (relation == null) ? null : (relation.getOneTable() + "." + relation.getOneColumn());
+                    String tableColumn;
+                    if (relation == null) {
+                        tableColumn = null;
+                    } else {
+                        Table tb = tcInfo.findTable(relation.getOneTable());
+                        TableColumn tc = tb.getColumnMap().get(relation.getOneColumn());
+                        tableColumn = tb.getAlias() + "." + tc.getAlias();
+                    }
                     columnList.add(new QueryInfo.QueryColumn(sc.getAlias(), sc.getDesc(), type, length, tableColumn));
                 }
                 queryList.add(new QueryInfo(table.getAlias(), table.getDesc(), columnList));
