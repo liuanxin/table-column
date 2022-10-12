@@ -7,15 +7,15 @@ import java.util.*;
 
 /**
  * <pre>
- * FROM order
  * WHERE ...
- * ORDER BY create_time DESC, id ASC
+ * ORDER BY create_time DESC, yy.id ASC
  * LIMIT 20
+ *
  * {
  *   "query": ...
- *   "sort": { "createTime": "desc", "id", "asc" },
+ *   "sort": { "createTime" : "desc", "yy.id" : "asc" },
  *   "page": [ 1, 20 ],
- *   "notCount": true  -- true 表示不发起 SELECT COUNT(*) 查询(移动端瀑布流时有用), 不设置则默认是 false
+ *   "notCount": true  -- 当 page 有值时, true 表示不发起 SELECT COUNT(*) 查询(移动端瀑布流时有用), 不设置则默认是 false
  * }
  * </pre>
  */

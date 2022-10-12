@@ -9,27 +9,32 @@ import java.util.*;
 
 /**
  * <pre>
- * name like 'abc%'   and gender = 1   and age between 18 and 40
- * and province in ( 'x', 'y', 'z' )   and city like '%xx%'   and time >= now()
+ * name like 'abc%'
+ * and gender = 1
+ * and age between 18 and 40
+ * and province in ( 'x', 'y', 'z' )
+ * and city like '%xx%'
+ * and time >= 'xxxx-xx-xx xx:xx:xx'
  * {
- *   -- "table": "order",   -- 不设置则从 requestInfo 中获取
  *   -- "operate": "and",    -- 并且(and) 和 或者(or) 两种, 不设置则默认是 and
  *   "conditions": [
- *     [ "name", "rl", "abc" ],
+ *     [ "name", "sta", "abc" ],
  *     [ "gender", -- "eq", --  1 ],  -- eq 可以省略
  *     [ "age", "bet", [ 18, 40 ] ],
  *     [ "province", "in", [ "x", "y", "z" ] ],
- *     [ "city", "like", "xx" ],
+ *     [ "city", "inc", "xx" ],
  *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
  *
  *
- * name like 'abc%'   and ( gender = 1 or age between 18 and 40 )
- * and ( province in ( 'x', 'y', 'z' ) or city like '%xx%' )   and time >= now()
+ * name like 'abc%'
+ * and ( gender = 1 or age between 18 and 40 )
+ * and ( province in ( 'x', 'y', 'z' ) or city like '%xx%' )
+ * and time >= 'xxxx-xx-xx xx:xx:xx'
  * {
  *   "conditions": [
- *     [ "name", "rl", "abc" ],
+ *     [ "name", "sta", "abc" ],
  *     {
  *       "operate": "or",
  *       "conditions": [
@@ -41,7 +46,7 @@ import java.util.*;
  *       "operate": "or",
  *       "conditions": [
  *         [ "province", "in", [ "x", "y", "z" ] ],
- *         [ "city", "like", "xx" ]
+ *         [ "city", "inc", "xx" ]
  *       ]
  *     },
  *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
@@ -49,29 +54,33 @@ import java.util.*;
  * }
  *
  *
- * name like 'abc%'   or gender = 1   or age between 18 and 40
- * or province in ( 'x', 'y', 'z' )   or city like '%xx%'   or time >= now()
+ * name like '%abc'
+ * or gender = 1
+ * or age between 18 and 40
+ * or province in ( 'x', 'y', 'z' )
+ * or city like '%xx%'
+ * or time >= 'xxxx-xx-xx xx:xx:xx'
  * {
  *   "operate": "or",
  *   "conditions": [
- *     [ "name", "rl", "abc" ],
+ *     [ "name", "end", "abc" ],
  *     [ "gender", 1 ],
  *     [ "age", "bet", [ 18, 40 ] ],
  *     [ "province", "in", [ "x", "y", "z" ] ],
- *     [ "city", "like", "xx" ],
+ *     [ "city", "inc", "xx" ],
  *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
  *
  *
- * name like 'abc%'   or time >= now()
+ * name like 'abc%'
  * or ( gender = 1 and age between 18 and 40 )
  * or ( province in ( 'x', 'y', 'z' ) and city like '%xx%' )
+ * or time >= 'xxxx-xx-xx xx:xx:xx'
  * {
  *   "operate": "or",
  *   "conditions": [
- *     [ "name", "rl", "abc" ],
- *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ],
+ *     [ "name", "sta", "abc" ],
  *     {
  *       "conditions": [
  *         [ "gender", 1 ],
@@ -81,33 +90,25 @@ import java.util.*;
  *     {
  *       "conditions": [
  *         [ "province", "in", [ "x", "y", "z" ] ],
- *         [ "city", "like", "xx" ]
+ *         [ "city", "inc", "xx" ]
  *       ]
- *     }
+ *     },
+ *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
  * </pre>
  */
 public class ReqParamOperate {
 
-    private String table;
     /** 条件拼接类型: 并且(and) 和 或者(or) 两种, 不设置则默认是 and */
     private OperateType operate;
     /** 条件 */
     private List<Object> conditions;
 
     public ReqParamOperate() {}
-    public ReqParamOperate(String table, OperateType operate, List<Object> conditions) {
-        this.table = table;
+    public ReqParamOperate(OperateType operate, List<Object> conditions) {
         this.operate = operate;
         this.conditions = conditions;
-    }
-
-    public String getTable() {
-        return table;
-    }
-    public void setTable(String table) {
-        this.table = table;
     }
 
     public OperateType getOperate() {
@@ -129,22 +130,17 @@ public class ReqParamOperate {
         if (this == o) return true;
         if (!(o instanceof ReqParamOperate)) return false;
         ReqParamOperate that = (ReqParamOperate) o;
-        return Objects.equals(table, that.table) && operate == that.operate
-                && Objects.equals(conditions, that.conditions);
+        return operate == that.operate && Objects.equals(conditions, that.conditions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, operate, conditions);
+        return Objects.hash(operate, conditions);
     }
 
     @Override
     public String toString() {
-        return "ReqParamOperate{" +
-                "table='" + table + '\'' +
-                ", operate=" + operate +
-                ", conditions=" + conditions +
-                '}';
+        return "ReqParamOperate{operate=" + operate + ", conditions=" + conditions + '}';
     }
 
 
@@ -154,7 +150,6 @@ public class ReqParamOperate {
         }
 
         Set<String> queryTableSet = new LinkedHashSet<>();
-        String currentTable = (table == null || table.trim().isEmpty()) ? mainTable : table.trim();
         for (Object condition : conditions) {
             if (condition != null) {
                 if (condition instanceof List<?>) {
@@ -171,7 +166,7 @@ public class ReqParamOperate {
                         throw new RuntimeException("param condition(" + condition + ") column can't be blank");
                     }
 
-                    Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
+                    Table sa = tcInfo.findTable(QueryUtil.getTableName(column, mainTable));
                     if (sa == null) {
                         throw new RuntimeException("param condition(" + condition + ") column has no table info");
                     }
@@ -193,7 +188,7 @@ public class ReqParamOperate {
                     if (compose == null) {
                         throw new RuntimeException("compose condition(" + condition + ") error");
                     }
-                    compose.checkCondition(currentTable, tcInfo);
+                    compose.checkCondition(mainTable, tcInfo);
                 }
             }
         }
@@ -207,7 +202,6 @@ public class ReqParamOperate {
 
         String operateType = (operate == null ? OperateType.AND : operate).name().toUpperCase();
         StringJoiner sj = new StringJoiner(" " + operateType + " ");
-        String currentTable = (table == null || table.trim().isEmpty()) ? mainTable : table.trim();
         for (Object condition : conditions) {
             if (condition != null) {
                 if (condition instanceof List<?>) {
@@ -220,10 +214,10 @@ public class ReqParamOperate {
                         ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
                         Object value = list.get(standardSize ? 1 : 2);
 
-                        String tableName = QueryUtil.getTableName(column, currentTable);
+                        String tableName = QueryUtil.getTableName(column, mainTable);
                         String columnName = QueryUtil.getColumnName(column);
                         Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
-                        String useColumn = QueryUtil.getUseColumn(needAlias, column, currentTable, tcInfo);
+                        String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
                         String sql = type.generateSql(useColumn, columnType, value, params);
                         if (!sql.isEmpty()) {
                             sj.add(sql);
@@ -232,7 +226,7 @@ public class ReqParamOperate {
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (compose != null) {
-                        String innerWhereSql = compose.generateSql(currentTable, tcInfo, needAlias, params);
+                        String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params);
                         if (!innerWhereSql.isEmpty()) {
                             sj.add("( " + innerWhereSql + " )");
                         }
@@ -240,6 +234,6 @@ public class ReqParamOperate {
                 }
             }
         }
-        return sj.toString().trim();
+        return (sj.length() == 0) ? "" : sj.toString().trim();
     }
 }
