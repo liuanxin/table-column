@@ -557,12 +557,14 @@ public class TableColumnHandler implements InitializingBean {
         if (innerMap != null && !innerMap.isEmpty()) {
             for (Map.Entry<String, ReqResult> entry : innerMap.entrySet()) {
                 String innerName = entry.getKey();
+                // { address : { orderId1 : { ...}, orderId2: { ... } }, items: { orderId1: [ ... ], orderId2: [ ... ] } }
                 innerDataMap.put(innerName + "-id", queryInnerData(entry.getValue()));
             }
         }
         return innerDataMap;
     }
     private List<Map<String, Object>> queryInnerData(ReqResult result) {
+        // SELECT * FROM t_inner where parent_id in ...
         return null;
     }
 
