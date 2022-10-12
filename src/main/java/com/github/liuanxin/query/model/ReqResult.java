@@ -114,10 +114,15 @@ public class ReqResult {
 
 
     public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo, Set<String> allTableSet) {
-        String currentTable = (table == null || table.trim().isEmpty()) ? mainTable : table.trim();
-        Table tableInfo = tcInfo.findTable(currentTable);
-        if (tableInfo == null) {
-            throw new RuntimeException("result has no defined table(" + currentTable + ")");
+        String currentTable;
+        if (table != null && !table.trim().isEmpty()) {
+            currentTable = table.trim();
+            Table tableInfo = tcInfo.findTable(currentTable);
+            if (tableInfo == null) {
+                throw new RuntimeException("result has no defined table(" + currentTable + ")");
+            }
+        } else {
+            currentTable = mainTable;
         }
         if (columns == null || columns.isEmpty()) {
             throw new RuntimeException("result table(" + currentTable + ") need columns");
@@ -164,7 +169,7 @@ public class ReqResult {
                             allTableSet.add(sa.getName());
                         }
                     } else {
-                        if (!(group == ResultGroup.COUNT && new HashSet<>(Arrays.asList("*", "1")).contains(column))) {
+                        if (!(group == ResultGroup.COUNT && ResultGroup.SUPPORT_COUNT_SET.contains(column))) {
                             Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
                             if (sa == null) {
                                 throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined table");
@@ -400,7 +405,7 @@ public class ReqResult {
                     String column = QueryUtil.toStr(groups.get(2));
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
                     String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
-                    String havingColumn = group.generateColumn(useColumn);
+                    String havingColumn = group.generateAlias(useColumn);
 
                     String tableName = QueryUtil.getTableName(column, mainTable);
                     String columnName = QueryUtil.getColumnName(column);
@@ -419,8 +424,7 @@ public class ReqResult {
                 }
             }
         }
-        String groupBy = groupSj.toString();
-        return groupBy.isEmpty() ? "" : (" HAVING " + groupBy);
+        return (groupSj.length() == 0) ? "" : (" HAVING " + groupSj);
     }
 
 

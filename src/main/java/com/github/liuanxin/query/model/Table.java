@@ -228,7 +228,7 @@ public class Table {
             return null;
         }
 
-        List<String> multiValues = new ArrayList<>();
+        StringJoiner sj = new StringJoiner(", ");
         if (list.size() > 1) {
             List<String> errorList = new ArrayList<>();
             int ps = placeholderList.size();
@@ -257,14 +257,14 @@ public class Table {
                     errorList.add((i + 1) + " : " + vs);
                 }
                 if (!values.isEmpty()) {
-                    multiValues.add("(" + String.join(", ", values) + ")");
+                    sj.add("(" + String.join(", ", values) + ")");
                 }
             }
             if (!errorList.isEmpty()) {
-                throw new RuntimeException("field number error. 1 : " + ps + " but " + multiValues);
+                throw new RuntimeException("field number error. 1 : " + ps + " but " + errorList);
             }
         }
-        return multiValues.isEmpty() ? sql : (sql + ", " + String.join(", ", multiValues));
+        return (sj.length() == 0) ? sql : (sql + ", " + sj);
     }
 
 
