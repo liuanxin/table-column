@@ -28,8 +28,8 @@ public class QueryInfoUtil {
     private static final MetadataReaderFactory READER = new CachingMetadataReaderFactory(RESOLVER);
 
 
-    public static TableColumnInfo infoWithScan(String classPackages) {
-        return infoWithClass(scanPackage(classPackages));
+    public static TableColumnInfo infoWithScan(String tablePrefix, String classPackages) {
+        return infoWithClass(tablePrefix, scanPackage(classPackages));
     }
 
     private static Set<Class<?>> scanPackage(String classPackages) {
@@ -61,7 +61,7 @@ public class QueryInfoUtil {
         return set;
     }
 
-    private static TableColumnInfo infoWithClass(Set<Class<?>> classes) {
+    private static TableColumnInfo infoWithClass(String tablePrefix, Set<Class<?>> classes) {
         if (classes.isEmpty()) {
             return null;
         }
@@ -91,7 +91,7 @@ public class QueryInfoUtil {
             } else {
                 tableDesc = "";
                 tableAlias = clazz.getSimpleName();
-                tableName = QueryUtil.aliasToTableName(tableAlias);
+                tableName = QueryUtil.aliasToTableName(tablePrefix, tableAlias);
             }
 
             if (tableNameSet.contains(tableName)) {

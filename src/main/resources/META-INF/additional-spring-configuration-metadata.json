@@ -1,6 +1,13 @@
 {
   "properties": [
     {
+      "name": "query.table-prefix",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "sourceType": "com.github.liuanxin.query.config.TableColumnHandler",
+      "description": "关联表的类上没有标注解时, 将类名转换成表名时, 表的前缀."
+    },
+    {
       "name": "query.scan-packages",
       "type": "java.lang.String",
       "defaultValue": "",

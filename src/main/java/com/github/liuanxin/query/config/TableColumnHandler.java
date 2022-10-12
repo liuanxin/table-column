@@ -17,6 +17,9 @@ import java.util.*;
 @Component
 public class TableColumnHandler implements InitializingBean {
 
+    @Value("${query.table-prefix:}")
+    private String tablePrefix;
+
     @Value("${query.scan-packages:}")
     private String scanPackages;
 
@@ -33,7 +36,7 @@ public class TableColumnHandler implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         if (scanPackages != null && !scanPackages.isEmpty()) {
-            tcInfo = QueryInfoUtil.infoWithScan(scanPackages);
+            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages);
         } else {
             String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
             // table_name, table_comment

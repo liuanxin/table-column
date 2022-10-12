@@ -18,7 +18,7 @@ public class QueryUtil {
 
 
     /** UserInfo --> user_info */
-    public static String aliasToTableName(String className) {
+    public static String aliasToTableName(String tablePrefix, String className) {
         StringBuilder sbd = new StringBuilder();
         char[] chars = className.toCharArray();
         int len = chars.length;
@@ -33,7 +33,7 @@ public class QueryUtil {
                 sbd.append(c);
             }
         }
-        return sbd.toString();
+        return toStr(tablePrefix) + sbd;
     }
 
     /** userName --> user_name */
