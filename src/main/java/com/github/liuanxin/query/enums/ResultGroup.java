@@ -2,11 +2,8 @@ package com.github.liuanxin.query.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.util.QueryUtil;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public enum ResultGroup {
 
@@ -17,8 +14,6 @@ public enum ResultGroup {
     MAX("MAX(%s)", "MAX_%s", "最大"),
     AVG("AVG(%s)", "AVG_%s", "平均"),
     GROUP_CONCAT("GROUP_CONCAT(%s)", "GPCT_%s", "组拼接");
-
-    public static final Set<String> SUPPORT_COUNT_SET = new HashSet<>(Arrays.asList("*", "1"));
 
     private final String value;
     private final String alias;
@@ -64,7 +59,15 @@ public enum ResultGroup {
         return String.format(value, column) + " AS " + generateAlias(column);
     }
     public String generateAlias(String column) {
-        return String.format(alias, SUPPORT_COUNT_SET.contains(column) ? "" : column.replace(" ", "$").replace(",", "_"));
+        if (needCheckColumn(column)) {
+            return String.format(alias, column.replace(" ", "$").replace(",", "_"));
+        } else {
+            return String.format(alias, "");
+        }
+    }
+
+    public boolean needCheckColumn(String column) {
+        return !(this == COUNT && QueryConst.SUPPORT_COUNT_SET.contains(column));
     }
 
     public boolean checkNotHavingValue(Object value) {

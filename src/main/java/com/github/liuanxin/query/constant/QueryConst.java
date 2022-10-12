@@ -46,6 +46,8 @@ public final class QueryConst {
     public static final String TABLE_PREFIX = "table-";
     public static final String COLUMN_PREFIX = "column-";
 
+    public static final Set<String> SUPPORT_COUNT_SET = new HashSet<>(Arrays.asList("*", "1"));
+
 
     public static final Integer MIN_LIMIT = 10;
     public static final Set<Integer> LIMIT_SET = new HashSet<>(Arrays.asList(

@@ -169,7 +169,7 @@ public class ReqResult {
                             allTableSet.add(sa.getName());
                         }
                     } else {
-                        if (!(group == ResultGroup.COUNT && ResultGroup.SUPPORT_COUNT_SET.contains(column))) {
+                        if (group.needCheckColumn(column)) {
                             Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
                             if (sa == null) {
                                 throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined table");
