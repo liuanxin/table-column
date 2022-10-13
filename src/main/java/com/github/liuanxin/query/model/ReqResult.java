@@ -242,8 +242,10 @@ public class ReqResult {
                 if (innerTable == null || innerTable.isEmpty()) {
                     throw new RuntimeException("result table(" + currentTable + ") inner(" + column + ") need table");
                 }
-                if (tcInfo.findRelationByMasterChild(currentTable, innerTable) == null) {
-                    throw new RuntimeException("result " + currentTable + " - " + column + " -" + innerTable + " has no relation");
+                TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(currentTable, innerTable);
+                TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, currentTable);
+                if (masterChild == null && childMaster == null) {
+                    throw new RuntimeException("result " + currentTable + " - " + column + "(" + innerTable + ") has no relation");
                 }
                 innerResult.checkResult(innerTable, tcInfo, allTableSet);
             }
@@ -308,16 +310,17 @@ public class ReqResult {
 
     public Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        String currentTableName = (table == null || table.isEmpty()) ? mainTable : table.trim();
-        for (Object obj : columns) {
-            if (!(obj instanceof String)  && !(obj instanceof List<?>)) {
-                Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
-                if (inner != null) {
-                    for (ReqResult innerResult : inner.values()) {
-                        String column = tcInfo.findRelationByMasterChild(currentTableName, innerResult.getTable()).getOneColumn();
-                        columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, column, currentTableName, tcInfo));
-                    }
-                }
+        String currentTable = (table == null || table.isEmpty()) ? mainTable : table.trim();
+        for (ReqResult innerResult : innerResult().values()) {
+            // child-master or master-child all need to query masterId
+            String innerTable = innerResult.getTable();
+            TableColumnRelation relation = tcInfo.findRelationByMasterChild(currentTable, innerTable);
+            if (relation == null) {
+                relation = tcInfo.findRelationByMasterChild(innerTable, currentTable);
+            }
+            if (relation != null) {
+                String column = relation.getOneColumn();
+                columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, column, currentTable, tcInfo));
             }
         }
         return columnNameSet;

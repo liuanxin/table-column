@@ -530,7 +530,8 @@ public class TableColumnHandler implements InitializingBean {
         if (!mapList.isEmpty()) {
             boolean needAlias = !allTableSet.isEmpty();
             Table table = tcInfo.findTable(mainTable);
-            List<String> idKeyList = table.getIdKey();
+            String tableName = table.getName();
+            List<Map<String, Object>> ids = handleIds(mapList, table.getIdKey());
 
             Set<String> selectColumnSet = result.selectColumn(mainTable, tcInfo, allTableSet);
             List<String> removeColumnList = new ArrayList<>();
@@ -539,43 +540,68 @@ public class TableColumnHandler implements InitializingBean {
                     removeColumnList.add(ic);
                 }
             }
-
-            Map<String, ReqResult> innerMap = result.innerResult();
-            Map<String, List<Map<String, Object>>> innerColumnMap = queryInnerData(table, innerMap);
             for (Map<String, Object> data : mapList) {
-                fillInnerData(data, idKeyList, innerMap, innerColumnMap);
                 removeColumnList.forEach(data::remove);
                 result.handleDateType(data, mainTable, tcInfo);
+            }
+
+            Map<String, ReqResult> innerMap = result.innerResult();
+            if (innerMap != null && !innerMap.isEmpty()) {
+                Map<String, Map<String, Object>> innerColumnMap = new HashMap<>();
+                for (Map.Entry<String, ReqResult> entry : innerMap.entrySet()) {
+                    innerColumnMap.put(entry.getKey(), queryInnerData(ids, tableName, entry.getValue()));
+                }
+                for (Map<String, Object> data : mapList) {
+                    data.put(innerColumn, innerColumnMap.get(innerColumn));
+                }
             }
         }
         return mapList;
     }
 
-    private Map<String, List<Map<String, Object>>> queryInnerData(Table mainTable, Map<String, ReqResult> innerMap) {
+    private List<Map<String, Object>> handleIds(List<Map<String, Object>> mapList, List<String> idKeyList) {
+        return null;
+    }
+
+    private Map<String, Map<String, Object>> handleInnerData(Table table, ReqResult innerResult) {
         // todo
-        Map<String, List<Map<String, Object>>> innerDataMap = new HashMap<>();
+        // { address : { orderId1 : { ...}, orderId2: { ... } }, items: { orderId1: [ ... ], orderId2: [ ... ] } }
+        Map<String, Map<String, Object>> innerDataMap = new HashMap<>();
         if (innerMap != null && !innerMap.isEmpty()) {
-            for (Map.Entry<String, ReqResult> entry : innerMap.entrySet()) {
+            List<String> idKeyList = table.getIdKey();
+            List<Map<String, Object>> ids = null;
+
+            String tableName = table.getName();
+            for (Map.Entry<String, ReqResult> entry :  innerMap.entrySet()) {
                 String innerName = entry.getKey();
-                // { address : { orderId1 : { ...}, orderId2: { ... } }, items: { orderId1: [ ... ], orderId2: [ ... ] } }
-                innerDataMap.put(innerName + "-id", queryInnerData(entry.getValue()));
+                Map<String, Object> innerInfoMap = queryInnerData(ids, tableName, entry.getValue());
+                if (!innerInfoMap.isEmpty()) {
+                    innerDataMap.put(innerName, innerInfoMap);
+                }
             }
         }
         return innerDataMap;
     }
-    private List<Map<String, Object>> queryInnerData(ReqResult result) {
-        // SELECT * FROM t_inner where parent_id in ...
-        return null;
-    }
-
-    private void fillInnerData(Map<String, Object> data, List<String> idKeyList, Map<String, ReqResult> innerMap,
-                               Map<String, List<Map<String, Object>>> innerColumnMap) {
+    private Map<String, Object> queryInnerData(List<Map<String, Object>> ids, String tableName, ReqResult innerResult) {
+        Map<String, Object> returnMap = new HashMap<>();
         // todo
-        if (innerMap != null && !innerMap.isEmpty()) {
-            for (Map.Entry<String, ReqResult> entry : innerMap.entrySet()) {
-                String innerColumn = entry.getKey();
-                data.put(innerColumn, innerColumnMap.get(innerColumn));
+        // child-master or master-child all need to query masterId
+        String innerTable = innerResult.getTable();
+        TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(tableName, innerTable);
+        if (masterChild != null) {
+            // master-child(one-one or one-many) : SELECT * FROM t_inner where parent_id in ...
+            String innerSql = "";
+            List<Object> params = new ArrayList<>();
+            List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
+        } else {
+            TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, tableName);
+            if (childMaster != null) {
+                // child-master(many-one) : SELECT * FROM t_inner where parent_id in ...
+                String innerSql = "";
+                List<Object> params = new ArrayList<>();
+                List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
             }
         }
+        return returnMap;
     }
 }
