@@ -219,9 +219,9 @@ public enum ConditionType {
         return value + "(" + msg + ")";
     }
 
-    public void checkTypeAndValue(Class<?> type, String column, Object value, Integer strLen) {
+    public void checkTypeAndValue(Class<?> type, String column, Object value, Integer strLen, int maxListCount) {
         checkType(type);
-        checkValue(type, column, value, strLen);
+        checkValue(type, column, value, strLen, maxListCount);
     }
 
 
@@ -234,7 +234,7 @@ public enum ConditionType {
         }
     }
     protected String generateMulti(String column, Class<?> type, Object value, List<Object> params) {
-        if (value == null || !MULTI_TYPE.contains(this)) {
+        if (value == null || !MULTI_TYPE.contains(this) || !(value instanceof Collection<?>)) {
             return "";
         }
         Collection<?> c = (Collection<?>) value;
@@ -248,16 +248,16 @@ public enum ConditionType {
             Object end = arr.length > 1 ? arr[1] : null;
 
             StringBuilder sbd = new StringBuilder();
-            if (start != null && end != null) {
+            if (QueryUtil.isNotNull(start) && QueryUtil.isNotNull(end)) {
                 params.add(toValue(type, start));
                 params.add(toValue(type, end));
                 sbd.append(" ").append(column).append(" BETWEEN ? AND ?");
             } else {
-                if (start != null) {
+                if (QueryUtil.isNotNull(start)) {
                     params.add(toValue(type, start));
                     sbd.append(" ").append(column).append(" >= ?");
                 }
-                if (end != null) {
+                if (QueryUtil.isNotNull(end)) {
                     params.add(toValue(type, end));
                     sbd.append(" ").append(column).append(" <= ?");
                 }
@@ -356,14 +356,21 @@ public enum ConditionType {
         }
     }
 
-    private void checkValue(Class<?> type, String column, Object value, Integer strLen) {
+    private void checkValue(Class<?> type, String column, Object value, Integer strLen, int maxListCount) {
         if (value != null) {
             if (MULTI_TYPE.contains(this)) {
                 if (value instanceof Collection<?>) {
-                    for (Object obj : (Collection<?>) value) {
+                    int count = 0;
+                    Collection<?> collection = (Collection<?>) value;
+                    for (Object obj : collection) {
                         if (obj != null) {
                             checkValueType(type, column, obj, strLen);
+                            count++;
                         }
+                    }
+                    if (count > maxListCount) {
+                        throw new RuntimeException(String.format("Collection column(%s) length can't be greater than %s",
+                                column, maxListCount));
                     }
                 } else {
                     throw new RuntimeException(String.format("column(%s) data need been Collection", column));
@@ -375,11 +382,11 @@ public enum ConditionType {
     }
     private void checkValueType(Class<?> type, String column, Object value, Integer strLen) {
         Object obj = toValue(type, value);
-        if (obj == null) {
+        if (QueryUtil.isNull(obj)) {
             throw new RuntimeException(String.format("column(%s) data(%s) has not %s type",
                     column, value, type.getSimpleName().toLowerCase()));
         }
-        if (strLen != null && strLen > 0 && obj.toString().length() > strLen) {
+        if (QueryUtil.isNotNull(strLen) && strLen > 0 && obj.toString().length() > strLen) {
             throw new RuntimeException(String.format("column(%s) data(%s) length can only be <= %s", column, value, strLen));
         }
     }

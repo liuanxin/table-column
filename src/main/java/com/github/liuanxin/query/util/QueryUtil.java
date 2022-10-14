@@ -5,6 +5,7 @@ import com.github.liuanxin.query.model.Table;
 import com.github.liuanxin.query.model.TableColumn;
 import com.github.liuanxin.query.model.TableColumnInfo;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -201,7 +202,7 @@ public class QueryUtil {
         }
         try {
             SimpleDateFormat df = new SimpleDateFormat(pattern);
-            if (timezone != null && !timezone.trim().isEmpty()) {
+            if (isNotEmpty(timezone)) {
                 df.setTimeZone(TimeZone.getTimeZone(timezone.trim()));
             }
             return df.format(date);
@@ -214,30 +215,68 @@ public class QueryUtil {
     }
 
     public static boolean isBoolean(Object obj) {
-        return obj != null && new HashSet<>(Arrays.asList(
-                "true", "1", "on", "yes",
-                "false", "0", "off", "no"
-        )).contains(obj.toString().toLowerCase());
+        return QueryUtil.isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase());
     }
 
-    public static boolean isEmpty(Object obj) {
-        if (obj == null) {
+    public static boolean isNull(Object obj) {
+        return obj == null;
+    }
+    public static boolean isNotNull(Object obj) {
+        return obj != null;
+    }
+
+    public static boolean isIllegalId(Serializable id) {
+        if (id == null) {
             return true;
         }
-        if (obj instanceof String) {
-            if (((String) obj).trim().isEmpty()) {
-                return true;
-            }
+        if (id instanceof Number) {
+            return ((Number) id).longValue() <= 0;
         }
-        if (obj instanceof Collection<?>) {
-            if (((Collection<?>) obj).isEmpty()) {
-                return true;
-            }
-        }
-        return (obj instanceof Map) && ((Map<?, ?>) obj).isEmpty();
+        return isEmpty(id.toString());
     }
-    public static boolean isNotEmpty(Object obj) {
+    public static boolean isIllegalId(List<Serializable> ids) {
+        if (isEmpty(ids)) {
+            return true;
+        }
+        for (Serializable id : ids) {
+            if (isIllegalId(id)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isEmpty(String str) {
+        if (str == null) {
+            return true;
+        }
+        String trim = str.trim().toLowerCase();
+        return "undefined".equals(trim) || "null".equals(trim) /* || "nil".equals(trim) */ || "".equals(trim);
+    }
+    public static boolean isNotEmpty(String obj) {
         return !isEmpty(obj);
+    }
+
+    public static boolean isEmpty(Collection<?> collection) {
+        if (collection == null || collection.isEmpty()) {
+            return true;
+        }
+        for (Object o : collection) {
+            if (o != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+    public static boolean isNotEmpty(Collection<?> collection) {
+        return !isEmpty(collection);
+    }
+
+    public static boolean isEmpty(Map<?, ?> map) {
+        return map == null || map.isEmpty();
+    }
+    public static boolean isNotEmpty(Map<?, ?> map) {
+        return !isEmpty(map);
     }
 
     public static boolean isLong(Object obj) {
@@ -284,7 +323,7 @@ public class QueryUtil {
 
     public static <T> List<List<T>> split(List<T> list, int singleSize) {
         List<List<T>> returnList = new ArrayList<>();
-        if (list != null && !list.isEmpty() && singleSize > 0) {
+        if (isNotEmpty(list) && singleSize > 0) {
             int size = list.size();
             int outLoop = (size % singleSize != 0) ? ((size / singleSize) + 1) : (size / singleSize);
             for (int i = 0; i < outLoop; i++) {

@@ -33,14 +33,14 @@ public class QueryInfoUtil {
     }
 
     private static Set<Class<?>> scanPackage(String classPackages) {
-        if (classPackages == null) {
+        if (QueryUtil.isNull(classPackages)) {
             return Collections.emptySet();
         }
 
         Set<Class<?>> set = new LinkedHashSet<>();
         for (String cp : classPackages.split(",")) {
-            String path = (cp != null) ? cp.trim() : null;
-            if (path != null && !path.isEmpty()) {
+            String path = QueryUtil.isNull(cp) ? null : cp.trim();
+            if (QueryUtil.isNotEmpty(path)) {
                 try {
                     String location = String.format("classpath*:**/%s/**/*.class", path.replace(".", "/"));
                     for (Resource resource : RESOLVER.getResources(location)) {
@@ -80,7 +80,7 @@ public class QueryInfoUtil {
         for (Class<?> clazz : classes) {
             TableInfo tableInfo = clazz.getAnnotation(TableInfo.class);
             String tableName, tableDesc, tableAlias;
-            if (tableInfo != null) {
+            if (QueryUtil.isNotNull(tableInfo)) {
                 if (tableInfo.ignore()) {
                     continue;
                 }
@@ -110,7 +110,7 @@ public class QueryInfoUtil {
                 String columnName, columnDesc, columnAlias, fieldName = field.getName();
                 boolean primary;
                 Integer strLen;
-                if (columnInfo != null) {
+                if (QueryUtil.isNotNull(columnInfo)) {
                     if (columnInfo.ignore()) {
                         continue;
                     }
@@ -160,21 +160,21 @@ public class QueryInfoUtil {
                 if (!oneTable.isEmpty() && !oneColumn.isEmpty()) {
                     String tableAndColumn = entry.getKey();
                     Table table = tableMap.get(aliasMap.get(QueryConst.TABLE_PREFIX + oneTable));
-                    if (table == null) {
+                    if (QueryUtil.isNull(table)) {
                         table = tableMap.get(oneTable);
-                        if (table == null) {
-                            throw new RuntimeException(tableAndColumn + "'s relation no table(" + oneTable + ")");
-                        }
+                    }
+                    if (QueryUtil.isNull(table)) {
+                        throw new RuntimeException(tableAndColumn + "'s relation no table(" + oneTable + ")");
                     }
 
                     Map<String, TableColumn> columnMap = table.getColumnMap();
                     TableColumn column = columnMap.get(aliasMap.get(QueryConst.COLUMN_PREFIX + oneColumn));
-                    if (column == null) {
+                    if (QueryUtil.isNull(column)) {
                         column = columnMap.get(oneColumn);
-                        if (column == null) {
-                            throw new RuntimeException(tableAndColumn + "'s relation no table-column("
-                                    + oneTable + "." + oneColumn + ")");
-                        }
+                    }
+                    if (QueryUtil.isNull(column)) {
+                        throw new RuntimeException(tableAndColumn + "'s relation no table-column("
+                                + oneTable + "." + oneColumn + ")");
                     }
                     Class<?> sourceClass = columnClassMap.get(tableAndColumn);
                     Class<?> targetClass = column.getColumnType();

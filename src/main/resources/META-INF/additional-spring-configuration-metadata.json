@@ -20,6 +20,13 @@
       "defaultValue": "10000",
       "sourceType": "com.github.liuanxin.query.core.TableColumnHandler",
       "description": "当要请求的数据页(page * limit)大于当前值时, sql 会先查出 id 再查具体的数据."
+    },
+    {
+      "name": "query.max-list-count",
+      "type": "java.lang.Integer",
+      "defaultValue": "1000",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnHandler",
+      "description": "请求时列表查询时的最大个数."
     }
   ]
 }

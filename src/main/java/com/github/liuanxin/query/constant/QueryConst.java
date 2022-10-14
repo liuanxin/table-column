@@ -46,6 +46,11 @@ public final class QueryConst {
     public static final String TABLE_PREFIX = "table-";
     public static final String COLUMN_PREFIX = "column-";
 
+    public static final Set<String> TRUE_SET = new HashSet<>(Arrays.asList(
+            "true", "1", "on", "yes",
+            "false", "0", "off", "no"
+    ));
+
     public static final Set<String> SUPPORT_COUNT_SET = new HashSet<>(Arrays.asList("*", "1"));
 
 

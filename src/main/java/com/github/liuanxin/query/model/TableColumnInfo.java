@@ -1,6 +1,7 @@
 package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.constant.QueryConst;
+import com.github.liuanxin.query.util.QueryUtil;
 
 import java.util.*;
 
@@ -21,7 +22,7 @@ public class TableColumnInfo {
 
         Map<String, Map<String, TableColumnRelation>> childRelationMap = new HashMap<>();
         Map<String, Map<String, TableColumnRelation>> masterChildTableMap = new HashMap<>();
-        if (relationList != null && !relationList.isEmpty()) {
+        if (QueryUtil.isNotEmpty(relationList)) {
             for (TableColumnRelation relation : relationList) {
                 String masterTable = relation.getOneTable();
                 String childTable = relation.getOneOrManyTable();
@@ -47,35 +48,35 @@ public class TableColumnInfo {
 
     public Table findTableByClass(Class<?> clazz) {
         String tableName = tableClassMap.get(clazz.getName());
-        return (tableName == null || tableName.isEmpty()) ? null : tableMap.get(tableName);
+        return QueryUtil.isEmpty(tableName) ? null : tableMap.get(tableName);
     }
 
     public Table findTable(String tableName) {
         String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + tableName);
         Table table = tableMap.get(tableAlias);
-        return table == null ? tableMap.get(tableName) : table;
+        return QueryUtil.isNull(table) ? tableMap.get(tableName) : table;
     }
 
     public TableColumn findTableColumn(Table table, String columnName) {
         Map<String, TableColumn> columnMap = table.getColumnMap();
         String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + columnName);
         TableColumn tableColumn = columnMap.get(columnAlias);
-        return tableColumn == null ? columnMap.get(columnName) : tableColumn;
+        return QueryUtil.isNull(tableColumn) ? columnMap.get(columnName) : tableColumn;
     }
 
     public TableColumn findTableColumn(String tableName, String columnName) {
         Table table = findTable(tableName);
-        return (table == null) ? null : findTableColumn(table, columnName);
+        return QueryUtil.isNull(table) ? null : findTableColumn(table, columnName);
     }
 
     public Map<String, TableColumnRelation> findRelationByMaster(String masterTable) {
-        if (masterTable == null || masterTable.isEmpty()) {
+        if (QueryUtil.isEmpty(masterTable)) {
             return Collections.emptyMap();
         }
 
         String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + masterTable);
         Map<String, TableColumnRelation> relationMap = masterChildTableMap.get(tableAlias);
-        return (relationMap == null || relationMap.isEmpty()) ? masterChildTableMap.get(masterTable) : relationMap;
+        return QueryUtil.isEmpty(relationMap) ? masterChildTableMap.get(masterTable) : relationMap;
     }
 
     public TableColumnRelation findRelationByMasterChild(String masterTable, String childTable) {
@@ -84,22 +85,20 @@ public class TableColumnInfo {
 
     private TableColumnRelation findRelation(Map<String, Map<String, TableColumnRelation>> tableRelationMap,
                                              String table, String childTableOrColumn) {
-        if (tableRelationMap == null || tableRelationMap.isEmpty() || table == null || table.isEmpty()
-                || childTableOrColumn == null || childTableOrColumn.isEmpty()) {
+        if (QueryUtil.isEmpty(tableRelationMap) || QueryUtil.isEmpty(table) || QueryUtil.isEmpty(childTableOrColumn)) {
             return null;
         }
 
         String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + table);
         Map<String, TableColumnRelation> relationMap = tableRelationMap.get(tableAlias);
-        Map<String, TableColumnRelation> useRelationMap =
-                (relationMap == null || relationMap.isEmpty()) ? tableRelationMap.get(table) : relationMap;
-        if (useRelationMap == null || useRelationMap.isEmpty()) {
+        Map<String, TableColumnRelation> useRelationMap = QueryUtil.isEmpty(relationMap) ? tableRelationMap.get(table) : relationMap;
+        if (QueryUtil.isEmpty(useRelationMap)) {
             return null;
         }
 
         String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + childTableOrColumn);
         TableColumnRelation relation = useRelationMap.get(columnAlias);
-        return (relation == null) ? useRelationMap.get(childTableOrColumn) : relation;
+        return QueryUtil.isNull(relation) ? useRelationMap.get(childTableOrColumn) : relation;
     }
 
     public TableColumnRelation findRelationByChild(String childTable, String childColumn) {

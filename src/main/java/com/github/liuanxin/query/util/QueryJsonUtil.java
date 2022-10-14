@@ -33,7 +33,7 @@ public class QueryJsonUtil {
 
     public static <S,T> T convert(S source, Class<T> clazz) {
         String json = toJson(source);
-        if (json == null || json.trim().isEmpty()) {
+        if (QueryUtil.isEmpty(json)) {
             return null;
         }
         try {
@@ -45,7 +45,7 @@ public class QueryJsonUtil {
 
     public static <S,T> T convertType(S source, TypeReference<T> type) {
         String json = toJson(source);
-        if (json == null || json.trim().isEmpty()) {
+        if (QueryUtil.isEmpty(json)) {
             return null;
         }
         try {

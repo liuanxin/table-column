@@ -91,13 +91,13 @@ public class ReqParam {
     }
 
 
-    public Set<String> checkParam(String mainTable, TableColumnInfo tcInfo) {
+    public Set<String> checkParam(String mainTable, TableColumnInfo tcInfo, int maxListCount) {
         Set<String> paramTableSet = new LinkedHashSet<>();
         if (query != null) {
-            paramTableSet.addAll(query.checkCondition(mainTable, tcInfo));
+            paramTableSet.addAll(query.checkCondition(mainTable, tcInfo, maxListCount));
         }
 
-        if (sort != null && !sort.isEmpty()) {
+        if (QueryUtil.isNotEmpty(sort)) {
             for (String column : sort.keySet()) {
                 String tableName = QueryUtil.getTableName(column, mainTable);
                 Table table = tcInfo.findTable(tableName);
@@ -130,7 +130,7 @@ public class ReqParam {
     }
 
     public String generateOrderSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
-        if (sort != null && !sort.isEmpty()) {
+        if (QueryUtil.isNotEmpty(sort)) {
             StringJoiner orderSj = new StringJoiner(", ");
             for (Map.Entry<String, String> entry : sort.entrySet()) {
                 String value = entry.getValue().toLowerCase();
@@ -146,7 +146,7 @@ public class ReqParam {
     }
 
     public boolean needQueryPage() {
-        return page != null && !page.isEmpty();
+        return QueryUtil.isNotEmpty(page);
     }
     public boolean needQueryCount() {
         return notCount == null || !notCount;

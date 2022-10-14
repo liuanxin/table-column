@@ -26,6 +26,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.deep-max-page-size:10000}")
     private int deepMaxPageSize;
 
+    @Value("${query.max-list-count:1000}")
+    private int maxListCount;
+
     private TableColumnInfo tcInfo;
 
     private final JdbcTemplate jdbcTemplate;
@@ -35,7 +38,7 @@ public class TableColumnTemplate implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        if (scanPackages != null && !scanPackages.isEmpty()) {
+        if (QueryUtil.isNotEmpty(scanPackages)) {
             tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages);
         } else {
             String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
@@ -54,7 +57,7 @@ public class TableColumnTemplate implements InitializingBean {
 
     public List<QueryInfo> info(String tables) {
         Set<String> tableSet = new LinkedHashSet<>();
-        if (tables != null && !tables.isEmpty()) {
+        if (QueryUtil.isNotEmpty(tables)) {
             for (String te : tables.split(",")) {
                 String trim = te.trim();
                 if (!trim.isEmpty()) {
@@ -71,7 +74,7 @@ public class TableColumnTemplate implements InitializingBean {
                     Integer length = sc.getStrLen();
                     TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), sc.getName());
                     String tableColumn;
-                    if (relation == null) {
+                    if (QueryUtil.isNull(relation)) {
                         tableColumn = null;
                     } else {
                         Table tb = tcInfo.findTable(relation.getOneTable());
@@ -92,22 +95,21 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     public int insert(String table, Map<String, Object> data, boolean generateNullField) {
-        if (table == null || table.trim().isEmpty() || data == null) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isNotEmpty(data)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
 
         List<Object> params = new ArrayList<>();
         String insertSql = tableInfo.generateInsertMap(data, generateNullField, params);
-        if (insertSql != null && !insertSql.isEmpty() && !params.isEmpty()) {
-            return jdbcTemplate.update(insertSql, params.toArray());
-        } else {
+        if (QueryUtil.isEmpty(insertSql) || QueryUtil.isEmpty(params)) {
             return 0;
         }
+        return jdbcTemplate.update(insertSql, params.toArray());
     }
 
     public int insertBatch(String table, List<Map<String, Object>> list) {
@@ -119,21 +121,20 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     public int insertBatch(String table, List<Map<String, Object>> list, int singleCount, boolean generateNullField) {
-        if (table == null || table.trim().isEmpty() || list == null || list.isEmpty()) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(list)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table);
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
 
         int flag = 0;
-        List<List<Map<String, Object>>> splitList = QueryUtil.split(list, singleCount);
-        for (List<Map<String, Object>> lt : splitList) {
+        for (List<Map<String, Object>> lt : QueryUtil.split(list, singleCount)) {
             List<Object> params = new ArrayList<>();
             String batchInsertSql = tableInfo.generateBatchInsertMap(lt, generateNullField, params);
-            if (batchInsertSql != null && !batchInsertSql.isEmpty()) {
+            if (QueryUtil.isNotEmpty(batchInsertSql)) {
                 flag += jdbcTemplate.update(batchInsertSql, params.toArray());
             }
         }
@@ -145,22 +146,21 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     public <T> int insert(T obj, boolean generateNullField) {
-        if (obj == null) {
+        if (QueryUtil.isNull(obj)) {
             return 0;
         }
 
         Table table = tcInfo.findTableByClass(obj.getClass());
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
 
         List<Object> params = new ArrayList<>();
         String insertSql = table.generateInsert(obj, generateNullField, params);
-        if (insertSql != null && !insertSql.isEmpty() && !params.isEmpty()) {
-            return jdbcTemplate.update(insertSql, params.toArray());
-        } else {
+        if (QueryUtil.isEmpty(insertSql) || QueryUtil.isEmpty(params)) {
             return 0;
         }
+        return jdbcTemplate.update(insertSql, params.toArray());
     }
 
     public <T> int insertBatch(List<T> list) {
@@ -172,12 +172,12 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     public <T> int insertBatch(List<T> list, int singleCount, boolean generateNullField) {
-        if (list == null || list.isEmpty()) {
+        if (QueryUtil.isEmpty(list)) {
             return 0;
         }
 
         Table table = tcInfo.findTableByClass(list.get(0).getClass());
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
 
@@ -186,7 +186,7 @@ public class TableColumnTemplate implements InitializingBean {
         for (List<T> lt : splitList) {
             List<Object> params = new ArrayList<>();
             String batchInsertSql = table.generateBatchInsert(lt, generateNullField, params);
-            if (batchInsertSql != null && !batchInsertSql.isEmpty()) {
+            if (QueryUtil.isNotEmpty(batchInsertSql)) {
                 flag += jdbcTemplate.update(batchInsertSql, params.toArray());
             }
         }
@@ -195,70 +195,72 @@ public class TableColumnTemplate implements InitializingBean {
 
 
     public int deleteById(String table, Serializable id) {
-        if (table == null || table.trim().isEmpty()) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(id)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
         return delete(table, SingleTableWhere.buildId(tableInfo.idWhere(false), id));
     }
 
     public int deleteByIds(String table, List<Serializable> ids) {
-        if (table == null || table.trim().isEmpty()) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(ids)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
         return delete(table, SingleTableWhere.buildIds(tableInfo.idWhere(false), ids));
     }
 
     public int delete(String table, SingleTableWhere query) {
-        if (table == null || table.trim().isEmpty() || query == null) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
         return doDelete(query, tableInfo);
     }
 
     public <T> int deleteById(Class<T> clazz, Serializable id) {
-        if (clazz == null) {
+        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(id)) {
             return 0;
         }
 
         Table table = tcInfo.findTableByClass(clazz);
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
         return delete(clazz, SingleTableWhere.buildId(table.idWhere(false), id));
     }
 
     public <T> int deleteByIds(Class<T> clazz, List<Serializable> ids) {
-        if (clazz == null) {
+        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(ids)) {
             return 0;
         }
+
         Table table = tcInfo.findTableByClass(clazz);
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
         return delete(clazz, SingleTableWhere.buildIds(table.idWhere(false), ids));
     }
 
     public <T> int delete(Class<T> clazz, SingleTableWhere query) {
-        if (clazz == null || query == null) {
+        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
             return 0;
         }
+
         Table table = tcInfo.findTableByClass(clazz);
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
         return doDelete(query, table);
@@ -267,33 +269,32 @@ public class TableColumnTemplate implements InitializingBean {
     private int doDelete(SingleTableWhere query, Table table) {
         List<Object> params = new ArrayList<>();
         String deleteSql = table.generateDelete(query, tcInfo, params);
-        if (deleteSql != null && !deleteSql.isEmpty()) {
-            return jdbcTemplate.update(deleteSql, params.toArray());
-        } else {
+        if (QueryUtil.isEmpty(deleteSql)) {
             return 0;
         }
+        return jdbcTemplate.update(deleteSql, params.toArray());
     }
 
 
     public int updateById(String table, Map<String, Object> updateObj, Serializable id) {
-        if (table == null || table.trim().isEmpty() || updateObj == null) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isIllegalId(id)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
         return update(table, updateObj, SingleTableWhere.buildId(tableInfo.idWhere(false), id));
     }
 
     public int updateByIds(String table, Map<String, Object> updateObj, List<Serializable> ids) {
-        if (table == null || table.trim().isEmpty() || updateObj == null) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isIllegalId(ids)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
         return update(table, updateObj, SingleTableWhere.buildIds(tableInfo.idWhere(false), ids));
@@ -304,43 +305,42 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     public int update(String table, Map<String, Object> updateObj, SingleTableWhere query, boolean generateNullField) {
-        if (table == null || table.trim().isEmpty() || updateObj == null || updateObj.isEmpty() || query == null) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isNull(query)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
-        if (tableInfo == null) {
+        if (QueryUtil.isNull(tableInfo)) {
             return 0;
         }
 
         List<Object> params = new ArrayList<>();
         String updateSql = tableInfo.generateUpdateMap(updateObj, generateNullField, query, tcInfo, params);
-        if (updateSql != null && !updateSql.isEmpty()) {
-            return jdbcTemplate.update(updateSql, params.toArray());
-        } else {
+        if (QueryUtil.isEmpty(updateSql) || QueryUtil.isEmpty(params)) {
             return 0;
         }
+        return jdbcTemplate.update(updateSql, params.toArray());
     }
 
     public <T> int updateById(T updateObj, Serializable id) {
-        if (updateObj == null) {
+        if (QueryUtil.isNull(updateObj) || QueryUtil.isIllegalId(id)) {
             return 0;
         }
 
         Table table = tcInfo.findTableByClass(updateObj.getClass());
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
         return update(updateObj, SingleTableWhere.buildId(table.idWhere(false), id));
     }
 
     public <T> int updateByIds(T updateObj, List<Serializable> ids) {
-        if (updateObj == null) {
+        if (QueryUtil.isNull(updateObj) || QueryUtil.isIllegalId(ids)) {
             return 0;
         }
 
         Table table = tcInfo.findTableByClass(updateObj.getClass());
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
         return update(updateObj, SingleTableWhere.buildIds(table.idWhere(false), ids));
@@ -351,28 +351,27 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     public <T> int update(T updateObj, SingleTableWhere query, boolean generateNullField) {
-        if (updateObj == null || query == null) {
+        if (QueryUtil.isNull(updateObj) || QueryUtil.isNull(query)) {
             return 0;
         }
 
         Table table = tcInfo.findTableByClass(updateObj.getClass());
-        if (table == null) {
+        if (QueryUtil.isNull(table)) {
             return 0;
         }
 
         List<Object> params = new ArrayList<>();
         String updateSql = table.generateUpdate(updateObj, generateNullField, query, tcInfo, params);
-        if (updateSql != null && !updateSql.isEmpty()) {
-            return jdbcTemplate.update(updateSql, params.toArray());
-        } else {
+        if (QueryUtil.isEmpty(updateSql) || QueryUtil.isEmpty(params)) {
             return 0;
         }
+        return jdbcTemplate.update(updateSql, params.toArray());
     }
 
 
     public Object query(RequestInfo req) {
         req.checkTable(tcInfo);
-        Set<String> paramTableSet = req.checkParam(tcInfo);
+        Set<String> paramTableSet = req.checkParam(tcInfo, maxListCount);
 
         Set<String> allResultTableSet = new LinkedHashSet<>();
         Set<String> resultFuncTableSet = req.checkResult(tcInfo, allResultTableSet);
@@ -423,7 +422,7 @@ public class TableColumnTemplate implements InitializingBean {
             String masterTableName = joinRelation.getMasterTable().getName();
             String childTableName = joinRelation.getChildTable().getName();
             TableColumnRelation relation = tcInfo.findRelationByMasterChild(masterTableName, childTableName);
-            if (relation != null && relation.getType().hasMany()) {
+            if (QueryUtil.isNotNull(relation) && relation.getType().hasMany()) {
                 return true;
             }
         }
@@ -468,7 +467,7 @@ public class TableColumnTemplate implements InitializingBean {
 
     private long queryCount(String countSql, List<Object> params) {
         Long count = jdbcTemplate.queryForObject(countSql, Long.class, params.toArray());
-        return count == null ? 0L : count;
+        return QueryUtil.isNull(count) ? 0L : count;
     }
 
     private List<Map<String, Object>> queryPageListWithoutGroup(String firstFromSql, String allFromSql,
@@ -521,13 +520,13 @@ public class TableColumnTemplate implements InitializingBean {
         String orderSql = param.generateOrderSql(mainTable, !allTableSet.isEmpty(), tcInfo);
         String sql = selectGroupSql + orderSql + param.generateArrToObjSql(params);
         Map<String, Object> obj = QueryUtil.first(assemblyResult(sql, params, mainTable, allTableSet, result));
-        return (obj == null) ? Collections.emptyMap() : obj;
+        return QueryUtil.isNull(obj) ? Collections.emptyMap() : obj;
     }
 
     private List<Map<String, Object>> assemblyResult(String mainSql, List<Object> params, String mainTable,
                                                      Set<String> allTableSet, ReqResult result) {
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
-        if (!dataList.isEmpty()) {
+        if (QueryUtil.isNotEmpty(dataList)) {
             Table table = tcInfo.findTable(mainTable);
             String tableName = table.getName();
 
@@ -545,7 +544,7 @@ public class TableColumnTemplate implements InitializingBean {
 
             // order_address.order_id : order.id    +    order_item.code : order.code
             Map<String, ReqResult> innerResultMap = result.innerResult();
-            if (innerResultMap != null && !innerResultMap.isEmpty()) {
+            if (QueryUtil.isNotEmpty(innerResultMap)) {
                 // { address : id, items : code }
                 Map<String, String> innerColumnMap = new HashMap<>();
                 //  { address : { id1 : { ... },  id2 : { ... } }, items : { code1 : [ ... ], code2 : [ ... ] } }
@@ -569,7 +568,7 @@ public class TableColumnTemplate implements InitializingBean {
                         String columnName = innerColumnMap.get(fieldName);
                         // id1, id2    or    code1, code2
                         Object relationValue = data.get(columnName);
-                        if (QueryUtil.isNotEmpty(relationValue)) {
+                        if (QueryUtil.isNotNull(relationValue)) {
                             // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
                             Map<String, Object> innerData = entry.getValue();
                             data.put(columnName, innerData.get(QueryUtil.toStr(relationValue)));
@@ -587,7 +586,7 @@ public class TableColumnTemplate implements InitializingBean {
         // child-master or master-child all need to query masterId
         String innerTable = innerResult.getTable();
         TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(tableName, innerTable);
-        if (masterChild != null) {
+        if (QueryUtil.isNotNull(masterChild)) {
             columnName = masterChild.getOneColumn();
             // master-child(one-one or one-many) : SELECT * FROM t_inner where parent_id in ...
             List<Object> params = new ArrayList<>();
@@ -595,7 +594,7 @@ public class TableColumnTemplate implements InitializingBean {
             List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
         } else {
             TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, tableName);
-            if (childMaster != null) {
+            if (QueryUtil.isNotNull(childMaster)) {
                 columnName = childMaster.getOneColumn();
                 // child-master(many-one) : SELECT * FROM t_inner where parent_id in ...
                 List<Object> params = new ArrayList<>();

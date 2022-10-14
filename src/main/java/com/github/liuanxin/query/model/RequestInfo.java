@@ -2,6 +2,7 @@ package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.JoinType;
 import com.github.liuanxin.query.enums.ResultType;
+import com.github.liuanxin.query.util.QueryUtil;
 
 import java.util.*;
 
@@ -91,7 +92,7 @@ public class RequestInfo {
 
 
     public void checkTable(TableColumnInfo tcInfo) {
-        if (table == null || table.isEmpty()) {
+        if (QueryUtil.isEmpty(table)) {
             throw new RuntimeException("request need table");
         }
         if (tcInfo.findTable(table) == null) {
@@ -99,11 +100,11 @@ public class RequestInfo {
         }
     }
 
-    public Set<String> checkParam(TableColumnInfo tcInfo) {
+    public Set<String> checkParam(TableColumnInfo tcInfo, int maxListCount) {
         if (param == null) {
             throw new RuntimeException("request need param");
         }
-        return param.checkParam(table, tcInfo);
+        return param.checkParam(table, tcInfo, maxListCount);
     }
 
     public Set<String> checkResult(TableColumnInfo tcInfo, Set<String> allResultTable) {
@@ -117,7 +118,7 @@ public class RequestInfo {
                                Set<String> paramTableSet, Set<String> resultTableSet) {
         paramTableSet.remove(table);
         resultTableSet.remove(table);
-        if (relation == null || relation.isEmpty()) {
+        if (QueryUtil.isEmpty(relation)) {
             if (!paramTableSet.isEmpty() || !resultTableSet.isEmpty()) {
                 throw new RuntimeException("request need relation");
             }
@@ -136,7 +137,7 @@ public class RequestInfo {
         }
     }
     private void checkRelation(TableColumnInfo tcInfo) {
-        if (relation != null && !relation.isEmpty()) {
+        if (QueryUtil.isNotEmpty(relation)) {
             Set<String> tableRelation = new HashSet<>();
             for (List<String> values : relation) {
                 if (values.size() < 3) {
@@ -173,7 +174,7 @@ public class RequestInfo {
 
     public List<TableJoinRelation> allRelationList(TableColumnInfo tcInfo) {
         Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
-        if (relation != null && !relation.isEmpty()) {
+        if (QueryUtil.isNotEmpty(relation)) {
             for (List<String> values : relation) {
                 Table masterTable = tcInfo.findTable(values.get(0));
                 Table childTable = tcInfo.findTable(values.get(2));
@@ -190,7 +191,7 @@ public class RequestInfo {
         Set<TableJoinRelation> relationSet = new LinkedHashSet<>();
         Set<String> tableSet = new HashSet<>();
         Set<TableJoinRelation> mainSet = relationMap.remove(mainTable);
-        if (mainSet != null && !mainSet.isEmpty()) {
+        if (QueryUtil.isNotEmpty(mainSet)) {
             for (TableJoinRelation relation : mainSet) {
                 relationSet.add(relation);
                 tableSet.add(relation.getMasterTable().getName());
@@ -213,7 +214,7 @@ public class RequestInfo {
     public List<TableJoinRelation> paramRelationList(TableColumnInfo tcInfo, Set<String> paramTableSet,
                                                      Set<String> resultFunctionTableSet) {
         Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
-        if (relation != null && !relation.isEmpty()) {
+        if (QueryUtil.isNotEmpty(relation)) {
             for (List<String> values : relation) {
                 Table masterTable = tcInfo.findTable(values.get(0));
                 Table childTable = tcInfo.findTable(values.get(2));

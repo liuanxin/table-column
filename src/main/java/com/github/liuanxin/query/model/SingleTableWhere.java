@@ -150,11 +150,11 @@ public class SingleTableWhere {
     }
 
     public String generateSql(String table, TableColumnInfo tcInfo, List<Object> params) {
-        if (conditions == null || conditions.isEmpty()) {
+        if (QueryUtil.isEmpty(conditions)) {
             return "";
         }
 
-        String operateType = (operate == null ? OperateType.AND : operate).name().toUpperCase();
+        String operateType = (QueryUtil.isNull(operate) ? OperateType.AND : operate).name().toUpperCase();
         StringJoiner sj = new StringJoiner(" " + operateType + " ");
         for (Object condition : conditions) {
             if (condition != null) {

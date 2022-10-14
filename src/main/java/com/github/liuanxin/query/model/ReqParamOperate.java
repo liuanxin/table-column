@@ -144,8 +144,8 @@ public class ReqParamOperate {
     }
 
 
-    public Set<String> checkCondition(String mainTable, TableColumnInfo tcInfo) {
-        if (conditions == null || conditions.isEmpty()) {
+    public Set<String> checkCondition(String mainTable, TableColumnInfo tcInfo, int maxListCount) {
+        if (QueryUtil.isEmpty(conditions)) {
             return Collections.emptySet();
         }
 
@@ -182,13 +182,14 @@ public class ReqParamOperate {
                     if (tableColumn == null) {
                         throw new RuntimeException(String.format("param condition column(%s) has no column info", column));
                     }
-                    type.checkTypeAndValue(tableColumn.getColumnType(), column, list.get(standardSize ? 1 : 2), tableColumn.getStrLen());
+                    type.checkTypeAndValue(tableColumn.getColumnType(), column,
+                            list.get(standardSize ? 1 : 2), tableColumn.getStrLen(), maxListCount);
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (compose == null) {
                         throw new RuntimeException("compose condition(" + condition + ") error");
                     }
-                    compose.checkCondition(mainTable, tcInfo);
+                    compose.checkCondition(mainTable, tcInfo, maxListCount);
                 }
             }
         }
@@ -196,11 +197,11 @@ public class ReqParamOperate {
     }
 
     public String generateSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params) {
-        if (conditions == null || conditions.isEmpty()) {
+        if (QueryUtil.isEmpty(conditions)) {
             return "";
         }
 
-        String operateType = (operate == null ? OperateType.AND : operate).name().toUpperCase();
+        String operateType = (QueryUtil.isNull(operate) ? OperateType.AND : operate).name().toUpperCase();
         StringJoiner sj = new StringJoiner(" " + operateType + " ");
         for (Object condition : conditions) {
             if (condition != null) {

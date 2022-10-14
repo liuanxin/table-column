@@ -115,7 +115,7 @@ public class ReqResult {
 
     public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo, Set<String> allTableSet) {
         String currentTable;
-        if (table != null && !table.trim().isEmpty()) {
+        if (QueryUtil.isNotEmpty(table)) {
             currentTable = table.trim();
             Table tableInfo = tcInfo.findTable(currentTable);
             if (tableInfo == null) {
@@ -124,7 +124,7 @@ public class ReqResult {
         } else {
             currentTable = mainTable;
         }
-        if (columns == null || columns.isEmpty()) {
+        if (QueryUtil.isEmpty(columns)) {
             throw new RuntimeException("result table(" + currentTable + ") need columns");
         }
 
@@ -239,12 +239,12 @@ public class ReqResult {
                 }
                 columnCheckRepeatedSet.add(column);
                 String innerTable = innerResult.getTable();
-                if (innerTable == null || innerTable.isEmpty()) {
+                if (QueryUtil.isEmpty(innerTable)) {
                     throw new RuntimeException("result table(" + currentTable + ") inner(" + column + ") need table");
                 }
                 TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(currentTable, innerTable);
                 TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, currentTable);
-                if (masterChild == null && childMaster == null) {
+                if (QueryUtil.isNull(masterChild) && QueryUtil.isNull(childMaster)) {
                     throw new RuntimeException("result " + currentTable + " - " + column + "(" + innerTable + ") has no relation");
                 }
                 innerResult.checkResult(innerTable, tcInfo, allTableSet);
@@ -253,7 +253,7 @@ public class ReqResult {
         return resultFunctionTableSet;
     }
     private Table checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
-        if (column.trim().isEmpty()) {
+        if (QueryUtil.isEmpty(column)) {
             throw new RuntimeException("result table(" + currentTable + ") column can't be blank");
         }
 
@@ -283,7 +283,7 @@ public class ReqResult {
     public Set<String> selectColumn(String mainTable, TableColumnInfo tcInfo, Set<String> tableSet) {
         Set<String> columnNameSet = new LinkedHashSet<>();
         boolean needAlias = !tableSet.isEmpty();
-        String currentTableName = (table == null || table.isEmpty()) ? mainTable : table.trim();
+        String currentTableName = QueryUtil.isEmpty(table) ? mainTable : table.trim();
         columnNameSet.add(tcInfo.findTable(currentTableName).idSelect(needAlias));
         for (Object obj : columns) {
             if (obj instanceof String) {
@@ -310,7 +310,7 @@ public class ReqResult {
 
     public Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        String currentTable = (table == null || table.isEmpty()) ? mainTable : table.trim();
+        String currentTable = QueryUtil.isEmpty(table) ? mainTable : table.trim();
         for (ReqResult innerResult : innerResult().values()) {
             // child-master or master-child all need to query masterId
             String innerTable = innerResult.getTable();
@@ -432,7 +432,7 @@ public class ReqResult {
 
 
     public void handleDateType(Map<String, Object> data, String mainTable, TableColumnInfo tcInfo) {
-        String currentTableName = (table == null || table.isEmpty()) ? mainTable : table.trim();
+        String currentTableName = QueryUtil.isEmpty(table) ? mainTable : table.trim();
         for (Object obj : columns) {
             if (obj != null) {
                 if (obj instanceof String) {
@@ -451,7 +451,7 @@ public class ReqResult {
                     if (dateColumn != null) {
                         for (Map.Entry<String, List<String>> entry : dateColumn.entrySet()) {
                             List<String> values = entry.getValue();
-                            if (values != null && !values.isEmpty()) {
+                            if (QueryUtil.isNotEmpty(values)) {
                                 Date date = QueryUtil.toDate(data.get(entry.getKey()));
                                 if (date != null) {
                                     String pattern = values.get(0);

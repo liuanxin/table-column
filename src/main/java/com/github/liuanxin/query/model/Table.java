@@ -138,7 +138,7 @@ public class Table {
         StringJoiner sj = new StringJoiner(", ");
         for (TableColumn column : columnMap.values()) {
             Object obj = data.get(column.getAlias());
-            if (obj != null || generateNullField) {
+            if (QueryUtil.isNotNull(obj) || generateNullField) {
                 sj.add(QuerySqlUtil.toSqlField(column.getName()));
                 placeholderList.add("?");
                 params.add(obj);
@@ -155,7 +155,7 @@ public class Table {
         Map<String, Object> first = QueryUtil.first(list);
         List<String> placeholderList = new ArrayList<>();
         String sql = firstInsertMap(first, generateNullField, placeholderList, params);
-        if (sql == null) {
+        if (QueryUtil.isEmpty(sql)) {
             return null;
         }
 
@@ -168,7 +168,7 @@ public class Table {
                 List<String> values = new ArrayList<>();
                 for (TableColumn column : columnMap.values()) {
                     Object obj = data.get(column.getAlias());
-                    if (obj != null || generateNullField) {
+                    if (QueryUtil.isNotNull(obj) || generateNullField) {
                         values.add("?");
                         params.add(obj);
                     }
@@ -197,11 +197,11 @@ public class Table {
         for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
             Field field = QueryUtil.getField(clazz, fieldName);
-            if (field != null) {
+            if (QueryUtil.isNotNull(field)) {
                 try {
                     field.setAccessible(true);
                     Object fieldInfo = field.get(obj);
-                    if (fieldInfo != null || generateNullField) {
+                    if (QueryUtil.isNotNull(fieldInfo) || generateNullField) {
                         fieldList.add(QuerySqlUtil.toSqlField(column.getName()));
                         placeholderList.add("?");
                         params.add(fieldInfo);
@@ -224,7 +224,7 @@ public class Table {
         Class<?> clazz = first.getClass();
         List<String> placeholderList = new ArrayList<>();
         String sql = firstInsert(first, clazz, generateNullField, placeholderList, params);
-        if (sql == null) {
+        if (QueryUtil.isEmpty(sql)) {
             return null;
         }
 
@@ -238,11 +238,11 @@ public class Table {
                 for (TableColumn column : columnMap.values()) {
                     String fieldName = column.getFieldName();
                     Field field = QueryUtil.getField(clazz, fieldName);
-                    if (field != null) {
+                    if (QueryUtil.isNotNull(field)) {
                         try {
                             field.setAccessible(true);
                             Object fieldInfo = field.get(obj);
-                            if (fieldInfo != null || generateNullField) {
+                            if (QueryUtil.isNotNull(fieldInfo) || generateNullField) {
                                 values.add("?");
                                 params.add(fieldInfo);
                             }
@@ -270,7 +270,7 @@ public class Table {
 
     public String generateDelete(SingleTableWhere query, TableColumnInfo scInfo, List<Object> params) {
         String where = query.generateSql(name, scInfo, params);
-        if (where == null || where.isEmpty()) {
+        if (QueryUtil.isEmpty(where)) {
             return null;
         }
 
@@ -284,7 +284,7 @@ public class Table {
         List<String> setList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             Object data = updateObj.get(column.getAlias());
-            if (data != null || generateNullField) {
+            if (QueryUtil.isNotNull(data) || generateNullField) {
                 setList.add(QuerySqlUtil.toSqlField(column.getName()) + " = ?");
                 params.add(data);
             }
@@ -299,11 +299,11 @@ public class Table {
         for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
             Field field = QueryUtil.getField(clazz, fieldName);
-            if (field != null) {
+            if (QueryUtil.isNotNull(field)) {
                 try {
                     field.setAccessible(true);
                     Object fieldInfo = field.get(updateObj);
-                    if (fieldInfo != null || generateNullField) {
+                    if (QueryUtil.isNotNull(fieldInfo) || generateNullField) {
                         setList.add(QuerySqlUtil.toSqlField(column.getName()) + " = ?");
                         params.add(fieldInfo);
                     }
@@ -321,7 +321,7 @@ public class Table {
         }
 
         String where = query.generateSql(name, scInfo, params);
-        if (where == null || where.isEmpty()) {
+        if (QueryUtil.isEmpty(where)) {
             return null;
         }
 
