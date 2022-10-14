@@ -15,7 +15,7 @@ import java.io.Serializable;
 import java.util.*;
 
 @Component
-public class TableColumnHandler implements InitializingBean {
+public class TableColumnTemplate implements InitializingBean {
 
     @Value("${query.table-prefix:}")
     private String tablePrefix;
