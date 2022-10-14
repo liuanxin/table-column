@@ -554,9 +554,11 @@ public class TableColumnHandler implements InitializingBean {
                     String fieldName = entry.getKey();
                     // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
                     Map<String, Map<String, Object>> valueMap = queryInnerData(tableName, entry.getValue());
-                    for (Map.Entry<String, Map<String, Object>> valueEntry : valueMap.entrySet()) {
-                        innerColumnMap.put(fieldName, valueEntry.getKey());
-                        innerDataMap.put(fieldName, valueEntry.getValue());
+                    if (QueryUtil.isNotEmpty(valueMap)) {
+                        for (Map.Entry<String, Map<String, Object>> valueEntry : valueMap.entrySet()) {
+                            innerColumnMap.put(fieldName, valueEntry.getKey());
+                            innerDataMap.put(fieldName, valueEntry.getValue());
+                        }
                     }
                 }
                 for (Map<String, Object> data : dataList) {
@@ -567,7 +569,7 @@ public class TableColumnHandler implements InitializingBean {
                         String columnName = innerColumnMap.get(fieldName);
                         // id1, id2    or    code1, code2
                         Object relationValue = data.get(columnName);
-                        if (QueryUtil.isNotBlank(relationValue)) {
+                        if (QueryUtil.isNotEmpty(relationValue)) {
                             // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
                             Map<String, Object> innerData = entry.getValue();
                             data.put(columnName, innerData.get(QueryUtil.toStr(relationValue)));
@@ -580,13 +582,13 @@ public class TableColumnHandler implements InitializingBean {
     }
 
     private Map<String, Map<String, Object>> queryInnerData(String tableName, ReqResult innerResult) {
-        // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
-        Map<String, Map<String, Object>> returnMap = new HashMap<>();
-        // todo
+        String columnName;
+        Map<String, Object> innerDataMap = new HashMap<>();
         // child-master or master-child all need to query masterId
         String innerTable = innerResult.getTable();
         TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(tableName, innerTable);
         if (masterChild != null) {
+            columnName = masterChild.getOneColumn();
             // master-child(one-one or one-many) : SELECT * FROM t_inner where parent_id in ...
             List<Object> params = new ArrayList<>();
             String innerSql = "";
@@ -594,13 +596,22 @@ public class TableColumnHandler implements InitializingBean {
         } else {
             TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, tableName);
             if (childMaster != null) {
+                columnName = childMaster.getOneColumn();
                 // child-master(many-one) : SELECT * FROM t_inner where parent_id in ...
                 List<Object> params = new ArrayList<>();
                 String innerSql = "";
                 List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
+            } else {
+                columnName = "";
             }
         }
+        if (QueryUtil.isEmpty(columnName) || QueryUtil.isEmpty(innerDataMap)) {
+            return Collections.emptyMap();
+        }
+
         // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
+        Map<String, Map<String, Object>> returnMap = new HashMap<>();
+        returnMap.put(columnName, innerDataMap);
         return returnMap;
     }
 }

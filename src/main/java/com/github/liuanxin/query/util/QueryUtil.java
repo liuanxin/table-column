@@ -220,12 +220,12 @@ public class QueryUtil {
         )).contains(obj.toString().toLowerCase());
     }
 
-    public static boolean isBlank(Object obj) {
+    public static boolean isEmpty(Object obj) {
         if (obj == null) {
             return true;
         }
         if (obj instanceof String) {
-            if (((String) obj).isEmpty()) {
+            if (((String) obj).trim().isEmpty()) {
                 return true;
             }
         }
@@ -236,8 +236,8 @@ public class QueryUtil {
         }
         return (obj instanceof Map) && ((Map<?, ?>) obj).isEmpty();
     }
-    public static boolean isNotBlank(Object obj) {
-        return !isBlank(obj);
+    public static boolean isNotEmpty(Object obj) {
+        return !isEmpty(obj);
     }
 
     public static boolean isLong(Object obj) {
