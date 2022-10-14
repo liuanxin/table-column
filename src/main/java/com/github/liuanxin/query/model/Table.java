@@ -133,8 +133,8 @@ public class Table {
     public String generateInsertMap(Map<String, Object> data, boolean generateNullField, List<Object> params) {
         return firstInsertMap(data, generateNullField, new ArrayList<>(), params);
     }
-    private <T> String firstInsertMap(Map<String, Object> data, boolean generateNullField,
-                                   List<String> placeholderList, List<Object> params) {
+    private String firstInsertMap(Map<String, Object> data, boolean generateNullField,
+                                  List<String> placeholderList, List<Object> params) {
         StringJoiner sj = new StringJoiner(", ");
         for (TableColumn column : columnMap.values()) {
             Object obj = data.get(column.getAlias());
@@ -279,8 +279,8 @@ public class Table {
     }
 
 
-    public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField, SingleTableWhere query,
-                                 TableColumnInfo scInfo, List<Object> params) {
+    public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField,
+                                    SingleTableWhere query, TableColumnInfo scInfo, List<Object> params) {
         List<String> setList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             Object data = updateObj.get(column.getAlias());
@@ -292,8 +292,8 @@ public class Table {
         return update(query, scInfo, params, setList);
     }
 
-    public <T> String generateUpdate(T updateObj, boolean generateNullField, SingleTableWhere query,
-                                     TableColumnInfo scInfo, List<Object> params) {
+    public <T> String generateUpdate(T updateObj, boolean generateNullField,
+                                     SingleTableWhere query, TableColumnInfo scInfo, List<Object> params) {
         List<String> setList = new ArrayList<>();
         Class<?> clazz = updateObj.getClass();
         for (TableColumn column : columnMap.values()) {
