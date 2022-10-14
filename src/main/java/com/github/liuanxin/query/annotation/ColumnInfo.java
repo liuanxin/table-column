@@ -29,9 +29,9 @@ public @interface ColumnInfo {
     /** just set on child table, no need to mark on the main table */
     TableRelationType relationType() default TableRelationType.NULL;
 
-    /** use if relationType has not NULL */
+    /** use if relationType has not NULL, use on child Table's column, no support multiple column by master Table */
     String relationTable() default "";
 
-    /** use if relationType has not NULL */
+    /** use if relationType has not NULL, use on child Table's column, no support multiple column by master Table */
     String relationColumn() default "";
 }

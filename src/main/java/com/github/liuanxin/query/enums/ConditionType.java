@@ -73,6 +73,7 @@ public enum ConditionType {
     nn  : IS NOT NULL    : 不为空
     ni  : NOT IN         : 不在其中(多个)
     nl  : NOT LIKE '%x%' : 不包含
+    nbe : NOT BETWEEN    : 不在区间
     */
 
     NU("IS NULL", "为空") {
@@ -115,6 +116,12 @@ public enum ConditionType {
     },
 
     BET("BETWEEN", "区间") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
+            return generateMulti(column, type, value, params);
+        }
+    },
+    NBE("NOT BETWEEN", "不在区间") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
             return generateMulti(column, type, value, params);
@@ -235,7 +242,7 @@ public enum ConditionType {
             return "";
         }
 
-        if (this == BET) {
+        if (this == BET || this == NBE) {
             Object[] arr = c.toArray();
             Object start = arr[0];
             Object end = arr.length > 1 ? arr[1] : null;
@@ -276,9 +283,10 @@ public enum ConditionType {
     private static final Set<ConditionType> MULTI_TYPE = new HashSet<>(Arrays.asList(
             ConditionType.IN,
             // ParamConditionType.NI,
+            // ConditionType.NBE,
             ConditionType.BET
     ));
-    /** string 类型: 只 等于(eq)、不等于(ne)、批量(in)、包含(include)、开头(start)、结尾(end) 条件 */
+    /** string: 等于(eq)、不等于(ne)、批量(in)、包含(include)、开头(start)、结尾(end) */
     private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             ConditionType.EQ,
             ConditionType.NE,
@@ -290,30 +298,32 @@ public enum ConditionType {
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
             STRING_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /** number 类型: 只 等于(eq)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(between) 条件 */
+    /** number: 等于(eq)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(between) */
     private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             ConditionType.EQ,
             ConditionType.GT,
             ConditionType.GE,
             ConditionType.LT,
             ConditionType.LE,
+            // ConditionType.NBE,
             ConditionType.BET
     ));
     private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
             NUMBER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /** date 类型: 只 大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet) 条件 */
+    /** date: 大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet) */
     private static final Set<ConditionType> DATE_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             ConditionType.GT,
             ConditionType.GE,
             ConditionType.LT,
             ConditionType.LE,
+            // ConditionType.NBE,
             ConditionType.BET
     ));
     private static final String DATE_TYPE_INFO = String.format("Date type can only be used in 「%s」 conditions",
             DATE_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /**  非 string/number/date 类型: 只 等于(eq)、不等于(ne) 条件 */
+    /**  非 string/number/date 类型: 等于(eq)、不等于(ne) */
     private static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
             ConditionType.EQ,
             ConditionType.NE
