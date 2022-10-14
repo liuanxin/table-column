@@ -1,4 +1,4 @@
-package com.github.liuanxin.query.config;
+package com.github.liuanxin.query.core;
 
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.enums.ResultType;
@@ -29,7 +29,7 @@ public class TableColumnTemplate implements InitializingBean {
     private TableColumnInfo tcInfo;
 
     private final JdbcTemplate jdbcTemplate;
-    public TableColumnHandler(JdbcTemplate jdbcTemplate) {
+    public TableColumnTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -91,7 +91,7 @@ public class TableColumnTemplate implements InitializingBean {
         return insert(table, data, false);
     }
 
-    public <T> int insert(String table, Map<String, Object> data, boolean generateNullField) {
+    public int insert(String table, Map<String, Object> data, boolean generateNullField) {
         if (table == null || table.trim().isEmpty() || data == null) {
             return 0;
         }
