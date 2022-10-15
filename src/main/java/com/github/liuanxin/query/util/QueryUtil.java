@@ -234,12 +234,12 @@ public class QueryUtil {
         }
         return isEmpty(id.toString());
     }
-    public static boolean isIllegalId(List<Serializable> ids) {
+    public static boolean isIllegalIdList(List<Serializable> ids) {
         if (isEmpty(ids)) {
             return true;
         }
         for (Serializable id : ids) {
-            if (isIllegalId(id)) {
+            if (!isIllegalId(id)) {
                 return false;
             }
         }

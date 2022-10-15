@@ -6,6 +6,8 @@ import com.github.liuanxin.query.model.*;
 import com.github.liuanxin.query.util.QueryInfoUtil;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,6 +18,8 @@ import java.util.*;
 
 @Component
 public class TableColumnTemplate implements InitializingBean {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
 
     @Value("${query.table-prefix:}")
     private String tablePrefix;
@@ -101,6 +105,9 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("insert: has no table({}) defined", table);
+            }
             return 0;
         }
 
@@ -127,6 +134,9 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table);
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("insert: has no table({}) defined", table);
+            }
             return 0;
         }
 
@@ -150,8 +160,12 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        Table table = tcInfo.findTableByClass(obj.getClass());
+        Class<?> clazz = obj.getClass();
+        Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("insert: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
 
@@ -176,8 +190,12 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        Table table = tcInfo.findTableByClass(list.get(0).getClass());
+        Class<?> clazz = list.get(0).getClass();
+        Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("insert: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
 
@@ -201,18 +219,24 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("delete: has no table({}) defined", table);
+            }
             return 0;
         }
         return delete(table, SingleTableWhere.buildId(tableInfo.idWhere(false), id));
     }
 
     public int deleteByIds(String table, List<Serializable> ids) {
-        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(ids)) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("delete: has no table({}) defined", table);
+            }
             return 0;
         }
         return delete(table, SingleTableWhere.buildIds(tableInfo.idWhere(false), ids));
@@ -225,6 +249,9 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("delete: has no table({}) defined", table);
+            }
             return 0;
         }
         return doDelete(query, tableInfo);
@@ -237,18 +264,24 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("delete: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
         return delete(clazz, SingleTableWhere.buildId(table.idWhere(false), id));
     }
 
     public <T> int deleteByIds(Class<T> clazz, List<Serializable> ids) {
-        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(ids)) {
+        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
         }
 
         Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("delete: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
         return delete(clazz, SingleTableWhere.buildIds(table.idWhere(false), ids));
@@ -261,6 +294,9 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("delete: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
         return doDelete(query, table);
@@ -283,18 +319,24 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("update: has no table({}) defined", table);
+            }
             return 0;
         }
         return update(table, updateObj, SingleTableWhere.buildId(tableInfo.idWhere(false), id));
     }
 
     public int updateByIds(String table, Map<String, Object> updateObj, List<Serializable> ids) {
-        if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isIllegalId(ids)) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
         }
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("update: has no table({}) defined", table);
+            }
             return 0;
         }
         return update(table, updateObj, SingleTableWhere.buildIds(tableInfo.idWhere(false), ids));
@@ -311,6 +353,9 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("update: has no table({}) defined", table);
+            }
             return 0;
         }
 
@@ -327,20 +372,28 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        Table table = tcInfo.findTableByClass(updateObj.getClass());
+        Class<?> clazz = updateObj.getClass();
+        Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("update: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
         return update(updateObj, SingleTableWhere.buildId(table.idWhere(false), id));
     }
 
     public <T> int updateByIds(T updateObj, List<Serializable> ids) {
-        if (QueryUtil.isNull(updateObj) || QueryUtil.isIllegalId(ids)) {
+        if (QueryUtil.isNull(updateObj) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
         }
 
-        Table table = tcInfo.findTableByClass(updateObj.getClass());
+        Class<?> clazz = updateObj.getClass();
+        Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("update: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
         return update(updateObj, SingleTableWhere.buildIds(table.idWhere(false), ids));
@@ -355,8 +408,12 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        Table table = tcInfo.findTableByClass(updateObj.getClass());
+        Class<?> clazz = updateObj.getClass();
+        Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("update: class({}) has no table defined", clazz.getName());
+            }
             return 0;
         }
 
@@ -571,6 +628,7 @@ public class TableColumnTemplate implements InitializingBean {
                         if (QueryUtil.isNotNull(relationValue)) {
                             // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
                             Map<String, Object> innerData = entry.getValue();
+                            // put --> address : { ... }    or    items : [ ... ]
                             data.put(columnName, innerData.get(QueryUtil.toStr(relationValue)));
                         }
                     }
