@@ -19,7 +19,7 @@ public class QueryUtil {
 
 
     /** UserInfo --> user_info */
-    public static String aliasToTableName(String tablePrefix, String className) {
+    public static String classToTableName(String tablePrefix, String className) {
         StringBuilder sbd = new StringBuilder();
         char[] chars = className.toCharArray();
         int len = chars.length;
@@ -38,7 +38,7 @@ public class QueryUtil {
     }
 
     /** userName --> user_name */
-    public static String aliasToColumnName(String fieldName) {
+    public static String fieldToColumnName(String fieldName) {
         StringBuilder sbd = new StringBuilder();
         for (char c : fieldName.toCharArray()) {
             if (Character.isUpperCase(c)) {

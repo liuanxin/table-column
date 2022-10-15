@@ -73,17 +73,34 @@ public final class QueryLambdaUtil {
         }
     }
 
-    public static TableInfo lambdaToTableInfo(SupplierSerialize<?> supplier) {
-        SerializedLambda lambda = toLambdaMataInfo(supplier);
-        Class<?> clazz = lambdaToClass(lambda);
-        return clazz.getAnnotation(TableInfo.class);
+    public static Class<?> lambdaToClass(SupplierSerialize<?> supplier) {
+        return lambdaToClass(toLambdaMataInfo(supplier));
     }
 
-    public static ColumnInfo lambdaToColumnInfo(SupplierSerialize<?> supplier) {
+    public static Field lambdaToField(SupplierSerialize<?> supplier) {
         SerializedLambda lambda = toLambdaMataInfo(supplier);
         Class<?> clazz = lambdaToClass(lambda);
         String methodName = lambda.getImplMethodName();
-        Field field = methodToField(clazz, methodName);
-        return field.getAnnotation(ColumnInfo.class);
+        return methodToField(clazz, methodName);
+    }
+
+    public static String lambdaToTable(String tablePrefix, SupplierSerialize<?> supplier) {
+        Class<?> clazz = lambdaToClass(supplier);
+        TableInfo tableInfo = clazz.getAnnotation(TableInfo.class);
+        if (QueryUtil.isNull(tableInfo) || tableInfo.ignore()) {
+            return QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
+        } else {
+            return tableInfo.value();
+        }
+    }
+
+    public static String lambdaToColumn(SupplierSerialize<?> supplier) {
+        Field field = lambdaToField(supplier);
+        ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
+        if (QueryUtil.isNull(columnInfo) || columnInfo.ignore()) {
+            return QueryUtil.fieldToColumnName(field.getName());
+        } else {
+            return columnInfo.value();
+        }
     }
 }

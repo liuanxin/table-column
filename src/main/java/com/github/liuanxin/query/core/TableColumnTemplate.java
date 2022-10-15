@@ -644,6 +644,7 @@ public class TableColumnTemplate implements InitializingBean {
     private Map<String, Map<String, Object>> queryInnerData(String mainTableName, ReqResult result) {
         // todo
         String columnName;
+        // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
         // child-master or master-child all need to query masterId
         String innerTable = result.getTable();

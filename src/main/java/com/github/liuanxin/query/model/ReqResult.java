@@ -118,7 +118,7 @@ public class ReqResult {
         if (QueryUtil.isNotEmpty(table)) {
             currentTable = table.trim();
             Table tableInfo = tcInfo.findTable(currentTable);
-            if (tableInfo == null) {
+            if (QueryUtil.isNull(tableInfo)) {
                 throw new RuntimeException("result has no defined table(" + currentTable + ")");
             }
         } else {
@@ -148,10 +148,10 @@ public class ReqResult {
                         throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") data error");
                     }
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
-                    if (group == null) {
+                    if (QueryUtil.isNull(group)) {
                         throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") type error");
                     }
-                    String column = QueryUtil.toStr(groups.get(2));
+                    String column = QueryUtil.toStr(groups.get(2)).trim();
                     if (column.isEmpty()) {
                         throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") column error");
                     }

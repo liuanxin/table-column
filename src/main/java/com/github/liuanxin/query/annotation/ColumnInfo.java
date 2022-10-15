@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 public @interface ColumnInfo {
 
     /** table column name */
-    String value();
+    String value() default "";
 
     /** table column comment */
     String desc() default "";

@@ -91,7 +91,7 @@ public class QueryInfoUtil {
             } else {
                 tableDesc = "";
                 tableAlias = clazz.getSimpleName();
-                tableName = QueryUtil.aliasToTableName(tablePrefix, tableAlias);
+                tableName = QueryUtil.classToTableName(tablePrefix, tableAlias);
             }
 
             if (tableNameSet.contains(tableName)) {
@@ -128,7 +128,7 @@ public class QueryInfoUtil {
                 } else {
                     columnDesc = "";
                     columnAlias = field.getName();
-                    columnName = QueryUtil.aliasToColumnName(columnAlias);
+                    columnName = QueryUtil.fieldToColumnName(columnAlias);
                     primary = "id".equalsIgnoreCase(columnAlias);
                     strLen = null;
                 }
