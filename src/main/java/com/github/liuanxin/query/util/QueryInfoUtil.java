@@ -194,7 +194,8 @@ public class QueryInfoUtil {
     }
 
 
-    public static TableColumnInfo infoWithDb(List<Map<String, Object>> tableList,
+    public static TableColumnInfo infoWithDb(String tablePrefix,
+                                             List<Map<String, Object>> tableList,
                                              List<Map<String, Object>> tableColumnList,
                                              List<Map<String, Object>> relationColumnList,
                                              List<Map<String, Object>> indexList) {
@@ -230,7 +231,7 @@ public class QueryInfoUtil {
 
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
-            String tableAlias = QueryUtil.tableNameToAlias(tableName);
+            String tableAlias = QueryUtil.tableNameToClass(tablePrefix, tableName);
             String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
             Map<String, TableColumn> columnMap = new LinkedHashMap<>();
 
@@ -238,7 +239,7 @@ public class QueryInfoUtil {
             for (Map<String, Object> columnInfo : columnList) {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
-                String columnAlias = QueryUtil.columnNameToAlias(columnName);
+                String columnAlias = QueryUtil.columnNameToField(columnName);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));

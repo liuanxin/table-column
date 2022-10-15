@@ -79,9 +79,7 @@ public final class QueryLambdaUtil {
 
     public static Field lambdaToField(SupplierSerialize<?> supplier) {
         SerializedLambda lambda = toLambdaMataInfo(supplier);
-        Class<?> clazz = lambdaToClass(lambda);
-        String methodName = lambda.getImplMethodName();
-        return methodToField(clazz, methodName);
+        return methodToField(lambdaToClass(lambda), lambda.getImplMethodName());
     }
 
     public static String lambdaToTable(String tablePrefix, SupplierSerialize<?> supplier) {

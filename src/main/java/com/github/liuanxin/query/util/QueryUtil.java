@@ -51,8 +51,8 @@ public class QueryUtil {
     }
 
     /** user_info | USER_INFO --> UserInfo */
-    public static String tableNameToAlias(String tableName) {
-        if (tableName.toLowerCase().startsWith("t_")) {
+    public static String tableNameToClass(String tablePrefix, String tableName) {
+        if (tableName.toLowerCase().startsWith(tablePrefix)) {
             tableName = tableName.substring(2);
         }
         StringBuilder sbd = new StringBuilder();
@@ -72,7 +72,7 @@ public class QueryUtil {
     }
 
     /** user_name | USER_NAME --> userName */
-    public static String columnNameToAlias(String columnName) {
+    public static String columnNameToField(String columnName) {
         StringBuilder sbd = new StringBuilder();
         char[] chars = columnName.toCharArray();
         int len = chars.length;

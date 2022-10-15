@@ -57,7 +57,7 @@ public class TableColumnTemplate implements InitializingBean {
             List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
             // table_name, column_name, has_single_unique
             List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
-            tcInfo = QueryInfoUtil.infoWithDb(tableList, tableColumnList, relationColumnList, indexList);
+            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList, relationColumnList, indexList);
         }
     }
 
