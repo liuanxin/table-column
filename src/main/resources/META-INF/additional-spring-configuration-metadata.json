@@ -4,29 +4,36 @@
       "name": "query.table-prefix",
       "type": "java.lang.String",
       "defaultValue": "",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnHandler",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "关联表的类上没有标注解时, 将类名转换成表名时, 表的前缀."
     },
     {
       "name": "query.scan-packages",
       "type": "java.lang.String",
       "defaultValue": "",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnHandler",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "存放关联表的类的包地址, 多个用英文逗号隔开."
     },
     {
       "name": "query.deep-max-page-size",
       "type": "java.lang.Integer",
       "defaultValue": "10000",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnHandler",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "当要请求的数据页(page * limit)大于当前值时, sql 会先查出 id 再查具体的数据."
     },
     {
       "name": "query.max-list-count",
       "type": "java.lang.Integer",
       "defaultValue": "1000",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnHandler",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "请求时列表查询时的最大个数."
+    },
+    {
+      "name": "query.one-to-one-has-many-exception",
+      "type": "java.lang.Boolean",
+      "defaultValue": "false",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
+      "description": "当表与表之间是一对一关联, 但数据却出现了一对多的情况时, true 表示抛出异常, false 会用 id 小的那条进行处理."
     }
   ]
 }

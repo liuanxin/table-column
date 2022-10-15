@@ -33,6 +33,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.max-list-count:1000}")
     private int maxListCount;
 
+    @Value("${query.one-to-one-has-many-exception:false}")
+    private boolean oneToOneHasManyException;
+
     private TableColumnInfo tcInfo;
 
     private final JdbcTemplate jdbcTemplate;
