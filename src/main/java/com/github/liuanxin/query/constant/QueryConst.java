@@ -47,9 +47,16 @@ public final class QueryConst {
     public static final String COLUMN_PREFIX = "column-";
 
     public static final Set<String> TRUE_SET = new HashSet<>(Arrays.asList(
-            "true", "1", "on", "yes",
+            "true", "1", "on", "yes"
+    ));
+    public static final Set<String> FALSE_SET = new HashSet<>(Arrays.asList(
             "false", "0", "off", "no"
     ));
+    public static final Set<String> BOOLEAN_SET = new HashSet<>();
+    static {
+        BOOLEAN_SET.addAll(TRUE_SET);
+        BOOLEAN_SET.addAll(FALSE_SET);
+    }
 
     public static final Set<String> SUPPORT_COUNT_SET = new HashSet<>(Arrays.asList("*", "1"));
 

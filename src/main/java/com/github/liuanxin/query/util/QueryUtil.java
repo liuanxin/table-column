@@ -147,6 +147,10 @@ public class QueryUtil {
         return obj == null ? "" : obj.toString().trim();
     }
 
+    public static Boolean toBoolean(Object obj) {
+        return (QueryUtil.isNotNull(obj) && QueryConst.BOOLEAN_SET.contains(obj.toString().toLowerCase())) ? true : null;
+    }
+
     public static Integer toInteger(Object obj) {
         if (obj == null) {
             return null;
@@ -212,10 +216,6 @@ public class QueryUtil {
     }
     public static String formatDate(Date date) {
         return new SimpleDateFormat(QueryConst.DEFAULT_DATE_FORMAT).format(date);
-    }
-
-    public static boolean isBoolean(Object obj) {
-        return QueryUtil.isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase());
     }
 
     public static boolean isNull(Object obj) {

@@ -369,11 +369,11 @@ public enum ConditionType {
                         }
                     }
                     if (count > maxListCount) {
-                        throw new RuntimeException(String.format("Collection column(%s) length can't be greater than %s",
+                        throw new RuntimeException(String.format("Collection column(%s) length can only be <= %s",
                                 column, maxListCount));
                     }
                 } else {
-                    throw new RuntimeException(String.format("column(%s) data need been Collection", column));
+                    throw new RuntimeException(String.format("column(%s) data need has Collection", column));
                 }
             } else {
                 checkValueType(type, column, value, strLen);
@@ -393,7 +393,7 @@ public enum ConditionType {
 
     private Object toValue(Class<?> type, Object value) {
         if (BOOLEAN_TYPE_SET.contains(type)) {
-            return QueryUtil.isBoolean(value);
+            return QueryUtil.toBoolean(value);
         } else if (INT_TYPE_SET.contains(type)) {
             return QueryUtil.toInteger(value);
         } else if (LONG_TYPE_SET.contains(type)) {
