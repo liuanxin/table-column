@@ -588,7 +588,7 @@ public class TableColumnTemplate implements InitializingBean {
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
         if (QueryUtil.isNotEmpty(dataList)) {
             Table table = tcInfo.findTable(mainTable);
-            String tableName = table.getName();
+            String mainTableName = table.getName();
 
             Set<String> selectColumnSet = result.selectColumn(mainTable, tcInfo, allTableSet);
             List<String> removeColumnList = new ArrayList<>();
@@ -612,7 +612,7 @@ public class TableColumnTemplate implements InitializingBean {
                 for (Map.Entry<String, ReqResult> entry : innerResultMap.entrySet()) {
                     String fieldName = entry.getKey();
                     // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
-                    Map<String, Map<String, Object>> valueMap = queryInnerData(tableName, entry.getValue());
+                    Map<String, Map<String, Object>> valueMap = queryInnerData(mainTableName, entry.getValue());
                     if (QueryUtil.isNotEmpty(valueMap)) {
                         for (Map.Entry<String, Map<String, Object>> valueEntry : valueMap.entrySet()) {
                             innerColumnMap.put(fieldName, valueEntry.getKey());
@@ -641,23 +641,24 @@ public class TableColumnTemplate implements InitializingBean {
         return dataList;
     }
 
-    private Map<String, Map<String, Object>> queryInnerData(String tableName, ReqResult innerResult) {
+    private Map<String, Map<String, Object>> queryInnerData(String mainTableName, ReqResult result) {
+        // todo
         String columnName;
         Map<String, Object> innerDataMap = new HashMap<>();
         // child-master or master-child all need to query masterId
-        String innerTable = innerResult.getTable();
-        TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(tableName, innerTable);
+        String innerTable = result.getTable();
+        TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(mainTableName, innerTable);
         if (QueryUtil.isNotNull(masterChild)) {
             columnName = masterChild.getOneColumn();
-            // master-child(one-one or one-many) : SELECT * FROM t_inner where parent_id in ...
+            // master-child : SELECT * FROM t_inner where parent_id in ...
             List<Object> params = new ArrayList<>();
             String innerSql = "";
             List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
         } else {
-            TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, tableName);
+            TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, mainTableName);
             if (QueryUtil.isNotNull(childMaster)) {
                 columnName = childMaster.getOneColumn();
-                // child-master(many-one) : SELECT * FROM t_inner where parent_id in ...
+                // child-master : SELECT * FROM t_inner where parent_id in ...
                 List<Object> params = new ArrayList<>();
                 String innerSql = "";
                 List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
@@ -667,6 +668,13 @@ public class TableColumnTemplate implements InitializingBean {
         }
         if (QueryUtil.isEmpty(columnName) || QueryUtil.isEmpty(innerDataMap)) {
             return Collections.emptyMap();
+        }
+
+        Map<String, ReqResult> innerResultMap = result.innerResult();
+        if (QueryUtil.isNotEmpty(innerResultMap)) {
+            for (Map.Entry<String, ReqResult> entry : innerResultMap.entrySet()) {
+                String fieldName = entry.getKey();
+            }
         }
 
         // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
