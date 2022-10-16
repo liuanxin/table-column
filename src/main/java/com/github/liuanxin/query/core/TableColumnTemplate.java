@@ -641,14 +641,14 @@ public class TableColumnTemplate implements InitializingBean {
         return dataList;
     }
 
-    private Map<String, Map<String, Object>> queryInnerData(String mainTableName, ReqResult result) {
+    private Map<String, Map<String, Object>> queryInnerData(String tableName, ReqResult result) {
         // todo
         String columnName;
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
         // child-master or master-child all need to query masterId
         String innerTable = result.getTable();
-        TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(mainTableName, innerTable);
+        TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(tableName, innerTable);
         if (QueryUtil.isNotNull(masterChild)) {
             columnName = masterChild.getOneColumn();
             // master-child : SELECT * FROM t_inner where parent_id in ...
@@ -656,7 +656,7 @@ public class TableColumnTemplate implements InitializingBean {
             String innerSql = "";
             List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
         } else {
-            TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, mainTableName);
+            TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, tableName);
             if (QueryUtil.isNotNull(childMaster)) {
                 columnName = childMaster.getOneColumn();
                 // child-master : SELECT * FROM t_inner where parent_id in ...
@@ -664,7 +664,7 @@ public class TableColumnTemplate implements InitializingBean {
                 String innerSql = "";
                 List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
             } else {
-                columnName = "";
+                columnName = null;
             }
         }
         if (QueryUtil.isEmpty(columnName) || QueryUtil.isEmpty(innerDataMap)) {
