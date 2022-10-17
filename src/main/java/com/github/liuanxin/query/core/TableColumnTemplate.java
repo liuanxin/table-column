@@ -454,7 +454,8 @@ public class TableColumnTemplate implements InitializingBean {
 
                 String firstFromSql = QuerySqlUtil.toFromSql(tcInfo, mainTable, paramRelationList);
                 String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, !queryTableSet.isEmpty(), param, params);
-                return queryPage(firstFromSql, allFromSql, whereSql, mainTable, param, result, queryHasMany, queryTableSet, allTableSet, params);
+                return queryPage(firstFromSql, allFromSql, whereSql, mainTable, param, result, queryHasMany,
+                        queryTableSet, allTableSet, params);
             } else {
                 String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, !allTableSet.isEmpty(), param, params);
                 return queryList(allFromSql + whereSql, mainTable, param, result, allTableSet, params);
@@ -642,32 +643,34 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private Map<String, Map<String, Object>> queryInnerData(String tableName, ReqResult result) {
-        // todo
-        String columnName;
+        String innerTable = result.getTable();
+        // master-child
+        TableColumnRelation relation = tcInfo.findRelationByMasterChild(tableName, innerTable);
+        if (QueryUtil.isNull(relation)) {
+            // child-master
+            relation = tcInfo.findRelationByMasterChild(innerTable, tableName);
+        }
+        if (QueryUtil.isNull(relation)) {
+            return Collections.emptyMap();
+        }
+
+        String columnName = relation.getOneColumn();
+        if (QueryUtil.isEmpty(columnName)) {
+            return Collections.emptyMap();
+        }
+
+        // SELECT * FROM t_inner where parent_id in ...
+        List<Object> params = new ArrayList<>();
+        String innerSql = result.generateInnerSql(tcInfo, params);
+        List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
+        if (QueryUtil.isEmpty(mapList)) {
+            return Collections.emptyMap();
+        }
+
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
-        // child-master or master-child all need to query masterId
-        String innerTable = result.getTable();
-        TableColumnRelation masterChild = tcInfo.findRelationByMasterChild(tableName, innerTable);
-        if (QueryUtil.isNotNull(masterChild)) {
-            columnName = masterChild.getOneColumn();
-            // master-child : SELECT * FROM t_inner where parent_id in ...
-            List<Object> params = new ArrayList<>();
-            String innerSql = "";
-            List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
-        } else {
-            TableColumnRelation childMaster = tcInfo.findRelationByMasterChild(innerTable, tableName);
-            if (QueryUtil.isNotNull(childMaster)) {
-                columnName = childMaster.getOneColumn();
-                // child-master : SELECT * FROM t_inner where parent_id in ...
-                List<Object> params = new ArrayList<>();
-                String innerSql = "";
-                List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
-            } else {
-                columnName = null;
-            }
-        }
-        if (QueryUtil.isEmpty(columnName) || QueryUtil.isEmpty(innerDataMap)) {
+        // todo
+        if (QueryUtil.isEmpty(innerDataMap)) {
             return Collections.emptyMap();
         }
 

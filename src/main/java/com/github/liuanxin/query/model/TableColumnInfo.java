@@ -52,16 +52,18 @@ public class TableColumnInfo {
     }
 
     public Table findTable(String tableName) {
-        String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + tableName);
+        String tn = tableName.trim();
+        String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + tn);
         Table table = tableMap.get(tableAlias);
-        return QueryUtil.isNull(table) ? tableMap.get(tableName) : table;
+        return QueryUtil.isNull(table) ? tableMap.get(tn) : table;
     }
 
     public TableColumn findTableColumn(Table table, String columnName) {
         Map<String, TableColumn> columnMap = table.getColumnMap();
-        String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + columnName);
+        String cn = columnName.trim();
+        String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + cn);
         TableColumn tableColumn = columnMap.get(columnAlias);
-        return QueryUtil.isNull(tableColumn) ? columnMap.get(columnName) : tableColumn;
+        return QueryUtil.isNull(tableColumn) ? columnMap.get(cn) : tableColumn;
     }
 
     public TableColumn findTableColumn(String tableName, String columnName) {
