@@ -504,7 +504,7 @@ public class TableColumnTemplate implements InitializingBean {
                 String fromAndWhereList = allFromSql + whereSql;
                 // SELECT ... FROM ... WHERE .?. GROUP BY ... HAVING ... LIMIT ...    (all where's table)
                 String selectListGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhereList, mainTable, result, allTableSet, params);
-                pageList = queryPageListWithGroup(selectListGroupSql, mainTable, allTableSet, param, result, params);
+                pageList = queryPageListWithGroup(selectListGroupSql, mainTable, param, result, params);
             } else {
                 pageList = Collections.emptyList();
             }
@@ -550,13 +550,13 @@ public class TableColumnTemplate implements InitializingBean {
             // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
             sql = QuerySqlUtil.toPageWithoutGroupSql(tcInfo, fromAndWhere, mainTable, param, result, allTableSet, params);
         }
-        return assemblyResult(sql, params, mainTable, allTableSet, result);
+        return assemblyResult(sql, params, mainTable, result);
     }
 
-    private List<Map<String, Object>> queryPageListWithGroup(String selectGroupSql, String mainTable, Set<String> allTableSet,
+    private List<Map<String, Object>> queryPageListWithGroup(String selectGroupSql, String mainTable,
                                                              ReqParam param, ReqResult result, List<Object> params) {
         String sql = selectGroupSql + param.generatePageSql(params);
-        return assemblyResult(sql, params, mainTable, allTableSet, result);
+        return assemblyResult(sql, params, mainTable, result);
     }
 
     private List<Map<String, Object>> queryList(String fromAndWhere, String mainTable, ReqParam param,
@@ -564,7 +564,7 @@ public class TableColumnTemplate implements InitializingBean {
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, mainTable, result, allTableSet, params);
         String orderSql = param.generateOrderSql(mainTable, !allTableSet.isEmpty(), tcInfo);
         String sql = selectGroupSql + orderSql + param.generatePageSql(params);
-        return assemblyResult(sql, params, mainTable, allTableSet, result);
+        return assemblyResult(sql, params, mainTable, result);
     }
 
     private List<Map<String, Object>> queryListNoLimit(String fromAndWhere, String mainTable, ReqParam param,
@@ -572,7 +572,7 @@ public class TableColumnTemplate implements InitializingBean {
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, mainTable, result, allTableSet, params);
         String orderSql = param.generateOrderSql(mainTable, !allTableSet.isEmpty(), tcInfo);
         String sql = selectGroupSql + orderSql;
-        return assemblyResult(sql, params, mainTable, allTableSet, result);
+        return assemblyResult(sql, params, mainTable, result);
     }
 
     private Map<String, Object> queryObj(String fromAndWhere, String mainTable, ReqParam param, ReqResult result,
@@ -580,74 +580,68 @@ public class TableColumnTemplate implements InitializingBean {
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, mainTable, result, allTableSet, params);
         String orderSql = param.generateOrderSql(mainTable, !allTableSet.isEmpty(), tcInfo);
         String sql = selectGroupSql + orderSql + param.generateArrToObjSql(params);
-        Map<String, Object> obj = QueryUtil.first(assemblyResult(sql, params, mainTable, allTableSet, result));
+        Map<String, Object> obj = QueryUtil.first(assemblyResult(sql, params, mainTable, result));
         return QueryUtil.isNull(obj) ? Collections.emptyMap() : obj;
     }
 
-    private List<Map<String, Object>> assemblyResult(String mainSql, List<Object> params, String mainTable,
-                                                     Set<String> allTableSet, ReqResult result) {
+    private List<Map<String, Object>> assemblyResult(String mainSql, List<Object> params, String mainTable, ReqResult result) {
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
         if (QueryUtil.isNotEmpty(dataList)) {
-            Table table = tcInfo.findTable(mainTable);
-            String mainTableName = table.getName();
-
-            Set<String> selectColumnSet = result.selectColumn(mainTable, tcInfo, allTableSet);
-            List<String> removeColumnList = new ArrayList<>();
-            for (String ic : result.innerColumn(mainTable, tcInfo, !allTableSet.isEmpty())) {
-                if (!selectColumnSet.contains(ic)) {
-                    removeColumnList.add(ic);
-                }
-            }
-            for (Map<String, Object> data : dataList) {
-                removeColumnList.forEach(data::remove);
-                result.handleDateType(data, mainTable, tcInfo);
-            }
-
-            // order_address.order_id : order.id    +    order_item.code : order.code
-            Map<String, ReqResult> innerResultMap = result.innerResult();
-            if (QueryUtil.isNotEmpty(innerResultMap)) {
-                // { address : id, items : code }
-                Map<String, String> innerColumnMap = new HashMap<>();
-                //  { address : { id1 : { ... },  id2 : { ... } }, items : { code1 : [ ... ], code2 : [ ... ] } }
-                Map<String, Map<String, Object>> innerDataMap = new HashMap<>();
-                for (Map.Entry<String, ReqResult> entry : innerResultMap.entrySet()) {
-                    String fieldName = entry.getKey();
-                    // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
-                    Map<String, Map<String, Object>> valueMap = queryInnerData(mainTableName, entry.getValue());
-                    if (QueryUtil.isNotEmpty(valueMap)) {
-                        for (Map.Entry<String, Map<String, Object>> valueEntry : valueMap.entrySet()) {
-                            innerColumnMap.put(fieldName, valueEntry.getKey());
-                            innerDataMap.put(fieldName, valueEntry.getValue());
-                        }
-                    }
-                }
-                for (Map<String, Object> data : dataList) {
-                    for (Map.Entry<String, Map<String, Object>> entry : innerDataMap.entrySet()) {
-                        // address    or    items
-                        String fieldName = entry.getKey();
-                        // id    or    code
-                        String columnName = innerColumnMap.get(fieldName);
-                        // id1, id2    or    code1, code2
-                        Object relationValue = data.get(columnName);
-                        if (QueryUtil.isNotNull(relationValue)) {
-                            // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
-                            Map<String, Object> innerData = entry.getValue();
-                            // put --> address : { ... }    or    items : [ ... ]
-                            data.put(columnName, innerData.get(QueryUtil.toStr(relationValue)));
-                        }
-                    }
-                }
-            }
+            handleInnerData(dataList, tcInfo.findTable(mainTable).getName(), result);
         }
         return dataList;
     }
 
-    private Map<String, Map<String, Object>> queryInnerData(String tableName, ReqResult result) {
+    private void handleInnerData(List<Map<String, Object>> dataList, String mainTableName, ReqResult result) {
+        for (Map<String, Object> data : dataList) {
+            result.handleDateType(data, tcInfo);
+        }
+        // order_address.order_id : order.id    +    order_item.code : order.code
+        Map<String, ReqResult> innerResultMap = result.innerResult();
+        if (QueryUtil.isNotEmpty(innerResultMap)) {
+            // { address : id, items : code }
+            Map<String, String> innerColumnMap = new HashMap<>();
+            //  { address : { id1 : { ... },  id2 : { ... } }, items : { code1 : [ ... ], code2 : [ ... ] } }
+            Map<String, Map<String, Object>> innerDataMap = new HashMap<>();
+            for (Map.Entry<String, ReqResult> entry : innerResultMap.entrySet()) {
+                String fieldName = entry.getKey();
+                // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
+                Map<String, Map<String, Object>> valueMap = queryInnerData(mainTableName, entry.getValue(), dataList);
+                if (QueryUtil.isNotEmpty(valueMap)) {
+                    for (Map.Entry<String, Map<String, Object>> valueEntry : valueMap.entrySet()) {
+                        innerColumnMap.put(fieldName, valueEntry.getKey());
+                        innerDataMap.put(fieldName, valueEntry.getValue());
+                    }
+                }
+            }
+            for (Map<String, Object> data : dataList) {
+                for (Map.Entry<String, Map<String, Object>> entry : innerDataMap.entrySet()) {
+                    // address    or    items
+                    String fieldName = entry.getKey();
+                    // id    or    code
+                    String columnName = innerColumnMap.get(fieldName);
+                    // id1, id2    or    code1, code2
+                    Object relationValue = data.get(columnName);
+                    if (QueryUtil.isNotNull(relationValue)) {
+                        // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
+                        Map<String, Object> innerData = entry.getValue();
+                        // put --> address : { ... }    or    items : [ ... ]
+                        data.put(columnName, innerData.get(QueryUtil.toStr(relationValue)));
+                    }
+                }
+            }
+        }
+    }
+
+    private Map<String, Map<String, Object>> queryInnerData(String tableName, ReqResult result,
+                                                            List<Map<String, Object>> dataList) {
         String innerTable = result.getTable();
         // master-child
+        boolean masterChild = true;
         TableColumnRelation relation = tcInfo.findRelationByMasterChild(tableName, innerTable);
         if (QueryUtil.isNull(relation)) {
             // child-master
+            masterChild = false;
             relation = tcInfo.findRelationByMasterChild(innerTable, tableName);
         }
         if (QueryUtil.isNull(relation)) {
@@ -655,30 +649,61 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         String columnName = relation.getOneColumn();
-        if (QueryUtil.isEmpty(columnName)) {
+        String tableColumnAlias = tcInfo.findTableColumn(relation.getOneTable(), columnName).getAlias();
+        List<Object> relationIds = new ArrayList<>();
+        for (Map<String, Object> data : dataList) {
+            relationIds.add(data.get(tableColumnAlias));
+        }
+        if (QueryUtil.isEmpty(relationIds)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("data({}) no column({}) info", dataList, tableColumnAlias);
+            }
             return Collections.emptyMap();
         }
 
-        // SELECT * FROM t_inner where parent_id in ...
         List<Object> params = new ArrayList<>();
-        String innerSql = result.generateInnerSql(tcInfo, params);
+        String innerSql = result.generateInnerSql(columnName, relationIds, tcInfo, params);
         List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
         if (QueryUtil.isEmpty(mapList)) {
             return Collections.emptyMap();
         }
 
+        handleInnerData(mapList, tableName, result);
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
-        // todo
+        boolean hasMany = masterChild && relation.getType().hasMany();
+        for (Map<String, Object> data : mapList) {
+            if (QueryUtil.isNotNull(data)) {
+                String key = QueryUtil.toStr(data.get(columnName));
+                if (QueryUtil.isNotEmpty(key)) {
+                    Object obj = innerDataMap.get(key);
+                    if (hasMany) {
+                        List<Object> list;
+                        if (QueryUtil.isNotNull(obj) && (obj instanceof List<?>)) {
+                            // noinspection unchecked
+                            list = (List<Object>) obj;
+                        } else {
+                            list = new ArrayList<>();
+                        }
+                        list.add(data);
+                        innerDataMap.put(key, list);
+                    } else {
+                        if (QueryUtil.isNotNull(obj)) {
+                            if (oneToOneHasManyException) {
+                                throw new RuntimeException(String.format("%s, but has multiple data(%s.%s - %s.%s : %s)",
+                                        (masterChild ? "one-to-one relation" : "slave-master"),
+                                        relation.getOneTable(), relation.getOneColumn(),
+                                        relation.getOneOrManyTable(), relation.getOneOrManyColumn(),
+                                        key));
+                            }
+                        }
+                        innerDataMap.put(key, data);
+                    }
+                }
+            }
+        }
         if (QueryUtil.isEmpty(innerDataMap)) {
             return Collections.emptyMap();
-        }
-
-        Map<String, ReqResult> innerResultMap = result.innerResult();
-        if (QueryUtil.isNotEmpty(innerResultMap)) {
-            for (Map.Entry<String, ReqResult> entry : innerResultMap.entrySet()) {
-                String fieldName = entry.getKey();
-            }
         }
 
         // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
