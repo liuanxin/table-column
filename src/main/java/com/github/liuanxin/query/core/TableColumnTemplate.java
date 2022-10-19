@@ -690,7 +690,6 @@ public class TableColumnTemplate implements InitializingBean {
             return Collections.emptyMap();
         }
 
-
         handleData(mapList, false, tableName, result);
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();

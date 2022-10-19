@@ -33,7 +33,7 @@
       "type": "java.lang.Integer",
       "defaultValue": "1000",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "请求时列表查询时的最大个数."
+      "description": "单次查询的条件是列表时的最大个数."
     },
     {
       "name": "query.one-to-one-has-many-exception",
