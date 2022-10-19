@@ -43,6 +43,18 @@ public class QueryJsonUtil {
         }
     }
 
+    public static <S,T> List<T> convertList(S source, Class<T> clazz) {
+        String json = toJson(source);
+        if (QueryUtil.isEmpty(json)) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readValue(json, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, clazz));
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
     public static <S,T> T convertType(S source, TypeReference<T> type) {
         String json = toJson(source);
         if (QueryUtil.isEmpty(json)) {

@@ -56,7 +56,7 @@ import java.util.*;
  *     [ "def", "count_distinct", "name, name2" ],
  *     [ "ghi", "sum", "price", "gt", 100.5, "lt", 120.5 ],
  *     [ "jkl", "min", "id" ],
- *     [ "mno", "max", "id" ],
+ *     [ "mno", "max", "create_time", [ "yyyy-MM-dd HH:mm", "GMT+8" ] ],
  *     [ "pqr", "avg", "price" ],
  *     [ "stu", "group_concat", "name", "lks", "aaa" ]
  *   ]
@@ -492,7 +492,7 @@ public class ReqResult {
     }
 
 
-    public void handleDateType(String mainTable, boolean needAlias, Map<String, Object> data, TableColumnInfo tcInfo) {
+    public void handleData(String mainTable, boolean needAlias, Map<String, Object> data, TableColumnInfo tcInfo) {
         for (Object obj : columns) {
             if (obj != null) {
                 if (obj instanceof String) {
@@ -502,7 +502,7 @@ public class ReqResult {
                     Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
                     if (Date.class.isAssignableFrom(columnType)) {
                         Date date = QueryUtil.toDate(data.get(columnName));
-                        if (date != null) {
+                        if (QueryUtil.isNotNull(date)) {
                             data.put(columnName, QueryUtil.formatDate(date));
                         }
                     }
@@ -513,7 +513,26 @@ public class ReqResult {
                     String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
                     Object groupInfo = data.remove(group.generateAlias(useColumn));
                     if (QueryUtil.isNotNull(groupInfo)) {
-                        data.put(QueryUtil.toStr(groups.get(0)), groupInfo);
+                        String returnColumn = QueryUtil.toStr(groups.get(0));
+                        Date date = QueryUtil.toDate(groupInfo);
+                        if (QueryUtil.isNotNull(date)) {
+                            String dateInfo = null;
+                            int size = groups.size();
+                            if (size > 3) {
+                                List<String> values = QueryJsonUtil.convertList(groups.get(size - 1), String.class);
+                                if (QueryUtil.isNotEmpty(values)) {
+                                    String pattern = values.get(0);
+                                    String timezone = (values.size() > 1) ? values.get(1) : null;
+                                    dateInfo = QueryUtil.formatDate(date, pattern, timezone);
+                                }
+                            }
+                            if (QueryUtil.isEmpty(dateInfo)) {
+                                dateInfo = QueryUtil.formatDate(date);
+                            }
+                            data.put(returnColumn, dateInfo);
+                        } else {
+                            data.put(returnColumn, groupInfo);
+                        }
                     }
                 } else {
                     Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);

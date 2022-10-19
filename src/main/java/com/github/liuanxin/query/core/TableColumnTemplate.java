@@ -508,9 +508,11 @@ public class TableColumnTemplate implements InitializingBean {
         long count;
         List<Map<String, Object>> pageList;
         if (result.needGroup()) {
-            // SELECT COUNT(*) FROM ( SELECT ... FROM ... WHERE .?. GROUP BY ... HAVING ... ) tmp    (only where's table)
+            // SELECT ... FROM ... WHERE .?. GROUP BY ... HAVING ..    (only where's table)
             String selectCountGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, mainTable, result, queryTableSet, params);
-            count = queryCount(QuerySqlUtil.toCountGroupSql(selectCountGroupSql), params);
+            // SELECT COUNT(*) FROM ( ... ) tmp
+            String countSql = QuerySqlUtil.toCountGroupSql(selectCountGroupSql);
+            count = queryCount(countSql, params);
             if (param.needQueryCurrentPage(count)) {
                 String fromAndWhereList = allFromSql + whereSql;
                 // SELECT ... FROM ... WHERE .?. GROUP BY ... HAVING ... LIMIT ...    (all where's table)
@@ -561,7 +563,7 @@ public class TableColumnTemplate implements InitializingBean {
             // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
             sql = QuerySqlUtil.toPageWithoutGroupSql(tcInfo, fromAndWhere, mainTable, param, result, allTableSet, params);
         }
-        return assemblyResult(sql, !allTableSet.isEmpty(), params, mainTable, result);
+        return assemblyResult(sql, needAlias, params, mainTable, result);
     }
 
     private List<Map<String, Object>> queryPageListWithGroup(String selectGroupSql, String mainTable, boolean needAlias,
@@ -602,14 +604,14 @@ public class TableColumnTemplate implements InitializingBean {
                                                      List<Object> params, String mainTable, ReqResult result) {
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
         if (QueryUtil.isNotEmpty(dataList)) {
-            handleInnerData(dataList, needAlias, tcInfo.findTable(mainTable).getName(), result);
+            handleData(dataList, needAlias, tcInfo.findTable(mainTable).getName(), result);
         }
         return dataList;
     }
 
-    private void handleInnerData(List<Map<String, Object>> dataList, boolean needAlias, String mainTableName, ReqResult result) {
+    private void handleData(List<Map<String, Object>> dataList, boolean needAlias, String mainTableName, ReqResult result) {
         for (Map<String, Object> data : dataList) {
-            result.handleDateType(mainTableName, needAlias, data, tcInfo);
+            result.handleData(mainTableName, needAlias, data, tcInfo);
         }
         // order_address.order_id : order.id    +    order_item.code : order.code
         Map<String, ReqResult> innerResultMap = result.innerResult();
@@ -675,15 +677,21 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return Collections.emptyMap();
         }
-
-        List<Object> params = new ArrayList<>();
-        String innerSql = result.generateInnerSql(columnName, relationIds, tcInfo, params);
-        List<Map<String, Object>> mapList = jdbcTemplate.queryForList(innerSql, params);
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        for (List<Object> ids : QueryUtil.split(relationIds, maxListCount)) {
+            List<Object> params = new ArrayList<>();
+            String innerSql = result.generateInnerSql(columnName, ids, tcInfo, params);
+            List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql, params);
+            if (QueryUtil.isNotEmpty(idList)) {
+                mapList.addAll(idList);
+            }
+        }
         if (QueryUtil.isEmpty(mapList)) {
             return Collections.emptyMap();
         }
 
-        handleInnerData(mapList, false, tableName, result);
+
+        handleData(mapList, false, tableName, result);
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
         boolean hasMany = masterChild && relation.getType().hasMany();
