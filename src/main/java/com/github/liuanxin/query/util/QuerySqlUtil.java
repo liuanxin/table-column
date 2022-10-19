@@ -114,4 +114,13 @@ public class QuerySqlUtil {
         }
         return String.format("SELECT %s FROM %s WHERE %s IN %s", selectColumn, fromSql, idWhere, sj);
     }
+
+    public static String toInnerSql(String innerSql, List<Object> relationIds, List<Object> params) {
+        StringJoiner in = new StringJoiner(", ");
+        for (Object relationId : relationIds) {
+            in.add("?");
+            params.add(relationId);
+        }
+        return innerSql + " (" + in + ")";
+    }
 }

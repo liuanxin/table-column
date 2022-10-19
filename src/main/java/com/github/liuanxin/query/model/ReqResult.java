@@ -440,17 +440,12 @@ public class ReqResult {
         return (groupSj.length() == 0) ? "" : (" HAVING " + groupSj);
     }
 
-    public String generateInnerSql(String columnName, List<Object> relationIds, TableColumnInfo tcInfo, List<Object> params) {
+    public String generateInnerSql(String columnName, TableColumnInfo tcInfo) {
         Table innerTable = tcInfo.findTable(table);
         String relationColumn = QuerySqlUtil.toSqlField(columnName);
         StringJoiner selectColumn = generateInnerSelect(relationColumn, tcInfo);
         String table = QuerySqlUtil.toSqlField(innerTable.getName());
-        StringJoiner in = new StringJoiner(", ");
-        for (Object relationId : relationIds) {
-            in.add("?");
-            params.add(relationId);
-        }
-        return "SELECT " + selectColumn + " FROM " + table + " WHERE " + relationColumn + " IN (" + in + ")";
+        return "SELECT " + selectColumn + " FROM " + table + " WHERE " + relationColumn + " IN";
     }
 
     private StringJoiner generateInnerSelect(String relationColumn, TableColumnInfo tcInfo) {

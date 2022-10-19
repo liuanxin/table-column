@@ -679,9 +679,11 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         List<Map<String, Object>> mapList = new ArrayList<>();
+
+        String innerSelectWhereSql = result.generateInnerSql(columnName, tcInfo);
         for (List<Object> ids : QueryUtil.split(relationIds, maxListCount)) {
             List<Object> params = new ArrayList<>();
-            String innerSql = result.generateInnerSql(columnName, ids, tcInfo, params);
+            String innerSql = QuerySqlUtil.toInnerSql(innerSelectWhereSql, ids, params);
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql, params);
             if (QueryUtil.isNotEmpty(idList)) {
                 mapList.addAll(idList);
@@ -713,8 +715,8 @@ public class TableColumnTemplate implements InitializingBean {
                     } else {
                         if (QueryUtil.isNotNull(obj)) {
                             if (oneToOneHasManyException) {
-                                throw new RuntimeException(String.format("%s, but has multiple data(%s.%s - %s.%s : %s)",
-                                        (masterChild ? "one-to-one relation" : "slave-master"),
+                                throw new RuntimeException(String.format("%s, but multiple data(%s.%s - %s.%s : %s)",
+                                        (masterChild ? "one-to-one" : "child to master"),
                                         relation.getOneTable(), relation.getOneColumn(),
                                         relation.getOneOrManyTable(), relation.getOneOrManyColumn(),
                                         key));
