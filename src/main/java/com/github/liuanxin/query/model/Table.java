@@ -17,6 +17,15 @@ public class Table {
     /** 表别名 */
     private String alias;
 
+    /** 逻辑删除列 */
+    private String logicColumn;
+
+    /** 逻辑删除列的默认值(0) */
+    private String logicValue;
+
+    /** 逻辑删除列的删除值(1 或 id 或 UNIX_TIMESTAMP() 等) */
+    private String logicDeleteValue;
+
     /** 列信息 */
     private Map<String, TableColumn> columnMap;
 
@@ -24,10 +33,15 @@ public class Table {
     private List<String> idKey;
 
     public Table() {}
-    public Table(String name, String desc, String alias, Map<String, TableColumn> columnMap) {
+    public Table(String name, String desc, String alias,
+                 String logicColumn, String logicValue, String logicDeleteValue,
+                 Map<String, TableColumn> columnMap) {
         this.name = name;
         this.desc = desc;
         this.alias = alias;
+        this.logicColumn = logicColumn;
+        this.logicValue = logicValue;
+        this.logicDeleteValue = logicDeleteValue;
         this.columnMap = columnMap;
 
         List<String> idKey = new ArrayList<>();
@@ -63,6 +77,27 @@ public class Table {
         this.alias = alias;
     }
 
+    public String getLogicColumn() {
+        return logicColumn;
+    }
+    public void setLogicColumn(String logicColumn) {
+        this.logicColumn = logicColumn;
+    }
+
+    public String getLogicValue() {
+        return logicValue;
+    }
+    public void setLogicValue(String logicValue) {
+        this.logicValue = logicValue;
+    }
+
+    public String getLogicDeleteValue() {
+        return logicDeleteValue;
+    }
+    public void setLogicDeleteValue(String logicDeleteValue) {
+        this.logicDeleteValue = logicDeleteValue;
+    }
+
     public Map<String, TableColumn> getColumnMap() {
         return columnMap;
     }
@@ -83,13 +118,15 @@ public class Table {
         if (!(o instanceof Table)) return false;
         Table table = (Table) o;
         return Objects.equals(name, table.name) && Objects.equals(desc, table.desc)
-                && Objects.equals(alias, table.alias) && Objects.equals(columnMap, table.columnMap)
-                && Objects.equals(idKey, table.idKey);
+                && Objects.equals(alias, table.alias) && Objects.equals(logicColumn, table.logicColumn)
+                && Objects.equals(logicValue, table.logicValue)
+                && Objects.equals(logicDeleteValue, table.logicDeleteValue)
+                && Objects.equals(columnMap, table.columnMap) && Objects.equals(idKey, table.idKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, desc, alias, columnMap, idKey);
+        return Objects.hash(name, desc, alias, logicColumn, logicValue, logicDeleteValue, columnMap, idKey);
     }
 
     @Override
@@ -98,6 +135,9 @@ public class Table {
                 "name='" + name + '\'' +
                 ", desc='" + desc + '\'' +
                 ", alias='" + alias + '\'' +
+                ", logicColumn='" + logicColumn + '\'' +
+                ", logicValue='" + logicValue + '\'' +
+                ", logicDeleteValue='" + logicDeleteValue + '\'' +
                 ", columnMap=" + columnMap +
                 ", idKey=" + idKey +
                 '}';
@@ -268,14 +308,32 @@ public class Table {
     }
 
 
-    public String generateDelete(SingleTableWhere query, TableColumnInfo scInfo, List<Object> params) {
+    public String generateDelete(SingleTableWhere query, TableColumnInfo scInfo, List<Object> params,
+                                 boolean force, String globalLogicDeleteColumn, String globalLogicDeleteValue) {
         String where = query.generateSql(name, scInfo, params);
         if (QueryUtil.isEmpty(where)) {
             return null;
         }
 
         String table = QuerySqlUtil.toSqlField(name);
+        if (!force) {
+            if (QueryUtil.isNotEmpty(logicColumn)) {
+                return "UPDATE " + table + " SET " + logicColumn + " = " + logicDeleteValue + " WHERE " + where;
+            } else if (columnMap.containsKey(globalLogicDeleteColumn)) {
+                return "UPDATE " + table + " SET " + globalLogicDeleteColumn + " = " + globalLogicDeleteValue + " WHERE " + where;
+            }
+        }
         return "DELETE FROM " + table + " WHERE " + where;
+    }
+
+    public String generateQueryLogicDelete(String globalLogicDeleteColumn, String globalLogicValue) {
+        if (QueryUtil.isNotEmpty(logicColumn)) {
+            return logicColumn + " = " + logicDeleteValue;
+        } else if (columnMap.containsKey(globalLogicDeleteColumn)) {
+            return globalLogicDeleteColumn + " = " + globalLogicValue;
+        } else {
+            return "";
+        }
     }
 
 

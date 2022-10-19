@@ -87,40 +87,42 @@ public class QuerySqlUtil {
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         return "SELECT " + idSelect + fromAndWhere + orderSql + param.generatePageSql(params);
     }
-    public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String fromSql,
+    public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String from,
                                            ReqResult result, List<Map<String, Object>> idList,
                                            Set<String> allTableSet, List<Object> params) {
         // SELECT ... FROM ... WHERE id IN (x, y, z)
         String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, allTableSet);
 
         Table table = tcInfo.findTable(mainTable);
-        String idWhere = table.idWhere(!allTableSet.isEmpty());
+        String idColumn = table.idWhere(!allTableSet.isEmpty());
         List<String> idKey = table.getIdKey();
-        StringJoiner sj = new StringJoiner(", ", "( ", " )");
+        StringJoiner sj = new StringJoiner(", ");
         for (Map<String, Object> idMap : idList) {
             if (idKey.size() > 1) {
-                // WHERE (id1, id2) IN ( (X, XX), (Y, YY) )
-                StringJoiner innerJoiner = new StringJoiner(", ", "(", ")");
+                // WHERE ( id1, id2 ) IN ( (X, XX), (Y, YY) )
+                StringJoiner innerJoiner = new StringJoiner(", ");
                 for (String id : idKey) {
                     innerJoiner.add("?");
                     params.add(idMap.get(id));
                 }
-                sj.add(innerJoiner.toString());
+                sj.add("(" + innerJoiner + ")");
             } else {
                 // WHERE id IN (x, y, z)
                 sj.add("?");
                 params.add(idMap.get(idKey.get(0)));
             }
         }
-        return String.format("SELECT %s FROM %s WHERE %s IN %s", selectColumn, fromSql, idWhere, sj);
+//        table.generateQueryLogicDelete()
+        return "SELECT " + selectColumn + " FROM " + from + " WHERE " + idColumn + " IN (" + sj + ")";
     }
 
-    public static String toInnerSql(String innerSql, List<Object> relationIds, List<Object> params) {
+    public static String toInnerSql(String selectColumn, String table, String relationColumn,
+                                    List<Object> relationIds, List<Object> params) {
         StringJoiner in = new StringJoiner(", ");
         for (Object relationId : relationIds) {
             in.add("?");
             params.add(relationId);
         }
-        return innerSql + " (" + in + ")";
+        return "SELECT " + selectColumn + " FROM " + table + " WHERE " + relationColumn + " IN" + " (" + in + ")";
     }
 }

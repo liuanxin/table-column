@@ -39,6 +39,15 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.one-to-one-has-many-exception:false}")
     private boolean oneToOneHasManyException;
 
+    @Value("${query.logic-delete-column:}")
+    private String logicDeleteColumn;
+
+    @Value("${query.logic-value:}")
+    private String logicValue;
+
+    @Value("${query.logic-delete-value:}")
+    private String logicDeleteValue;
+
     private TableColumnInfo tcInfo;
 
     private final JdbcTemplate jdbcTemplate;
@@ -222,7 +231,13 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public int forceDeleteById(String table, Serializable id) {
+        return deleteById(table, id, true);
+    }
     public int deleteById(String table, Serializable id) {
+        return deleteById(table, id, false);
+    }
+    private int deleteById(String table, Serializable id, boolean force) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(id)) {
             return 0;
         }
@@ -234,10 +249,16 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return delete(table, SingleTableWhere.buildId(tableInfo.idWhere(false), id));
+        return delete(table, SingleTableWhere.buildId(tableInfo.idWhere(false), id), force);
     }
 
+    public int forceDeleteByIds(String table, List<Serializable> ids) {
+        return deleteByIds(table, ids, true);
+    }
     public int deleteByIds(String table, List<Serializable> ids) {
+        return deleteByIds(table, ids, false);
+    }
+    private int deleteByIds(String table, List<Serializable> ids, boolean force) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
         }
@@ -249,10 +270,16 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return delete(table, SingleTableWhere.buildIds(tableInfo.idWhere(false), ids));
+        return delete(table, SingleTableWhere.buildIds(tableInfo.idWhere(false), ids), force);
     }
 
+    public int forceDelete(String table, SingleTableWhere query) {
+        return delete(table, query, true);
+    }
     public int delete(String table, SingleTableWhere query) {
+        return delete(table, query, false);
+    }
+    private int delete(String table, SingleTableWhere query, boolean force) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
             return 0;
         }
@@ -264,10 +291,16 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return doDelete(query, tableInfo);
+        return doDelete(query, tableInfo, force);
     }
 
+    public <T> int forceDeleteById(Class<T> clazz, Serializable id) {
+        return deleteById(clazz, id, true);
+    }
     public <T> int deleteById(Class<T> clazz, Serializable id) {
+        return deleteById(clazz, id, false);
+    }
+    private <T> int deleteById(Class<T> clazz, Serializable id, boolean force) {
         if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(id)) {
             return 0;
         }
@@ -279,10 +312,16 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return delete(clazz, SingleTableWhere.buildId(table.idWhere(false), id));
+        return delete(clazz, SingleTableWhere.buildId(table.idWhere(false), id), force);
     }
 
+    public <T> int forceDeleteByIds(Class<T> clazz, List<Serializable> ids) {
+        return deleteByIds(clazz, ids, true);
+    }
     public <T> int deleteByIds(Class<T> clazz, List<Serializable> ids) {
+        return deleteByIds(clazz, ids, false);
+    }
+    private <T> int deleteByIds(Class<T> clazz, List<Serializable> ids, boolean force) {
         if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
         }
@@ -294,10 +333,16 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return delete(clazz, SingleTableWhere.buildIds(table.idWhere(false), ids));
+        return delete(clazz, SingleTableWhere.buildIds(table.idWhere(false), ids), force);
     }
 
+    public <T> int forceDelete(Class<T> clazz, SingleTableWhere query) {
+        return delete(clazz, query, true);
+    }
     public <T> int delete(Class<T> clazz, SingleTableWhere query) {
+        return delete(clazz, query, false);
+    }
+    private <T> int delete(Class<T> clazz, SingleTableWhere query, boolean force) {
         if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
             return 0;
         }
@@ -309,12 +354,12 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return doDelete(query, table);
+        return doDelete(query, table, force);
     }
 
-    private int doDelete(SingleTableWhere query, Table table) {
+    private int doDelete(SingleTableWhere query, Table table, boolean force) {
         List<Object> params = new ArrayList<>();
-        String deleteSql = table.generateDelete(query, tcInfo, params);
+        String deleteSql = table.generateDelete(query, tcInfo, params, force, logicDeleteColumn, logicDeleteValue);
         if (QueryUtil.isEmpty(deleteSql)) {
             return 0;
         }
@@ -680,10 +725,12 @@ public class TableColumnTemplate implements InitializingBean {
 
         List<Map<String, Object>> mapList = new ArrayList<>();
 
-        String innerSelectWhereSql = result.generateInnerSql(columnName, tcInfo);
+        String relationColumn = QuerySqlUtil.toSqlField(columnName);
+        String selectColumn = result.generateInnerSelect(relationColumn, tcInfo);
+        String table = QuerySqlUtil.toSqlField(tcInfo.findTable(innerTable).getName());
         for (List<Object> ids : QueryUtil.split(relationIds, maxListCount)) {
             List<Object> params = new ArrayList<>();
-            String innerSql = QuerySqlUtil.toInnerSql(innerSelectWhereSql, ids, params);
+            String innerSql = QuerySqlUtil.toInnerSql(selectColumn, table, relationColumn, ids, params);
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql, params);
             if (QueryUtil.isNotEmpty(idList)) {
                 mapList.addAll(idList);

@@ -104,6 +104,7 @@ public class QueryInfoUtil {
             tableAliasSet.add(tableAlias);
 
             Map<String, TableColumn> columnMap = new LinkedHashMap<>();
+            String logicColumn = "", logicValue = "", logicDeleteValue = "";
             for (Field field : QueryUtil.getFields(clazz)) {
                 ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
                 Class<?> fieldType = field.getType();
@@ -115,13 +116,23 @@ public class QueryInfoUtil {
                         continue;
                     }
 
+                    String columnLogicValue = columnInfo.logicValue();
+                    String columnLogicDeleteValue = columnInfo.logicDeleteValue();
+                    if (QueryUtil.isNotEmpty(columnLogicValue) && QueryUtil.isNotEmpty(columnLogicDeleteValue)) {
+                        if (QueryUtil.isNotEmpty(logicColumn)) {
+                            throw new RuntimeException("table(" + tableAlias + ") can only has one column with logic delete");
+                        }
+                        logicColumn = columnInfo.value();
+                        logicValue = columnLogicValue;
+                        logicDeleteValue = columnLogicDeleteValue;
+                    }
+
                     columnName = columnInfo.value();
                     columnDesc = columnInfo.desc();
                     columnAlias = QueryUtil.defaultIfBlank(columnInfo.alias(), columnName);
                     primary = columnInfo.primary();
                     strLen = columnInfo.varcharLength();
 
-                    // 用类名 + 列名
                     String tableAndColumn = tableName + "." + columnName;
                     columnInfoMap.put(tableAndColumn, columnInfo);
                     columnClassMap.put(tableAndColumn, fieldType);
@@ -148,7 +159,8 @@ public class QueryInfoUtil {
             }
             aliasMap.put(QueryConst.TABLE_PREFIX + tableAlias, tableName);
             tableClassMap.put(clazz.getName(), tableName);
-            tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias, columnMap));
+            tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias,
+                    logicColumn, logicValue, logicDeleteValue, columnMap));
         }
 
         for (Map.Entry<String, ColumnInfo> entry : columnInfoMap.entrySet()) {
@@ -249,7 +261,7 @@ public class QueryInfoUtil {
                         ((strLen == null || strLen <= 0) ? null : strLen), fieldType, columnAlias));
             }
             aliasMap.put(QueryConst.TABLE_PREFIX + tableName, tableAlias);
-            tableMap.put(tableAlias, new Table(tableName, tableDesc, tableAlias, columnMap));
+            tableMap.put(tableAlias, new Table(tableName, tableDesc, tableAlias, null, null, null, columnMap));
         }
 
         if (!relationColumnMap.isEmpty()) {

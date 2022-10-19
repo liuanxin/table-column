@@ -26,6 +26,12 @@ public @interface ColumnInfo {
 
     int varcharLength() default 0;
 
+    /** logic delete: default value */
+    String logicValue() default "";
+
+    /** logic delete: delete value */
+    String logicDeleteValue() default "";
+
     /** just set on child table, no need to mark on the main table */
     TableRelationType relationType() default TableRelationType.NULL;
 

@@ -3,7 +3,6 @@ package com.github.liuanxin.query.model;
 import com.github.liuanxin.query.enums.ConditionType;
 import com.github.liuanxin.query.enums.ResultGroup;
 import com.github.liuanxin.query.util.QueryJsonUtil;
-import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
 import java.util.*;
@@ -440,15 +439,7 @@ public class ReqResult {
         return (groupSj.length() == 0) ? "" : (" HAVING " + groupSj);
     }
 
-    public String generateInnerSql(String columnName, TableColumnInfo tcInfo) {
-        Table innerTable = tcInfo.findTable(table);
-        String relationColumn = QuerySqlUtil.toSqlField(columnName);
-        StringJoiner selectColumn = generateInnerSelect(relationColumn, tcInfo);
-        String table = QuerySqlUtil.toSqlField(innerTable.getName());
-        return "SELECT " + selectColumn + " FROM " + table + " WHERE " + relationColumn + " IN";
-    }
-
-    private StringJoiner generateInnerSelect(String relationColumn, TableColumnInfo tcInfo) {
+    public String generateInnerSelect(String relationColumn, TableColumnInfo tcInfo) {
         StringJoiner selectColumns = new StringJoiner(", ");
         selectColumns.add(relationColumn);
         for (Object obj : columns) {
@@ -483,7 +474,7 @@ public class ReqResult {
                 }
             }
         }
-        return selectColumns;
+        return selectColumns.toString();
     }
 
 
