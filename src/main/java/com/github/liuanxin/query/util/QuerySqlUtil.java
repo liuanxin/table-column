@@ -112,7 +112,8 @@ public class QuerySqlUtil {
                 params.add(idMap.get(idKey.get(0)));
             }
         }
-//        table.generateQueryLogicDelete()
+        // todo
+        // table.generateQueryLogicDelete();
         return "SELECT " + selectColumn + " FROM " + from + " WHERE " + idColumn + " IN (" + sj + ")";
     }
 
