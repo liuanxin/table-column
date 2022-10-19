@@ -21,6 +21,9 @@ public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
 
+    @Value("${query.online:false}")
+    private boolean online;
+
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
@@ -63,6 +66,10 @@ public class TableColumnTemplate implements InitializingBean {
 
 
     public List<QueryInfo> info(String tables) {
+        if (online) {
+            return null;
+        }
+
         Set<String> tableSet = new LinkedHashSet<>();
         if (QueryUtil.isNotEmpty(tables)) {
             for (String te : tables.split(",")) {
@@ -430,6 +437,10 @@ public class TableColumnTemplate implements InitializingBean {
 
 
     public Object query(RequestInfo req) {
+        if (QueryUtil.isNull(req)) {
+            return null;
+        }
+
         req.checkTable(tcInfo);
         Set<String> paramTableSet = req.checkParam(tcInfo, maxListCount);
 
