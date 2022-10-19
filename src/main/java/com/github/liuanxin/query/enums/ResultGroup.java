@@ -60,7 +60,7 @@ public enum ResultGroup {
     }
     public String generateAlias(String column) {
         if (needCheckColumn(column)) {
-            return String.format(alias, column.replace(" ", "$").replace(",", "_"));
+            return String.format(alias, column.replace(" ", "$").replace(".", "_$_").replace(",", "_"));
         } else {
             return String.format(alias, "");
         }

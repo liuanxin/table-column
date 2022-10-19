@@ -382,8 +382,7 @@ public class ReqResult {
                     hasColumn = true;
                 }
             } else if (obj instanceof List<?>) {
-                List<?> groups = (List<?>) obj;
-                if (!groups.isEmpty()) {
+                if (!((List<?>) obj).isEmpty()) {
                     hasGroup = true;
                 }
             }
@@ -400,8 +399,7 @@ public class ReqResult {
                     sj.add(QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo));
                 }
             } else if (obj instanceof List<?>) {
-                List<?> groups = (List<?>) obj;
-                if (!groups.isEmpty()) {
+                if (!((List<?>) obj).isEmpty()) {
                     hasGroup = true;
                 }
             }
@@ -420,7 +418,7 @@ public class ReqResult {
                     String column = QueryUtil.toStr(groups.get(2));
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
                     String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
-                    String havingColumn = group.generateAlias(useColumn);
+                    String groupAlias = group.generateAlias(useColumn);
 
                     String tableName = QueryUtil.getTableName(column, mainTable);
                     String columnName = QueryUtil.getColumnName(column);
@@ -431,7 +429,7 @@ public class ReqResult {
                         ConditionType conditionType = ConditionType.deserializer(groups.get(i));
                         Object value = groups.get(i + 1);
 
-                        String sql = conditionType.generateSql(havingColumn, columnType, value, params);
+                        String sql = conditionType.generateSql(groupAlias, columnType, value, params);
                         if (!sql.isEmpty()) {
                             groupSj.add(sql);
                         }
@@ -494,7 +492,7 @@ public class ReqResult {
     }
 
 
-    public void handleDateType(Map<String, Object> data, TableColumnInfo tcInfo) {
+    public void handleDateType(String mainTable, boolean needAlias, Map<String, Object> data, TableColumnInfo tcInfo) {
         for (Object obj : columns) {
             if (obj != null) {
                 if (obj instanceof String) {
@@ -508,7 +506,16 @@ public class ReqResult {
                             data.put(columnName, QueryUtil.formatDate(date));
                         }
                     }
-                } else if (!(obj instanceof List<?>)) {
+                } else if (obj instanceof List<?>) {
+                    List<?> groups = (List<?>) obj;
+                    ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
+                    String column = QueryUtil.toStr(groups.get(2));
+                    String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
+                    Object groupInfo = data.remove(group.generateAlias(useColumn));
+                    if (QueryUtil.isNotNull(groupInfo)) {
+                        data.put(QueryUtil.toStr(groups.get(0)), groupInfo);
+                    }
+                } else {
                     Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
                     if (dateColumn != null) {
                         for (Map.Entry<String, List<String>> entry : dateColumn.entrySet()) {
