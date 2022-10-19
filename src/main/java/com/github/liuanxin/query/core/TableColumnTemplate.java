@@ -677,6 +677,7 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return Collections.emptyMap();
         }
+
         List<Map<String, Object>> mapList = new ArrayList<>();
         for (List<Object> ids : QueryUtil.split(relationIds, maxListCount)) {
             List<Object> params = new ArrayList<>();
