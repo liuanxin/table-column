@@ -182,7 +182,7 @@ public class ReqParamOperate {
                     if (tableColumn == null) {
                         throw new RuntimeException(String.format("param condition column(%s) has no column info", column));
                     }
-                    type.checkTypeAndValue(tableColumn.getColumnType(), column,
+                    type.checkTypeAndValue(tableColumn.getFieldType(), column,
                             list.get(standardSize ? 1 : 2), tableColumn.getStrLen(), maxListCount);
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
@@ -217,7 +217,7 @@ public class ReqParamOperate {
 
                         String tableName = QueryUtil.getTableName(column, mainTable);
                         String columnName = QueryUtil.getColumnName(column);
-                        Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
+                        Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
                         String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
                         String sql = type.generateSql(useColumn, columnType, value, params);
                         if (!sql.isEmpty()) {

@@ -61,9 +61,11 @@ public final class QueryConst {
     public static final Set<String> SUPPORT_COUNT_SET = new HashSet<>(Arrays.asList("*", "1"));
 
 
-    public static final Integer MIN_LIMIT = 10;
+    public static final List<Integer> LIMIT_ONE = Arrays.asList(1, 1);
+
+    public static final Integer DEFAULT_LIMIT = 10;
     public static final Set<Integer> LIMIT_SET = new HashSet<>(Arrays.asList(
-            MIN_LIMIT, 20, 50, 100, 200, 500, 1000)
+            DEFAULT_LIMIT, 20, 50, 100, 200, 500, 1000)
     );
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";

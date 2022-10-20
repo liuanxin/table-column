@@ -1,5 +1,6 @@
 package com.github.liuanxin.query.model;
 
+import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
@@ -169,6 +170,18 @@ public class Table {
         return sj.toString();
     }
 
+    public String generateSelect(Boolean useAlias) {
+        StringJoiner sj = new StringJoiner(", ");
+        for (TableColumn column : columnMap.values()) {
+            if (QueryUtil.isNotNull(useAlias)) {
+                sj.add(column.getName() + " AS " + (useAlias ? column.getAlias() : column.getFieldName()));
+            } else {
+                sj.add(column.getName());
+            }
+        }
+        return sj.toString();
+    }
+
 
     public String generateInsertMap(Map<String, Object> data, boolean generateNullField, List<Object> params) {
         return firstInsertMap(data, generateNullField, new ArrayList<>(), params);
@@ -308,37 +321,92 @@ public class Table {
     }
 
 
-    public String generateDelete(SingleTableWhere query, TableColumnInfo scInfo, List<Object> params,
+    public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params,
                                  boolean force, String globalLogicDeleteColumn, String globalLogicDeleteValue) {
-        String where = query.generateSql(name, scInfo, params);
+        String where = query.generateSql(name, tcInfo, params);
         if (QueryUtil.isEmpty(where)) {
             return null;
         }
 
         String table = QuerySqlUtil.toSqlField(name);
         if (!force) {
+            String set = "";
             if (QueryUtil.isNotEmpty(logicColumn)) {
-                return "UPDATE " + table + " SET " + logicColumn + " = " + logicDeleteValue + " WHERE " + where;
+                set = logicColumn + " = " + logicDeleteValue;
             } else if (columnMap.containsKey(globalLogicDeleteColumn)) {
-                return "UPDATE " + table + " SET " + globalLogicDeleteColumn + " = " + globalLogicDeleteValue + " WHERE " + where;
+                set = globalLogicDeleteColumn + " = " + globalLogicDeleteValue;
+            }
+            if (QueryUtil.isNotEmpty(set)) {
+                return "UPDATE " + table + " SET " + set + " WHERE " + where;
             }
         }
         return "DELETE FROM " + table + " WHERE " + where;
     }
 
-    public String generateQueryLogicDelete(String globalLogicDeleteColumn, String globalLogicValue) {
-        if (QueryUtil.isNotEmpty(logicColumn)) {
-            return logicColumn + " = " + logicDeleteValue;
-        } else if (columnMap.containsKey(globalLogicDeleteColumn)) {
-            return globalLogicDeleteColumn + " = " + globalLogicValue;
-        } else {
+
+    public String generateCountQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params,
+                                     String groupBy, String having, String orderBy, List<Integer> pageList,
+                                     boolean force, String globalLogicDeleteColumn, String globalLogicValue) {
+        return generateSelectQuery(query, tcInfo, params, "COUNT(*)", groupBy,
+                having, orderBy, pageList, force, globalLogicDeleteColumn, globalLogicValue);
+    }
+    private String generateSelectQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, String column,
+                                       String groupBy, String having, String orderBy, List<Integer> pageList,
+                                       boolean force, String globalLogicDeleteColumn, String globalLogicValue) {
+        String where = query.generateSql(name, tcInfo, params);
+        if (QueryUtil.isEmpty(where)) {
             return "";
         }
+
+        String limit = "";
+        if (QueryUtil.isNotEmpty(pageList)) {
+            Integer page = pageList.get(0);
+            Integer limitSize = (pageList.size() > 1) ? pageList.get(1) : 0;
+
+            int index = (page == null || page <= 0) ? 1 : page;
+            int size = QueryConst.LIMIT_SET.contains(limitSize) ? limitSize : QueryConst.DEFAULT_LIMIT;
+            if (index == 1) {
+                params.add(size);
+                limit = " LIMIT ?";
+            } else {
+                params.add((index - 1) * size);
+                params.add(size);
+                limit = " LIMIT ?, ?";
+            }
+        }
+
+        String logicDeleteCondition = "";
+        if (!force) {
+            if (QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue)) {
+                logicDeleteCondition = " AND " + logicColumn + " = " + logicDeleteValue;
+            } else if (columnMap.containsKey(globalLogicDeleteColumn) && QueryUtil.isNotEmpty(globalLogicValue)) {
+                logicDeleteCondition = " AND " + globalLogicDeleteColumn + " = " + globalLogicValue;
+            }
+        }
+        // 1. FROM: determine
+        // 2. WHERE: filters on the rows
+        // 3. GROUP BY: combines those rows into groups
+        // 4. HAVING: filters groups
+        // 5. ORDER BY: arranges the remaining rows/groups
+        // 6. LIMIT: filters on the remaining rows/groups
+        String table = QuerySqlUtil.toSqlField(name);
+        return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDeleteCondition
+                + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
+    }
+
+    public String generateQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, String column,
+                                String groupBy, String having, String orderBy, List<Integer> pageList,
+                                boolean force, String globalLogicDeleteColumn, String globalLogicValue) {
+        if (QueryUtil.isEmpty(column)) {
+            return "";
+        }
+        return generateSelectQuery(query, tcInfo, params, column, groupBy,
+                having, orderBy, pageList, force, globalLogicDeleteColumn, globalLogicValue);
     }
 
 
     public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField,
-                                    SingleTableWhere query, TableColumnInfo scInfo, List<Object> params) {
+                                    SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params) {
         List<String> setList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             Object data = updateObj.get(column.getAlias());
@@ -347,11 +415,11 @@ public class Table {
                 params.add(data);
             }
         }
-        return update(query, scInfo, params, setList);
+        return update(query, tcInfo, params, setList);
     }
 
     public <T> String generateUpdate(T updateObj, boolean generateNullField,
-                                     SingleTableWhere query, TableColumnInfo scInfo, List<Object> params) {
+                                     SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params) {
         List<String> setList = new ArrayList<>();
         Class<?> clazz = updateObj.getClass();
         for (TableColumn column : columnMap.values()) {
@@ -370,15 +438,15 @@ public class Table {
                 }
             }
         }
-        return update(query, scInfo, params, setList);
+        return update(query, tcInfo, params, setList);
     }
 
-    private String update(SingleTableWhere query, TableColumnInfo scInfo, List<Object> params, List<String> setList) {
+    private String update(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, List<String> setList) {
         if (setList.isEmpty()) {
             return null;
         }
 
-        String where = query.generateSql(name, scInfo, params);
+        String where = query.generateSql(name, tcInfo, params);
         if (QueryUtil.isEmpty(where)) {
             return null;
         }

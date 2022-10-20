@@ -162,7 +162,7 @@ public class ReqParam {
     }
     private int calcLimit() {
         Integer limitParam = page.size() > 1 ? page.get(1) : 0;
-        return QueryConst.LIMIT_SET.contains(limitParam) ? limitParam : QueryConst.MIN_LIMIT;
+        return QueryConst.LIMIT_SET.contains(limitParam) ? limitParam : QueryConst.DEFAULT_LIMIT;
     }
     public String generatePageSql(List<Object> params) {
         if (needQueryPage()) {

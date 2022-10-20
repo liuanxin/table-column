@@ -421,14 +421,14 @@ public class ReqResult {
 
                     String tableName = QueryUtil.getTableName(column, mainTable);
                     String columnName = QueryUtil.getColumnName(column);
-                    Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
+                    Class<?> fieldType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
                     // 先右移 1 位除以 2, 再左移 1 位乘以 2, 变成偶数
                     int evenSize = size >> 1 << 1;
                     for (int i = 3; i < evenSize; i += 2) {
                         ConditionType conditionType = ConditionType.deserializer(groups.get(i));
                         Object value = groups.get(i + 1);
 
-                        String sql = conditionType.generateSql(groupAlias, columnType, value, params);
+                        String sql = conditionType.generateSql(groupAlias, fieldType, value, params);
                         if (!sql.isEmpty()) {
                             groupSj.add(sql);
                         }
@@ -485,8 +485,8 @@ public class ReqResult {
                     String column = (String) obj;
                     String tableName = QueryUtil.getTableName(column, table);
                     String columnName = QueryUtil.getColumnName(column);
-                    Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getColumnType();
-                    if (Date.class.isAssignableFrom(columnType)) {
+                    Class<?> fieldType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
+                    if (Date.class.isAssignableFrom(fieldType)) {
                         Date date = QueryUtil.toDate(data.get(columnName));
                         if (QueryUtil.isNotNull(date)) {
                             data.put(columnName, QueryUtil.formatDate(date));

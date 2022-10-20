@@ -20,20 +20,20 @@ public class TableColumn {
     private Integer strLen;
 
     /** 表列对应的实体的类型 */
-    private Class<?> columnType;
+    private Class<?> fieldType;
 
     /** 表列对应的实体的列名 */
     private String fieldName;
 
     public TableColumn() {}
     public TableColumn(String name, String desc, String alias, boolean primary,
-                       Integer strLen, Class<?> columnType, String fieldName) {
+                       Integer strLen, Class<?> fieldType, String fieldName) {
         this.name = name;
         this.desc = desc;
         this.alias = alias;
         this.primary = primary;
         this.strLen = strLen;
-        this.columnType = columnType;
+        this.fieldType = fieldType;
         this.fieldName = fieldName;
     }
 
@@ -72,11 +72,11 @@ public class TableColumn {
         this.strLen = strLen;
     }
 
-    public Class<?> getColumnType() {
-        return columnType;
+    public Class<?> getFieldType() {
+        return fieldType;
     }
-    public void setColumnType(Class<?> columnType) {
-        this.columnType = columnType;
+    public void setFieldType(Class<?> fieldType) {
+        this.fieldType = fieldType;
     }
 
     public String getFieldName() {
@@ -93,13 +93,13 @@ public class TableColumn {
         TableColumn that = (TableColumn) o;
         return primary == that.primary && Objects.equals(name, that.name)
                 && Objects.equals(desc, that.desc) && Objects.equals(alias, that.alias)
-                && Objects.equals(strLen, that.strLen) && Objects.equals(columnType, that.columnType)
+                && Objects.equals(strLen, that.strLen) && Objects.equals(fieldType, that.fieldType)
                 && Objects.equals(fieldName, that.fieldName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, desc, alias, primary, strLen, columnType, fieldName);
+        return Objects.hash(name, desc, alias, primary, strLen, fieldType, fieldName);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class TableColumn {
                 ", alias='" + alias + '\'' +
                 ", primary=" + primary +
                 ", strLen=" + strLen +
-                ", columnType=" + columnType +
+                ", fieldType=" + fieldType +
                 ", fieldName='" + fieldName + '\'' +
                 '}';
     }

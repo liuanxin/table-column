@@ -189,7 +189,7 @@ public class QueryInfoUtil {
                                 + oneTable + "." + oneColumn + ")");
                     }
                     Class<?> sourceClass = columnClassMap.get(tableAndColumn);
-                    Class<?> targetClass = column.getColumnType();
+                    Class<?> targetClass = column.getFieldType();
                     if (sourceClass != targetClass) {
                         throw new RuntimeException(tableAndColumn + "'s data type has " + sourceClass.getSimpleName()
                                 + ", but relation " + oneTable + "'s data type has" + targetClass.getSimpleName());
