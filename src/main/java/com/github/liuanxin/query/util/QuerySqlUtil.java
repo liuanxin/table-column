@@ -86,7 +86,7 @@ public class QuerySqlUtil {
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         return "SELECT " + idSelect + fromAndWhere + orderSql + param.generatePageSql(params);
     }
-    public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String from,
+    public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String tables,
                                            ReqResult result, List<Map<String, Object>> idList,
                                            Set<String> allTableSet, List<Object> params) {
         // SELECT ... FROM ... WHERE id IN (x, y, z)
@@ -111,7 +111,7 @@ public class QuerySqlUtil {
                 params.add(idMap.get(idKey.get(0)));
             }
         }
-        return "SELECT " + selectColumn + " FROM " + from + " WHERE " + idColumn + " IN (" + sj + ")";
+        return "SELECT " + selectColumn + " FROM " + tables + " WHERE " + idColumn + " IN (" + sj + ")";
     }
 
     public static String toInnerSql(String selectColumn, String table, String relationColumn,
