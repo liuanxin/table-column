@@ -64,8 +64,7 @@ public class QuerySqlUtil {
                                                 boolean queryHasMany, String fromAndWhere) {
         if (queryHasMany) {
             // SELECT COUNT(DISTINCT xx.id) FROM ...
-            String idSelect = tcInfo.findTable(mainTable).idSelect(needAlias);
-            return String.format("SELECT COUNT(DISTINCT %s) %s", idSelect, fromAndWhere);
+            return String.format("SELECT COUNT(DISTINCT %s) %s", tcInfo.findTable(mainTable).idSelect(needAlias), fromAndWhere);
         } else {
             return "SELECT COUNT(*) " + fromAndWhere;
         }
