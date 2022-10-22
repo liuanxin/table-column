@@ -77,7 +77,7 @@ public class TableColumnTemplate implements InitializingBean {
 
     public List<QueryInfo> info(String tables) {
         if (online) {
-            return null;
+            return Collections.emptyList();
         }
 
         Set<String> tableSet = new LinkedHashSet<>();
@@ -645,7 +645,7 @@ public class TableColumnTemplate implements InitializingBean {
     }
     private <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids, boolean force) {
         if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalIdList(ids)) {
-            return null;
+            return Collections.emptyList();
         }
 
         Table table = tcInfo.findTableByClass(clazz);
@@ -653,7 +653,7 @@ public class TableColumnTemplate implements InitializingBean {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("query: class({}) no table defined", clazz.getName());
             }
-            return null;
+            return Collections.emptyList();
         }
 
         List<Object> params = new ArrayList<>();
@@ -661,7 +661,7 @@ public class TableColumnTemplate implements InitializingBean {
         String querySql = table.generateQuery(query, tcInfo, params, table.generateSelect(false),
                 null, null, null, null, force, logicDeleteColumn, logicValue);
         if (QueryUtil.isEmpty(querySql)) {
-            return null;
+            return Collections.emptyList();
         }
         return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
     }
