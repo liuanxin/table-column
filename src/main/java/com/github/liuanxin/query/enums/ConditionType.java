@@ -280,11 +280,12 @@ public enum ConditionType {
             BET,
             NBE
     ));
-    /** string: 等于(eq)、不等于(ne)、批量(in)、包含(include)、开头(start)、结尾(end) */
+    /** string: 等于(eq)、不等于(ne)、批量(in)、不在其中(ni)、包含(include)、开头(start)、结尾(end) */
     private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             EQ,
             NE,
             IN,
+            NI,
             INC,
             STA,
             END
@@ -292,11 +293,12 @@ public enum ConditionType {
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
             STRING_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /** number: 等于(eq)、不等于(ne)、批量(in)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
+    /** number: 等于(eq)、不等于(ne)、批量(in)、不在其中(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             EQ,
             NE,
             IN,
+            NI,
             GT,
             GE,
             LT,
@@ -365,11 +367,12 @@ public enum ConditionType {
                         }
                     }
                     if (count > maxListCount) {
-                        throw new RuntimeException(String.format("Collection column(%s) length(%s) can only be <= %s",
-                                column, count, maxListCount));
+                        throw new RuntimeException(String.format("(%s) condition(%s), data Collection length(%s) has <= %s, current length(%s)",
+                                name().toLowerCase(), column, count, maxListCount, count));
                     }
                 } else {
-                    throw new RuntimeException(String.format("column(%s) data need has Collection", column));
+                    throw new RuntimeException(String.format("%s condition(%s), data required has Collection",
+                            name().toLowerCase(), column));
                 }
             } else {
                 checkValueType(type, column, value, strLen);
