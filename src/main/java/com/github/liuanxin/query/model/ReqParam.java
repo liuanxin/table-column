@@ -107,7 +107,7 @@ public class ReqParam {
                 if (tcInfo.findTableColumn(table, QueryUtil.getColumnName(column)) == null) {
                     throw new RuntimeException("param sort(" + column + ") has no defined column");
                 }
-                paramTableSet.add(table.getName());
+                paramTableSet.add(table.getAlias());
             }
         }
 

@@ -115,7 +115,7 @@ public class RequestInfo {
     }
 
     public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet,
-                               Set<String> paramTableSet, Set<String> resultTableSet) {
+                              Set<String> paramTableSet, Set<String> resultTableSet) {
         paramTableSet.remove(table);
         resultTableSet.remove(table);
         if (QueryUtil.isEmpty(relation)) {
@@ -218,8 +218,8 @@ public class RequestInfo {
             for (List<String> values : relation) {
                 Table masterTable = tcInfo.findTable(values.get(0));
                 Table childTable = tcInfo.findTable(values.get(2));
-                String mn = masterTable.getName();
-                String cn = childTable.getName();
+                String mn = masterTable.getAlias();
+                String cn = childTable.getAlias();
                 if ((paramTableSet.contains(mn) && paramTableSet.contains(cn))
                         || (resultFunctionTableSet.contains(mn) && resultFunctionTableSet.contains(cn))) {
                     Set<TableJoinRelation> relationSet = relationMap.getOrDefault(masterTable.getName(), new LinkedHashSet<>());

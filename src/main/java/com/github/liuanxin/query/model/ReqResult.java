@@ -136,7 +136,7 @@ public class ReqResult {
             if (obj != null) {
                 if (obj instanceof String) {
                     String column = (String) obj;
-                    allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getName());
+                    allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getAlias());
                     hasColumnOrFunction = true;
                 } else if (obj instanceof List<?>) {
                     List<?> groups = (List<?>) obj;
@@ -259,8 +259,8 @@ public class ReqResult {
         if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column)) == null) {
             throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined column");
         }
-        resultFunctionTableSet.add(sa.getName());
-        allTableSet.add(sa.getName());
+        resultFunctionTableSet.add(sa.getAlias());
+        allTableSet.add(sa.getAlias());
     }
 
     private Table checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
