@@ -7,19 +7,19 @@ public final class QueryConst {
 
     public static final String DB_SQL = "SELECT DATABASE()";
     public static final String TABLE_SQL = "SELECT `TABLE_NAME` tn, `TABLE_COMMENT` tc" +
-            " FROM `information_table`.`TABLES`" +
+            " FROM `information_schema`.`TABLES`" +
             " WHERE `TABLE_SCHEMA` = ?";
     public static final String COLUMN_SQL = "SELECT `TABLE_NAME` tn, `COLUMN_NAME` cn, `COLUMN_TYPE` ct," +
             " `COLUMN_COMMENT` cc, `COLUMN_KEY` ck, `CHARACTER_MAXIMUM_LENGTH` cml" +
-            " FROM `information_table`.`COLUMNS`" +
+            " FROM `information_schema`.`COLUMNS`" +
             " WHERE `TABLE_SCHEMA` = ?" +
             " ORDER BY `TABLE_NAME`, `ORDINAL_POSITION`";
     public static final String RELATION_SQL = "SELECT `REFERENCED_TABLE_NAME` ftn, `REFERENCED_COLUMN_NAME` fcn," +
             " `TABLE_NAME` tn, `COLUMN_NAME` cn" +
-            " FROM `information_table`.`KEY_COLUMN_USAGE`" +
+            " FROM `information_schema`.`KEY_COLUMN_USAGE`" +
             " WHERE `REFERENCED_TABLE_SCHEMA` = ?";
     public static final String INDEX_SQL = "SELECT `TABLE_NAME` tn, `COLUMN_NAME` cn" +
-            " FROM `information_table`.`STATISTICS`" +
+            " FROM `information_schema`.`STATISTICS`" +
             " WHERE `NON_UNIQUE` = 0 AND `TABLE_SCHEMA` = ?" +
             " GROUP BY tn, cn" +
             " HAVING COUNT(`SEQ_IN_INDEX`) = 1";
