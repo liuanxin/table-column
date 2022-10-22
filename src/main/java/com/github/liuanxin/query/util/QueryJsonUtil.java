@@ -8,11 +8,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class QueryJsonUtil {
 
-    private static final TypeReference<Map<String, ReqResult>> INNER_RESULT_TYPE = new TypeReference() {};
-    private static final TypeReference<Map<String, List<String>>> DATE_FORMAT_RESULT_TYPE = new TypeReference() {};
+    private static final TypeReference<Map<String, ReqResult>> INNER_RESULT_TYPE = new TypeReference<Map<String, ReqResult>>() {};
+    private static final TypeReference<Map<String, List<String>>> DATE_FORMAT_RESULT_TYPE = new TypeReference<Map<String, List<String>>>() {};
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

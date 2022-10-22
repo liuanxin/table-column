@@ -30,12 +30,6 @@ import java.util.stream.Collectors;
  * string:
  *   like
  *   not like     不常用
- *
- *
- * string 类型: 只 等于(eq)、不等于(ne)、批量(in)、包含(inc)、开头(sta)、结尾(end) 条件
- * number 类型: 只 等于(eq)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet) 条件
- * date 类型: 只 大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet) 条件
- * 非 string/number/date 类型: 只 等于(eq)、不等于(ne) 条件
  * </pre>
  */
 public enum ConditionType {
@@ -216,11 +210,11 @@ public enum ConditionType {
 
 
     public String info() {
-        return value + "(" + msg + ")";
+        return name().toLowerCase() + "(" + msg + ")";
     }
 
     public void checkTypeAndValue(Class<?> type, String column, Object value, Integer strLen, int maxListCount) {
-        checkType(type);
+        checkType(type, column);
         checkValue(type, column, value, strLen, maxListCount);
     }
 
@@ -281,52 +275,54 @@ public enum ConditionType {
 
 
     private static final Set<ConditionType> MULTI_TYPE = new HashSet<>(Arrays.asList(
-            ConditionType.IN,
-            // ParamConditionType.NI,
-            // ConditionType.NBE,
-            ConditionType.BET
+            IN,
+            NI,
+            BET,
+            NBE
     ));
     /** string: 等于(eq)、不等于(ne)、批量(in)、包含(include)、开头(start)、结尾(end) */
     private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
-            ConditionType.EQ,
-            ConditionType.NE,
-            ConditionType.IN,
-            ConditionType.INC,
-            ConditionType.STA,
-            ConditionType.END
+            EQ,
+            NE,
+            IN,
+            INC,
+            STA,
+            END
     ));
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
             STRING_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /** number: 等于(eq)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(between) */
+    /** number: 等于(eq)、不等于(ne)、批量(in)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
-            ConditionType.EQ,
-            ConditionType.GT,
-            ConditionType.GE,
-            ConditionType.LT,
-            ConditionType.LE,
-            // ConditionType.NBE,
-            ConditionType.BET
+            EQ,
+            NE,
+            IN,
+            GT,
+            GE,
+            LT,
+            LE,
+            BET,
+            NBE
     ));
     private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
             NUMBER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /** date: 大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet) */
+    /** date: 大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> DATE_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
-            ConditionType.GT,
-            ConditionType.GE,
-            ConditionType.LT,
-            ConditionType.LE,
-            // ConditionType.NBE,
-            ConditionType.BET
+            GT,
+            GE,
+            LT,
+            LE,
+            BET,
+            NBE
     ));
     private static final String DATE_TYPE_INFO = String.format("Date type can only be used in 「%s」 conditions",
             DATE_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
     /**  非 string/number/date 类型: 等于(eq)、不等于(ne) */
     private static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
-            ConditionType.EQ,
-            ConditionType.NE
+            EQ,
+            NE
     ));
     private static final String OTHER_TYPE_INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
             OTHER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
@@ -336,22 +332,22 @@ public enum ConditionType {
     private static final Set<Class<?>> LONG_TYPE_SET = new HashSet<>(Arrays.asList(Long.class, long.class));
 
 
-    private void checkType(Class<?> type) {
+    private void checkType(Class<?> type, String column) {
         if (Number.class.isAssignableFrom(type)) {
             if (!NUMBER_TYPE_SET.contains(this)) {
-                throw new RuntimeException(NUMBER_TYPE_INFO);
+                throw new RuntimeException(column + ": " + NUMBER_TYPE_INFO);
             }
         } else if (Date.class.isAssignableFrom(type)) {
             if (!DATE_TYPE_SET.contains(this)) {
-                throw new RuntimeException(DATE_TYPE_INFO);
+                throw new RuntimeException(column + ": " + DATE_TYPE_INFO);
             }
         } else if (String.class.isAssignableFrom(type)) {
             if (!STRING_TYPE_SET.contains(this)) {
-                throw new RuntimeException(STRING_TYPE_INFO);
+                throw new RuntimeException(column + ": " + STRING_TYPE_INFO);
             }
         } else {
             if (!OTHER_TYPE_SET.contains(this)) {
-                throw new RuntimeException(OTHER_TYPE_INFO);
+                throw new RuntimeException(column + ": " + OTHER_TYPE_INFO);
             }
         }
     }

@@ -442,18 +442,19 @@ public class ReqResult {
     public String generateInnerSelect(String relationColumn, TableColumnInfo tcInfo) {
         StringJoiner selectColumns = new StringJoiner(", ");
         selectColumns.add(relationColumn);
+        String innerTableName = table;
         for (Object obj : columns) {
             if (obj instanceof String) {
-                selectColumns.add(QueryUtil.getUseQueryColumn(false, (String) obj, table, tcInfo));
+                selectColumns.add(QueryUtil.getUseQueryColumn(false, (String) obj, innerTableName, tcInfo));
             } else if (obj instanceof List<?>) {
-                selectColumns.add(generateFunctionColumn((List<?>) obj, table, false, tcInfo));
+                selectColumns.add(generateFunctionColumn((List<?>) obj, innerTableName, false, tcInfo));
             } else {
                 Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
                 if (dateColumn != null) {
                     for (String column : dateColumn.keySet()) {
-                        String tableName = QueryUtil.getTableName(column, table);
-                        if (tableName.equals(table)) {
-                            selectColumns.add(QueryUtil.getUseQueryColumn(false, column, table, tcInfo));
+                        String tableName = QueryUtil.getTableName(column, innerTableName);
+                        if (tableName.equals(innerTableName)) {
+                            selectColumns.add(QueryUtil.getUseQueryColumn(false, column, innerTableName, tcInfo));
                         }
                     }
                 } else {
@@ -461,13 +462,13 @@ public class ReqResult {
                     if (inner != null) {
                         for (ReqResult innerInnerResult : inner.values()) {
                             String innerInnerTable = innerInnerResult.getTable();
-                            TableColumnRelation relation = tcInfo.findRelationByMasterChild(table, innerInnerTable);
+                            TableColumnRelation relation = tcInfo.findRelationByMasterChild(innerTableName, innerInnerTable);
                             if (relation == null) {
-                                relation = tcInfo.findRelationByMasterChild(innerInnerTable, table);
+                                relation = tcInfo.findRelationByMasterChild(innerInnerTable, innerTableName);
                             }
                             if (relation != null) {
                                 String column = relation.getOneColumn();
-                                selectColumns.add(QueryUtil.getUseQueryColumn(false, column, table, tcInfo));
+                                selectColumns.add(QueryUtil.getUseQueryColumn(false, column, innerTableName, tcInfo));
                             }
                         }
                     }
@@ -479,11 +480,12 @@ public class ReqResult {
 
 
     public void handleData(String mainTable, boolean needAlias, Map<String, Object> data, TableColumnInfo tcInfo) {
+        String currentTable = QueryUtil.isEmpty(table) ? mainTable : table;
         for (Object obj : columns) {
             if (obj != null) {
                 if (obj instanceof String) {
                     String column = (String) obj;
-                    String tableName = QueryUtil.getTableName(column, table);
+                    String tableName = QueryUtil.getTableName(column, currentTable);
                     String columnName = QueryUtil.getColumnName(column);
                     Class<?> fieldType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
                     if (Date.class.isAssignableFrom(fieldType)) {
