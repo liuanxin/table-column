@@ -321,8 +321,7 @@ public class Table {
     }
 
 
-    public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params,
-                                 boolean force, String globalLogicDeleteColumn, String globalLogicDeleteValue) {
+    public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, boolean force) {
         String where = query.generateSql(name, tcInfo, params);
         if (QueryUtil.isEmpty(where)) {
             return null;
@@ -333,8 +332,6 @@ public class Table {
             String set = "";
             if (QueryUtil.isNotEmpty(logicColumn)) {
                 set = logicColumn + " = " + logicDeleteValue;
-            } else if (columnMap.containsKey(globalLogicDeleteColumn)) {
-                set = globalLogicDeleteColumn + " = " + globalLogicDeleteValue;
             }
             if (QueryUtil.isNotEmpty(set)) {
                 return "UPDATE " + table + " SET " + set + " WHERE " + where;
@@ -346,13 +343,12 @@ public class Table {
 
     public String generateCountQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params,
                                      String groupBy, String having, String orderBy, List<Integer> pageList,
-                                     boolean force, String globalLogicDeleteColumn, String globalLogicValue) {
+                                     boolean force) {
         return generateSelectQuery(query, tcInfo, params, "COUNT(*)", groupBy,
-                having, orderBy, pageList, force, globalLogicDeleteColumn, globalLogicValue);
+                having, orderBy, pageList, force);
     }
     private String generateSelectQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, String column,
-                                       String groupBy, String having, String orderBy, List<Integer> pageList,
-                                       boolean force, String globalLogicDeleteColumn, String globalLogicValue) {
+                                       String groupBy, String having, String orderBy, List<Integer> pageList, boolean force) {
         String where = query.generateSql(name, tcInfo, params);
         if (QueryUtil.isEmpty(where)) {
             return "";
@@ -379,8 +375,6 @@ public class Table {
         if (!force) {
             if (QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue)) {
                 logicDeleteCondition = " AND " + logicColumn + " = " + logicDeleteValue;
-            } else if (columnMap.containsKey(globalLogicDeleteColumn) && QueryUtil.isNotEmpty(globalLogicValue)) {
-                logicDeleteCondition = " AND " + globalLogicDeleteColumn + " = " + globalLogicValue;
             }
         }
         // 1. FROM: determine
@@ -395,13 +389,12 @@ public class Table {
     }
 
     public String generateQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, String column,
-                                String groupBy, String having, String orderBy, List<Integer> pageList,
-                                boolean force, String globalLogicDeleteColumn, String globalLogicValue) {
+                                String groupBy, String having, String orderBy, List<Integer> pageList, boolean force) {
         if (QueryUtil.isEmpty(column)) {
             return "";
         }
         return generateSelectQuery(query, tcInfo, params, column, groupBy,
-                having, orderBy, pageList, force, globalLogicDeleteColumn, globalLogicValue);
+                having, orderBy, pageList, force);
     }
 
 

@@ -314,7 +314,7 @@ public class QueryUtil {
     }
 
     public static String defaultIfBlank(String str1, String defaultStr) {
-        return (str1 == null || str1.isEmpty()) ? defaultStr : str1;
+        return (str1 == null || str1.trim().isEmpty()) ? defaultStr : str1;
     }
 
     public static <T> T first(Collection<T> list) {

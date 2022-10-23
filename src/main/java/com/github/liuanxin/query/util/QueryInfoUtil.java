@@ -28,8 +28,10 @@ public class QueryInfoUtil {
     private static final MetadataReaderFactory READER = new CachingMetadataReaderFactory(RESOLVER);
 
 
-    public static TableColumnInfo infoWithScan(String tablePrefix, String classPackages) {
-        return infoWithClass(tablePrefix, scanPackage(classPackages));
+    public static TableColumnInfo infoWithScan(String tablePrefix, String classPackages, String globalLogicColumn,
+                                               String globalLogicValue, String globalLogicDeleteValue) {
+        return infoWithClass(tablePrefix, scanPackage(classPackages),
+                globalLogicColumn, globalLogicValue, globalLogicDeleteValue);
     }
 
     private static Set<Class<?>> scanPackage(String classPackages) {
@@ -61,7 +63,8 @@ public class QueryInfoUtil {
         return set;
     }
 
-    private static TableColumnInfo infoWithClass(String tablePrefix, Set<Class<?>> classes) {
+    private static TableColumnInfo infoWithClass(String tablePrefix, Set<Class<?>> classes, String globalLogicColumn,
+                                                 String globalLogicValue, String globalLogicDeleteValue) {
         if (classes.isEmpty()) {
             return null;
         }
@@ -129,7 +132,8 @@ public class QueryInfoUtil {
 
                     columnName = columnInfo.value();
                     columnDesc = columnInfo.desc();
-                    columnAlias = QueryUtil.defaultIfBlank(columnInfo.alias(), columnName);
+                    // 1. alias, 2. column-name, 3. field-name
+                    columnAlias = QueryUtil.defaultIfBlank(QueryUtil.defaultIfBlank(columnInfo.alias(), columnName), fieldName);
                     primary = columnInfo.primary();
                     strLen = columnInfo.varcharLength();
 
@@ -156,6 +160,11 @@ public class QueryInfoUtil {
                 aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
                         ((strLen == null || strLen <= 0) ? null : strLen), fieldType, fieldName));
+            }
+            if (QueryUtil.isEmpty(logicColumn) && columnMap.containsKey(globalLogicColumn)) {
+                logicColumn = globalLogicColumn;
+                logicValue = globalLogicValue;
+                logicDeleteValue = globalLogicDeleteValue;
             }
             aliasMap.put(QueryConst.TABLE_PREFIX + tableAlias, tableName);
             tableClassMap.put(clazz.getName(), tableName);
@@ -210,7 +219,10 @@ public class QueryInfoUtil {
                                              List<Map<String, Object>> tableList,
                                              List<Map<String, Object>> tableColumnList,
                                              List<Map<String, Object>> relationColumnList,
-                                             List<Map<String, Object>> indexList) {
+                                             List<Map<String, Object>> indexList,
+                                             String globalLogicColumn,
+                                             String globalLogicValue,
+                                             String globalLogicDeleteValue) {
         Map<String, String> aliasMap = new HashMap<>();
         Map<String, Table> tableMap = new LinkedHashMap<>();
         List<TableColumnRelation> relationList = new ArrayList<>();
@@ -251,17 +263,25 @@ public class QueryInfoUtil {
             for (Map<String, Object> columnInfo : columnList) {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
-                String columnAlias = QueryUtil.columnNameToField(columnName);
+                String fieldName = QueryUtil.columnNameToField(columnName);
+                String columnAlias = QueryUtil.defaultIfBlank(fieldName, columnName);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
 
-                aliasMap.put(QueryConst.COLUMN_PREFIX + columnName, columnAlias);
-                columnMap.put(columnAlias, new TableColumn(columnName, columnDesc, columnAlias, primary,
-                        ((strLen == null || strLen <= 0) ? null : strLen), fieldType, columnAlias));
+                aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
+                columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
+                        ((strLen == null || strLen <= 0) ? null : strLen), fieldType, fieldName));
             }
-            aliasMap.put(QueryConst.TABLE_PREFIX + tableName, tableAlias);
-            tableMap.put(tableAlias, new Table(tableName, tableDesc, tableAlias, null, null, null, columnMap));
+            String logicColumn = null, logicValue = null, logicDeleteValue = null;
+            if (columnMap.containsKey(globalLogicColumn)) {
+                logicColumn = globalLogicColumn;
+                logicValue = globalLogicValue;
+                logicDeleteValue = globalLogicDeleteValue;
+            }
+            aliasMap.put(QueryConst.TABLE_PREFIX + tableAlias, tableName);
+            tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias,
+                    logicColumn, logicValue, logicDeleteValue, columnMap));
         }
 
         if (!relationColumnMap.isEmpty()) {

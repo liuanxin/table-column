@@ -59,7 +59,7 @@ public class TableColumnTemplate implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         if (QueryUtil.isNotEmpty(scanPackages)) {
-            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages);
+            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages, logicDeleteColumn, logicValue, logicDeleteValue);
         } else {
             String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
             // table_name, table_comment
@@ -70,7 +70,8 @@ public class TableColumnTemplate implements InitializingBean {
             List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
             // table_name, column_name, has_single_unique
             List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
-            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList, relationColumnList, indexList);
+            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList, relationColumnList,
+                    indexList, logicDeleteColumn, logicValue, logicDeleteValue);
         }
     }
 
@@ -364,7 +365,7 @@ public class TableColumnTemplate implements InitializingBean {
 
     private int doDelete(SingleTableWhere query, Table table, boolean force) {
         List<Object> params = new ArrayList<>();
-        String deleteSql = table.generateDelete(query, tcInfo, params, force, logicDeleteColumn, logicDeleteValue);
+        String deleteSql = table.generateDelete(query, tcInfo, params, force);
         if (QueryUtil.isEmpty(deleteSql)) {
             return 0;
         }
@@ -505,7 +506,7 @@ public class TableColumnTemplate implements InitializingBean {
         List<Object> params = new ArrayList<>();
         SingleTableWhere query = SingleTableWhere.buildId(tableInfo.idWhere(false), id);
         String querySql = tableInfo.generateQuery(query, tcInfo, params, tableInfo.generateSelect(true),
-                null, null, null, QueryConst.LIMIT_ONE, force, logicDeleteColumn, logicValue);
+                null, null, null, QueryConst.LIMIT_ONE, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyMap();
         }
@@ -538,7 +539,7 @@ public class TableColumnTemplate implements InitializingBean {
             List<Object> params = new ArrayList<>();
             SingleTableWhere query = SingleTableWhere.buildIds(idField, lt);
             String querySql = tableInfo.generateQuery(query, tcInfo, params, select,
-                    null, null, null, null, force, logicDeleteColumn, logicValue);
+                    null, null, null, null, force);
             if (QueryUtil.isNotEmpty(querySql)) {
                 List<Map<String, Object>> maps = jdbcTemplate.queryForList(querySql, params.toArray());
                 if (QueryUtil.isNotEmpty(maps)) {
@@ -574,7 +575,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         List<Object> params = new ArrayList<>();
         String querySql = tableInfo.generateQuery(query, tcInfo, params, tableInfo.generateSelect(false),
-                groupBy, having, orderBy, pageList, force, logicDeleteColumn, logicValue);
+                groupBy, having, orderBy, pageList, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyList();
         }
@@ -605,7 +606,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         List<Object> params = new ArrayList<>();
         String querySql = tableInfo.generateCountQuery(query, tcInfo, params,
-                null, null, null, null, force, logicDeleteColumn, logicValue);
+                null, null, null, null, force);
         if (QueryUtil.isEmpty(querySql)) {
             return 0;
         }
@@ -635,7 +636,7 @@ public class TableColumnTemplate implements InitializingBean {
         List<Object> params = new ArrayList<>();
         SingleTableWhere query = SingleTableWhere.buildId(table.idWhere(false), id);
         String querySql = table.generateQuery(query, tcInfo, params, table.generateSelect(false),
-                null, null, null, QueryConst.LIMIT_ONE, force, logicDeleteColumn, logicValue);
+                null, null, null, QueryConst.LIMIT_ONE, force);
         if (QueryUtil.isEmpty(querySql)) {
             return null;
         }
@@ -664,7 +665,7 @@ public class TableColumnTemplate implements InitializingBean {
         List<Object> params = new ArrayList<>();
         SingleTableWhere query = SingleTableWhere.buildIds(table.idWhere(false), ids);
         String querySql = table.generateQuery(query, tcInfo, params, table.generateSelect(false),
-                null, null, null, null, force, logicDeleteColumn, logicValue);
+                null, null, null, null, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyList();
         }
@@ -696,7 +697,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         List<Object> params = new ArrayList<>();
         String querySql = table.generateQuery(query, tcInfo, params, table.generateSelect(false),
-                groupBy, having, orderBy, pageList, force, logicDeleteColumn, logicValue);
+                groupBy, having, orderBy, pageList, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyList();
         }
@@ -728,7 +729,7 @@ public class TableColumnTemplate implements InitializingBean {
         // noinspection DuplicatedCode
         List<Object> params = new ArrayList<>();
         String querySql = table.generateCountQuery(query, tcInfo, params,
-                null, null, null, null, force, logicDeleteColumn, logicValue);
+                null, null, null, null, force);
         if (QueryUtil.isEmpty(querySql)) {
             return 0;
         }
