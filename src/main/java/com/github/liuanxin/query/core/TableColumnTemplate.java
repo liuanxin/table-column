@@ -46,8 +46,14 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.logic-value:}")
     private String logicValue;
 
-    @Value("${query.logic-delete-value:}")
-    private String logicDeleteValue;
+    @Value("${query.logic-delete-boolean-value:}")
+    private String logicDeleteBooleanValue;
+
+    @Value("${query.logic-delete-int-value:}")
+    private String logicDeleteIntValue;
+
+    @Value("${query.logic-delete-long-value:}")
+    private String logicDeleteLongValue;
 
     private TableColumnInfo tcInfo;
 
@@ -59,7 +65,8 @@ public class TableColumnTemplate implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         if (QueryUtil.isNotEmpty(scanPackages)) {
-            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages, logicDeleteColumn, logicValue, logicDeleteValue);
+            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages,
+                    logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
         } else {
             String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
             // table_name, table_comment
@@ -70,8 +77,8 @@ public class TableColumnTemplate implements InitializingBean {
             List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
             // table_name, column_name, has_single_unique
             List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
-            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList, relationColumnList,
-                    indexList, logicDeleteColumn, logicValue, logicDeleteValue);
+            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList, relationColumnList, indexList,
+                    logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
         }
     }
 

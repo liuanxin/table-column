@@ -28,10 +28,13 @@ public class QueryInfoUtil {
     private static final MetadataReaderFactory READER = new CachingMetadataReaderFactory(RESOLVER);
 
 
-    public static TableColumnInfo infoWithScan(String tablePrefix, String classPackages, String globalLogicColumn,
-                                               String globalLogicValue, String globalLogicDeleteValue) {
+    public static TableColumnInfo infoWithScan(String tablePrefix, String classPackages,
+                                               String globalLogicColumn, String globalLogicValue,
+                                               String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
+                                               String globalLogicDeleteLongValue) {
         return infoWithClass(tablePrefix, scanPackage(classPackages),
-                globalLogicColumn, globalLogicValue, globalLogicDeleteValue);
+                globalLogicColumn, globalLogicValue, globalLogicDeleteBooleanValue,
+                globalLogicDeleteIntValue, globalLogicDeleteLongValue);
     }
 
     private static Set<Class<?>> scanPackage(String classPackages) {
@@ -63,8 +66,10 @@ public class QueryInfoUtil {
         return set;
     }
 
-    private static TableColumnInfo infoWithClass(String tablePrefix, Set<Class<?>> classes, String globalLogicColumn,
-                                                 String globalLogicValue, String globalLogicDeleteValue) {
+    private static TableColumnInfo infoWithClass(String tablePrefix, Set<Class<?>> classes,
+                                                 String globalLogicColumn, String globalLogicValue,
+                                                 String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
+                                                 String globalLogicDeleteLongValue) {
         if (classes.isEmpty()) {
             return null;
         }
@@ -161,10 +166,23 @@ public class QueryInfoUtil {
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
                         ((strLen == null || strLen <= 0) ? null : strLen), fieldType, fieldName));
             }
-            if (QueryUtil.isEmpty(logicColumn) && columnMap.containsKey(globalLogicColumn)) {
-                logicColumn = globalLogicColumn;
-                logicValue = globalLogicValue;
-                logicDeleteValue = globalLogicDeleteValue;
+            if (QueryUtil.isEmpty(logicColumn)) {
+                // noinspection DuplicatedCode
+                TableColumn tableColumn = columnMap.get(globalLogicColumn);
+                if (QueryUtil.isNotNull(tableColumn)) {
+                    Class<?> fieldType = tableColumn.getFieldType();
+                    if (fieldType == Boolean.class || fieldType == boolean.class) {
+                        logicDeleteValue = globalLogicDeleteBooleanValue;
+                    } else if (fieldType == Integer.class || fieldType == int.class) {
+                        logicDeleteValue = globalLogicDeleteIntValue;
+                    } else if (fieldType == Long.class || fieldType == long.class) {
+                        logicDeleteValue = globalLogicDeleteLongValue;
+                    }
+                    if (QueryUtil.isNotNull(logicDeleteValue)) {
+                        logicColumn = globalLogicColumn;
+                        logicValue = globalLogicValue;
+                    }
+                }
             }
             aliasMap.put(QueryConst.TABLE_PREFIX + tableAlias, tableName);
             tableClassMap.put(clazz.getName(), tableName);
@@ -220,9 +238,9 @@ public class QueryInfoUtil {
                                              List<Map<String, Object>> tableColumnList,
                                              List<Map<String, Object>> relationColumnList,
                                              List<Map<String, Object>> indexList,
-                                             String globalLogicColumn,
-                                             String globalLogicValue,
-                                             String globalLogicDeleteValue) {
+                                             String globalLogicColumn, String globalLogicValue,
+                                             String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
+                                             String globalLogicDeleteLongValue) {
         Map<String, String> aliasMap = new HashMap<>();
         Map<String, Table> tableMap = new LinkedHashMap<>();
         List<TableColumnRelation> relationList = new ArrayList<>();
@@ -274,10 +292,21 @@ public class QueryInfoUtil {
                         ((strLen == null || strLen <= 0) ? null : strLen), fieldType, fieldName));
             }
             String logicColumn = null, logicValue = null, logicDeleteValue = null;
-            if (columnMap.containsKey(globalLogicColumn)) {
-                logicColumn = globalLogicColumn;
-                logicValue = globalLogicValue;
-                logicDeleteValue = globalLogicDeleteValue;
+            // noinspection DuplicatedCode
+            TableColumn tableColumn = columnMap.get(globalLogicColumn);
+            if (QueryUtil.isNotNull(tableColumn)) {
+                Class<?> fieldType = tableColumn.getFieldType();
+                if (fieldType == Boolean.class || fieldType == boolean.class) {
+                    logicDeleteValue = globalLogicDeleteBooleanValue;
+                } else if (fieldType == Integer.class || fieldType == int.class) {
+                    logicDeleteValue = globalLogicDeleteIntValue;
+                } else if (fieldType == Long.class || fieldType == long.class) {
+                    logicDeleteValue = globalLogicDeleteLongValue;
+                }
+                if (QueryUtil.isNotNull(logicDeleteValue)) {
+                    logicColumn = globalLogicColumn;
+                    logicValue = globalLogicValue;
+                }
             }
             aliasMap.put(QueryConst.TABLE_PREFIX + tableAlias, tableName);
             tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias,

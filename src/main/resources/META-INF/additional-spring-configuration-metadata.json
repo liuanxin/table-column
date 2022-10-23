@@ -57,11 +57,25 @@
       "description": "表用来做逻辑删除的字段, 比如设置成 0, 表中有字段标了 @LogicDelete 则以注解为主."
     },
     {
-      "name": "query.logic-delete-value",
+      "name": "query.logic-delete-boolean-value",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "表用来做逻辑删除的字段, 比如设置成 1 或 id 或 UNIX_TIMESTAMP() 等, 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "表用来做逻辑删除的字段, 比如设置成 1, 表中有字段标了 @LogicDelete 则以注解为主."
+    },
+    {
+      "name": "query.logic-delete-int-value",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
+      "description": "表用来做逻辑删除的字段, 比如设置成 UNIX_TIMESTAMP(), 表中有字段标了 @LogicDelete 则以注解为主."
+    },
+    {
+      "name": "query.logic-delete-long-value",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
+      "description": "表用来做逻辑删除的备用字段, 比如设置成 id, 表中有字段标了 @LogicDelete 则以注解为主."
     }
   ]
 }
