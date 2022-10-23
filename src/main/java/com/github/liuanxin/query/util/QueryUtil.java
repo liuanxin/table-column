@@ -348,25 +348,19 @@ public class QueryUtil {
         return column.contains(".") ? column.split("\\.")[1].trim() : column.trim();
     }
 
-    public static String getUseColumn(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
-        String tableName = getTableName(column, mainTable);
-        String columnName = getColumnName(column);
-        Table table = tcInfo.findTable(tableName);
-        TableColumn tableColumn = tcInfo.findTableColumn(table, columnName);
-        String useColumnName = QuerySqlUtil.toSqlField(tableColumn.getName());
+    public static String getQueryColumn(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
+        Table table = tcInfo.findTable(getTableName(column, mainTable));
+        String useColumnName = QuerySqlUtil.toSqlField(tcInfo.findTableColumn(table, getColumnName(column)).getName());
         if (needAlias) {
-            String alias = table.getAlias();
-            return QuerySqlUtil.toSqlField(alias) + "." + useColumnName + " AS " + alias + "_" + tableColumn.getName();
+            return QuerySqlUtil.toSqlField(table.getAlias()) + "." + useColumnName;
         } else {
             return useColumnName;
         }
     }
 
-    public static String getUseQueryColumn(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
-        String tableName = getTableName(column, mainTable);
-        String columnName = getColumnName(column);
-        Table table = tcInfo.findTable(tableName);
-        TableColumn tableColumn = tcInfo.findTableColumn(table, columnName);
+    public static String getQueryColumnAndAlias(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
+        Table table = tcInfo.findTable(getTableName(column, mainTable));
+        TableColumn tableColumn = tcInfo.findTableColumn(table, getColumnName(column));
         String tableColumnName = tableColumn.getName();
         String tableColumnAlias = tableColumn.getAlias();
         String useColumnName = QuerySqlUtil.toSqlField(tableColumnName);
@@ -375,6 +369,20 @@ public class QueryUtil {
             return QuerySqlUtil.toSqlField(alias) + "." + useColumnName + " AS " + alias + "_" + tableColumnAlias;
         } else {
             return useColumnName + (tableColumnName.equals(tableColumnAlias) ? "" : (" AS " + tableColumnAlias));
+        }
+    }
+
+    public static String getColumnAlias(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
+        Table table = tcInfo.findTable(getTableName(column, mainTable));
+        TableColumn tableColumn = tcInfo.findTableColumn(table, getColumnName(column));
+        String tableColumnName = tableColumn.getName();
+        String tableColumnAlias = tableColumn.getAlias();
+        if (needAlias) {
+            return table.getAlias() + "_" + tableColumnAlias;
+        } else if (tableColumnName.equals(tableColumnAlias)) {
+            return QuerySqlUtil.toSqlField(tableColumnName);
+        } else {
+            return QuerySqlUtil.toSqlField(tableColumnAlias);
         }
     }
 }

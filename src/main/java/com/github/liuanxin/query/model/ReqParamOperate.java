@@ -218,7 +218,7 @@ public class ReqParamOperate {
                         String tableName = QueryUtil.getTableName(column, mainTable);
                         String columnName = QueryUtil.getColumnName(column);
                         Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
-                        String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
+                        String useColumn = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
                         String sql = type.generateSql(useColumn, columnType, value, params);
                         if (!sql.isEmpty()) {
                             sj.add(sql);

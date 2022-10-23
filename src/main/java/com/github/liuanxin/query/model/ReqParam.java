@@ -135,7 +135,7 @@ public class ReqParam {
             for (Map.Entry<String, String> entry : sort.entrySet()) {
                 String value = entry.getValue().toLowerCase();
                 String desc = ("asc".equals(value) || "a".equals(value)) ? "" : " DESC";
-                orderSj.add(QueryUtil.getUseColumn(needAlias, entry.getKey(), mainTable, tcInfo) + desc);
+                orderSj.add(QueryUtil.getColumnAlias(needAlias, entry.getKey(), mainTable, tcInfo) + desc);
             }
             String orderBy = orderSj.toString();
             if (!orderBy.isEmpty()) {

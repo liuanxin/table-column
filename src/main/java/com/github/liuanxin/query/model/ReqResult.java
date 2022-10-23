@@ -294,13 +294,12 @@ public class ReqResult {
         Set<String> columnNameSet = new LinkedHashSet<>();
         boolean needAlias = !tableSet.isEmpty();
         String currentTableName = QueryUtil.isEmpty(table) ? mainTable : table;
-        columnNameSet.add(tcInfo.findTable(currentTableName).idSelect(needAlias));
         for (Object obj : columns) {
             if (obj instanceof String) {
                 String col = (String) obj;
                 String tableName = QueryUtil.getTableName(col, currentTableName);
                 if (tableName.equals(currentTableName) || tableSet.contains(tableName)) {
-                    columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, col, currentTableName, tcInfo));
+                    columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, col, currentTableName, tcInfo));
                 }
             } else {
                 Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
@@ -308,7 +307,7 @@ public class ReqResult {
                     for (String column : dateColumn.keySet()) {
                         String tableName = QueryUtil.getTableName(column, currentTableName);
                         if (tableName.equals(currentTableName) || tableSet.contains(tableName)) {
-                            columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, column, currentTableName, tcInfo));
+                            columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTableName, tcInfo));
                         }
                     }
                 }
@@ -329,7 +328,7 @@ public class ReqResult {
             }
             if (relation != null) {
                 String column = relation.getOneColumn();
-                columnNameSet.add(QueryUtil.getUseQueryColumn(needAlias, column, currentTable, tcInfo));
+                columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTable, tcInfo));
             }
         }
         return columnNameSet;
@@ -363,11 +362,11 @@ public class ReqResult {
         if (group == ResultGroup.COUNT_DISTINCT) {
             StringJoiner funSj = new StringJoiner(", ");
             for (String col : column.split(",")) {
-                funSj.add(QueryUtil.getUseColumn(needAlias, col, mainTable, tcInfo));
+                funSj.add(QueryUtil.getQueryColumn(needAlias, col, mainTable, tcInfo));
             }
             return group.generateColumn(funSj.toString());
         } else {
-            return group.generateColumn(QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo));
+            return group.generateColumn(QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo));
         }
     }
 
@@ -395,7 +394,7 @@ public class ReqResult {
             if (obj instanceof String) {
                 String column = (String) obj;
                 if (!column.isEmpty()) {
-                    sj.add(QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo));
+                    sj.add(QueryUtil.getColumnAlias(needAlias, column, mainTable, tcInfo));
                 }
             } else if (obj instanceof List<?>) {
                 if (!((List<?>) obj).isEmpty()) {
@@ -416,8 +415,7 @@ public class ReqResult {
                 if (size > 4) {
                     String column = QueryUtil.toStr(groups.get(2));
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
-                    String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
-                    String groupAlias = group.generateAlias(useColumn);
+                    String groupAlias = group.generateAlias(QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo));
 
                     String tableName = QueryUtil.getTableName(column, mainTable);
                     String columnName = QueryUtil.getColumnName(column);
@@ -445,7 +443,7 @@ public class ReqResult {
         String innerTableName = table;
         for (Object obj : columns) {
             if (obj instanceof String) {
-                selectColumns.add(QueryUtil.getUseQueryColumn(false, (String) obj, innerTableName, tcInfo));
+                selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, (String) obj, innerTableName, tcInfo));
             } else if (obj instanceof List<?>) {
                 selectColumns.add(generateFunctionColumn((List<?>) obj, innerTableName, false, tcInfo));
             } else {
@@ -454,7 +452,7 @@ public class ReqResult {
                     for (String column : dateColumn.keySet()) {
                         String tableName = QueryUtil.getTableName(column, innerTableName);
                         if (tableName.equals(innerTableName)) {
-                            selectColumns.add(QueryUtil.getUseQueryColumn(false, column, innerTableName, tcInfo));
+                            selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, column, innerTableName, tcInfo));
                         }
                     }
                 } else {
@@ -468,7 +466,7 @@ public class ReqResult {
                             }
                             if (relation != null) {
                                 String column = relation.getOneColumn();
-                                selectColumns.add(QueryUtil.getUseQueryColumn(false, column, innerTableName, tcInfo));
+                                selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, column, innerTableName, tcInfo));
                             }
                         }
                     }
@@ -498,7 +496,7 @@ public class ReqResult {
                     List<?> groups = (List<?>) obj;
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
                     String column = QueryUtil.toStr(groups.get(2));
-                    String useColumn = QueryUtil.getUseColumn(needAlias, column, mainTable, tcInfo);
+                    String useColumn = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
                     Object groupInfo = data.remove(group.generateAlias(useColumn));
                     if (QueryUtil.isNotNull(groupInfo)) {
                         String returnColumn = QueryUtil.toStr(groups.get(0));
