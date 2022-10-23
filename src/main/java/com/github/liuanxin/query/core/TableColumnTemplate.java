@@ -12,6 +12,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.*;
@@ -127,10 +128,12 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    @Transactional
     public int insert(String table, Map<String, Object> data) {
         return insert(table, data, false);
     }
 
+    @Transactional
     public int insert(String table, Map<String, Object> data, boolean generateNullField) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isNotEmpty(data)) {
             return 0;
@@ -152,14 +155,17 @@ public class TableColumnTemplate implements InitializingBean {
         return jdbcTemplate.update(insertSql, params.toArray());
     }
 
+    @Transactional
     public int insertBatch(String table, List<Map<String, Object>> list) {
         return insertBatch(table, list, 500);
     }
 
+    @Transactional
     public int insertBatch(String table, List<Map<String, Object>> list, int singleCount) {
         return insertBatch(table, list, singleCount, false);
     }
 
+    @Transactional
     public int insertBatch(String table, List<Map<String, Object>> list, int singleCount, boolean generateNullField) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(list)) {
             return 0;
@@ -184,10 +190,12 @@ public class TableColumnTemplate implements InitializingBean {
         return flag;
     }
 
+    @Transactional
     public <T> int insert(T obj) {
         return insert(obj, false);
     }
 
+    @Transactional
     public <T> int insert(T obj, boolean generateNullField) {
         if (QueryUtil.isNull(obj)) {
             return 0;
@@ -210,14 +218,17 @@ public class TableColumnTemplate implements InitializingBean {
         return jdbcTemplate.update(insertSql, params.toArray());
     }
 
+    @Transactional
     public <T> int insertBatch(List<T> list) {
         return insertBatch(list, 500);
     }
 
+    @Transactional
     public <T> int insertBatch(List<T> list, int singleCount) {
         return insertBatch(list, singleCount, false);
     }
 
+    @Transactional
     public <T> int insertBatch(List<T> list, int singleCount, boolean generateNullField) {
         if (QueryUtil.isEmpty(list)) {
             return 0;
@@ -244,6 +255,7 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    @Transactional
     public int forceDeleteById(String table, Serializable id) {
         return deleteById(table, id, true);
     }
@@ -261,10 +273,12 @@ public class TableColumnTemplate implements InitializingBean {
         }
         return doDelete(SingleTableWhere.buildId(tableInfo.idWhere(false), id), tableInfo, force);
     }
+    @Transactional
     public int deleteById(String table, Serializable id) {
         return deleteById(table, id, false);
     }
 
+    @Transactional
     public int forceDeleteByIds(String table, List<Serializable> ids) {
         return deleteByIds(table, ids, true);
     }
@@ -282,10 +296,12 @@ public class TableColumnTemplate implements InitializingBean {
         }
         return doDelete(SingleTableWhere.buildIds(tableInfo.idWhere(false), ids), tableInfo, force);
     }
+    @Transactional
     public int deleteByIds(String table, List<Serializable> ids) {
         return deleteByIds(table, ids, false);
     }
 
+    @Transactional
     public int forceDelete(String table, SingleTableWhere query) {
         return delete(table, query, true);
     }
@@ -303,10 +319,12 @@ public class TableColumnTemplate implements InitializingBean {
         }
         return doDelete(query, tableInfo, force);
     }
+    @Transactional
     public int delete(String table, SingleTableWhere query) {
         return delete(table, query, false);
     }
 
+    @Transactional
     public <T> int forceDeleteById(Class<T> clazz, Serializable id) {
         return deleteById(clazz, id, true);
     }
@@ -324,10 +342,12 @@ public class TableColumnTemplate implements InitializingBean {
         }
         return doDelete(SingleTableWhere.buildId(table.idWhere(false), id), table, force);
     }
+    @Transactional
     public <T> int deleteById(Class<T> clazz, Serializable id) {
         return deleteById(clazz, id, false);
     }
 
+    @Transactional
     public <T> int forceDeleteByIds(Class<T> clazz, List<Serializable> ids) {
         return deleteByIds(clazz, ids, true);
     }
@@ -345,10 +365,12 @@ public class TableColumnTemplate implements InitializingBean {
         }
         return doDelete(SingleTableWhere.buildIds(table.idWhere(false), ids), table, force);
     }
+    @Transactional
     public <T> int deleteByIds(Class<T> clazz, List<Serializable> ids) {
         return deleteByIds(clazz, ids, false);
     }
 
+    @Transactional
     public <T> int forceDelete(Class<T> clazz, SingleTableWhere query) {
         return delete(clazz, query, true);
     }
@@ -366,6 +388,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
         return doDelete(query, table, force);
     }
+    @Transactional
     public <T> int delete(Class<T> clazz, SingleTableWhere query) {
         return delete(clazz, query, false);
     }
@@ -380,6 +403,7 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    @Transactional
     public int updateById(String table, Map<String, Object> updateObj, Serializable id) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isIllegalId(id)) {
             return 0;
@@ -395,6 +419,7 @@ public class TableColumnTemplate implements InitializingBean {
         return update(table, updateObj, SingleTableWhere.buildId(tableInfo.idWhere(false), id));
     }
 
+    @Transactional
     public int updateByIds(String table, Map<String, Object> updateObj, List<Serializable> ids) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
@@ -410,10 +435,12 @@ public class TableColumnTemplate implements InitializingBean {
         return update(table, updateObj, SingleTableWhere.buildIds(tableInfo.idWhere(false), ids));
     }
 
+    @Transactional
     public int update(String table, Map<String, Object> updateObj, SingleTableWhere query) {
         return update(table, updateObj, query, false);
     }
 
+    @Transactional
     public int update(String table, Map<String, Object> updateObj, SingleTableWhere query, boolean generateNullField) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isNull(query)) {
             return 0;
@@ -435,6 +462,7 @@ public class TableColumnTemplate implements InitializingBean {
         return jdbcTemplate.update(updateSql, params.toArray());
     }
 
+    @Transactional
     public <T> int updateById(T updateObj, Serializable id) {
         if (QueryUtil.isNull(updateObj) || QueryUtil.isIllegalId(id)) {
             return 0;
@@ -451,6 +479,7 @@ public class TableColumnTemplate implements InitializingBean {
         return update(updateObj, SingleTableWhere.buildId(table.idWhere(false), id));
     }
 
+    @Transactional
     public <T> int updateByIds(T updateObj, List<Serializable> ids) {
         if (QueryUtil.isNull(updateObj) || QueryUtil.isIllegalIdList(ids)) {
             return 0;
@@ -467,10 +496,12 @@ public class TableColumnTemplate implements InitializingBean {
         return update(updateObj, SingleTableWhere.buildIds(table.idWhere(false), ids));
     }
 
+    @Transactional
     public <T> int update(T updateObj, SingleTableWhere query) {
         return update(updateObj, query, false);
     }
 
+    @Transactional
     public <T> int update(T updateObj, SingleTableWhere query, boolean generateNullField) {
         if (QueryUtil.isNull(updateObj) || QueryUtil.isNull(query)) {
             return 0;
