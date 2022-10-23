@@ -75,6 +75,11 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public TableColumnInfo getTcInfo() {
+        return tcInfo;
+    }
+
+
     public List<QueryInfo> info(String tables) {
         if (online) {
             return Collections.emptyList();
