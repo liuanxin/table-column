@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 import java.util.*;
 
-@SuppressWarnings({"DuplicatedCode", "unused"})
+@SuppressWarnings({"unused", "DuplicatedCode"})
 @Component
 public class TableColumnTemplate implements InitializingBean {
 
@@ -605,8 +605,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         List<Object> params = new ArrayList<>();
-        String querySql = tableInfo.generateCountQuery(query, tcInfo, params,
-                null, null, null, null, force);
+        String querySql = tableInfo.generateCountQuery(query, tcInfo, params, null, null, null, null, force);
         if (QueryUtil.isEmpty(querySql)) {
             return 0;
         }
@@ -726,10 +725,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        // noinspection DuplicatedCode
         List<Object> params = new ArrayList<>();
-        String querySql = table.generateCountQuery(query, tcInfo, params,
-                null, null, null, null, force);
+        String querySql = table.generateCountQuery(query, tcInfo, params, null, null, null, null, force);
         if (QueryUtil.isEmpty(querySql)) {
             return 0;
         }
