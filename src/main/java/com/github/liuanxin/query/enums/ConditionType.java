@@ -52,9 +52,9 @@ public enum ConditionType {
     lt  : <           小于
     le  : <=          小于等于
 
-    inc : LIKE '%x%'  模糊
-    sta : LIKE 'x%'   开头
-    end : LIKE '%x'   结尾
+    fuzzy : LIKE '%x%'  模糊
+    start : LIKE 'x%'   开头
+    end   : LIKE '%x'   结尾
     */
 
     NU("IS NULL", "为空") {
@@ -133,13 +133,13 @@ public enum ConditionType {
         }
     },
 
-    INC("LIKE", "模糊") {
+    FUZZY("LIKE", "模糊") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
             return generateCondition(column, type, ("%" + value + "%"), params);
         }
     },
-    STA("LIKE", "开头") {
+    START("LIKE", "开头") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
             return generateCondition(column, type, (value + "%"), params);
@@ -267,8 +267,8 @@ public enum ConditionType {
             NE,
             IN,
             NI,
-            INC,
-            STA,
+            FUZZY,
+            START,
             END
     ));
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
