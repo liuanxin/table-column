@@ -8,18 +8,18 @@
       "description": "设置为 true 时查询关联信息将返回空."
     },
     {
-      "name": "query.table-prefix",
-      "type": "java.lang.String",
-      "defaultValue": "",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "关联表的类上没有标注解时, 将类名转换成表名时, 表的前缀."
-    },
-    {
       "name": "query.scan-packages",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "存放关联表的类的包地址, 多个用英文逗号隔开."
+    },
+    {
+      "name": "query.table-prefix",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
+      "description": "关联表的类上没有标注解时, 将类名转换成表名时, 表的前缀."
     },
     {
       "name": "query.deep-max-page-size",

@@ -26,11 +26,11 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.online:false}")
     private boolean online;
 
-    @Value("${query.table-prefix:}")
-    private String tablePrefix;
-
     @Value("${query.scan-packages:}")
     private String scanPackages;
+
+    @Value("${query.table-prefix:}")
+    private String tablePrefix;
 
     @Value("${query.deep-max-page-size:10000}")
     private int deepMaxPageSize;
