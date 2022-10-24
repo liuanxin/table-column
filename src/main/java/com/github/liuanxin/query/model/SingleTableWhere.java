@@ -157,10 +157,10 @@ public class SingleTableWhere {
         String operateType = (QueryUtil.isNull(operate) ? OperateType.AND : operate).name().toUpperCase();
         StringJoiner sj = new StringJoiner(" " + operateType + " ");
         for (Object condition : conditions) {
-            if (condition != null) {
+            if (QueryUtil.isNotNull(condition)) {
                 if (condition instanceof List<?>) {
                     List<?> list = (List<?>) condition;
-                    if (!list.isEmpty()) {
+                    if (QueryUtil.isNotEmpty(list)) {
                         String column = QueryUtil.toStr(list.get(0));
 
                         boolean standardSize = (list.size() == 2);
@@ -170,15 +170,15 @@ public class SingleTableWhere {
                         Class<?> columnType = tcInfo.findTableColumn(table, column).getFieldType();
                         String useColumn = QueryUtil.getQueryColumn(false, column, table, tcInfo);
                         String sql = type.generateSql(useColumn, columnType, value, params);
-                        if (!sql.isEmpty()) {
+                        if (QueryUtil.isNotEmpty(sql)) {
                             sj.add(sql);
                         }
                     }
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
-                    if (compose != null) {
+                    if (QueryUtil.isNotNull(compose)) {
                         String innerWhereSql = compose.generateSql(table, tcInfo, false, params);
-                        if (!innerWhereSql.isEmpty()) {
+                        if (QueryUtil.isNotEmpty(innerWhereSql)) {
                             sj.add("( " + innerWhereSql + " )");
                         }
                     }
