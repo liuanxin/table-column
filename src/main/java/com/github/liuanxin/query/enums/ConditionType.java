@@ -35,39 +35,26 @@ import java.util.stream.Collectors;
 public enum ConditionType {
 
     /*
-    eq  : 等于
-    ne  : 不等于
-    in  : 批量(多个)
-    bet : 区间(时间或数字)
-    gt  : 大于
-    ge  : 大于等于
-    lt  : 小于
-    le  : 小于等于
-    inc : 包含
-    sta : 开头
-    end : 结尾
+    nu  : IS NULL     为空
+    nn  : IS NOT NULL 不为空
 
-    ------------------------------
+    eq  : =           等于
+    ne  : <>          不等于
 
-    eq  : =
-    ne  : <>
-    in  :
-    bet : BETWEEN
-    gt  : >
-    ge  : >=
-    lt  : <
-    le  : <=
-    inc : LIKE '%x%'
-    sta : LIKE 'x%'
-    end : LIKE '%x'
+    in  : in          包含
+    ni  : NOT IN      不包含
 
-    下面几种是不常用的
+    bet : BETWEEN     区间
+    nbe : NOT BETWEEN 不在区间
 
-    nu  : IS NULL        : 为空
-    nn  : IS NOT NULL    : 不为空
-    ni  : NOT IN         : 不在其中(多个)
-    nl  : NOT LIKE '%x%' : 不包含
-    nbe : NOT BETWEEN    : 不在区间
+    gt  : >           大于
+    ge  : >=          大于等于
+    lt  : <           小于
+    le  : <=          小于等于
+
+    inc : LIKE '%x%'  模糊
+    sta : LIKE 'x%'   开头
+    end : LIKE '%x'   结尾
     */
 
     NU("IS NULL", "为空") {
@@ -96,13 +83,13 @@ public enum ConditionType {
         }
     },
 
-    IN("IN", "批量") {
+    IN("IN", "包含") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
             return generateMulti(column, type, value, params);
         }
     },
-    NI("NOT IN", "不在其中") {
+    NI("NOT IN", "不包含") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
             return generateMulti(column, type, value, params);
@@ -146,7 +133,7 @@ public enum ConditionType {
         }
     },
 
-    INC("LIKE", "包含") {
+    INC("LIKE", "模糊") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
             return generateCondition(column, type, ("%" + value + "%"), params);
@@ -162,12 +149,6 @@ public enum ConditionType {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
             return generateCondition(column, type, ("%" + value), params);
-        }
-    },
-    NL("NOT LIKE", "不包含") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, ("%" + value + "%"), params);
         }
     };
 
@@ -280,7 +261,7 @@ public enum ConditionType {
             BET,
             NBE
     ));
-    /** string: 等于(eq)、不等于(ne)、批量(in)、不在其中(ni)、包含(include)、开头(start)、结尾(end) */
+    /** string: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(include)、开头(start)、结尾(end) */
     private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             EQ,
             NE,
@@ -293,7 +274,7 @@ public enum ConditionType {
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
             STRING_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /** number: 等于(eq)、不等于(ne)、批量(in)、不在其中(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
+    /** number: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             EQ,
             NE,
@@ -321,10 +302,14 @@ public enum ConditionType {
     private static final String DATE_TYPE_INFO = String.format("Date type can only be used in 「%s」 conditions",
             DATE_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
-    /**  非 string/number/date 类型: 等于(eq)、不等于(ne) */
+    /**  非 string/number/date 类型: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
     private static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
             EQ,
-            NE
+            NE,
+            IN,
+            NI,
+            NU,
+            NN
     ));
     private static final String OTHER_TYPE_INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
             OTHER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
