@@ -12,13 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class QueryLambdaUtil {
 
-    private static final String LAMBDA_METHOD = "writeReplace";
     private static final Map<String, Class<?>> CLASS_MAP = new ConcurrentHashMap<>();
     private static final Map<String, Field> CLASS_FIELD_MAP = new ConcurrentHashMap<>();
 
     private static SerializedLambda toLambdaMataInfo(SupplierSerialize<?> supplier) {
         try {
-            Method lambdaMethod = supplier.getClass().getDeclaredMethod(LAMBDA_METHOD);
+            Method lambdaMethod = supplier.getClass().getDeclaredMethod("writeReplace");
             // noinspection deprecation
             boolean accessible = lambdaMethod.isAccessible();
             if (!accessible) {
