@@ -38,7 +38,7 @@ public final class QueryLambdaUtil {
         }
     }
 
-    private static Class<?> toClass(SerializedLambda lambda) {
+    private static Class<?> lambdaToClass(SerializedLambda lambda) {
         String className = lambda.getImplClass();
         try {
             Class<?> clazz = CLASS_MAP.get(className);
@@ -54,7 +54,8 @@ public final class QueryLambdaUtil {
         }
     }
 
-    private static Field methodToField(Class<?> clazz, String methodName) {
+    private static Field methodToField(Class<?> clazz, SerializedLambda lambda) {
+        String methodName = lambda.getImplMethodName();
         if (!methodName.startsWith("is") && !methodName.startsWith("get") && !methodName.startsWith("set")) {
             throw new RuntimeException("'" + methodName + "' is not an access method for a field");
         }
@@ -78,23 +79,23 @@ public final class QueryLambdaUtil {
     }
 
     public static <T> Class<?> toClass(SupplierSerialize<T> supplier) {
-        return toClass(toMataInfo(supplier));
+        return lambdaToClass(toMataInfo(supplier));
     }
     public static <T> Class<?> toClass(FunctionSerialize<T, ?> function) {
-        return toClass(toMataInfo(function));
+        return lambdaToClass(toMataInfo(function));
     }
 
     public static <T> Field toField(SupplierSerialize<T> supp) {
         SerializedLambda lambda = toMataInfo(supp);
-        return methodToField(toClass(lambda), lambda.getImplMethodName());
+        return methodToField(lambdaToClass(lambda), lambda);
     }
     public static <T> Field toField(FunctionSerialize<T, ?> function) {
         SerializedLambda lambda = toMataInfo(function);
-        return methodToField(toClass(lambda), lambda.getImplMethodName());
+        return methodToField(lambdaToClass(lambda), lambda);
     }
 
     public static <T> String toTableName(SupplierSerialize<T> supplier) {
-        return toTableName("", supplier);
+        return toTableName("", toClass(supplier));
     }
     public static <T> String toTableName(String tablePrefix, SupplierSerialize<T> supplier) {
         return toTableName(tablePrefix, toClass(supplier));
@@ -108,7 +109,7 @@ public final class QueryLambdaUtil {
         }
     }
     public static <T> String toTableName(FunctionSerialize<T, ?> function) {
-        return toTableName("", function);
+        return toTableName("", toClass(function));
     }
     public static <T> String toTableName(String tablePrefix, FunctionSerialize<T, ?> function) {
         return toTableName(tablePrefix, toClass(function));
