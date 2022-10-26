@@ -38,7 +38,7 @@ public final class QueryLambdaUtil {
         }
     }
 
-    private static Class<?> lambdaToClass(SerializedLambda lambda) {
+    private static Class<?> toClass(SerializedLambda lambda) {
         String className = lambda.getImplClass();
         try {
             Class<?> clazz = CLASS_MAP.get(className);
@@ -75,27 +75,27 @@ public final class QueryLambdaUtil {
         }
     }
 
-    public static <T> Class<?> lambdaToClass(SupplierSerialize<T> supp) {
-        return lambdaToClass(getLambdaMataInfo(supp));
+    public static <T> Class<?> toClass(SupplierSerialize<T> supplier) {
+        return toClass(getLambdaMataInfo(supplier));
     }
-    public static <T> Class<?> lambdaToClass(FunctionSerialize<T, ?> func) {
-        return lambdaToClass(getLambdaMataInfo(func));
+    public static <T> Class<?> toClass(FunctionSerialize<T, ?> function) {
+        return toClass(getLambdaMataInfo(function));
     }
 
-    public static <T> Field lambdaToField(SupplierSerialize<T> supp) {
+    public static <T> Field toField(SupplierSerialize<T> supp) {
         SerializedLambda lambda = getLambdaMataInfo(supp);
-        return methodToField(lambdaToClass(lambda), lambda.getImplMethodName());
+        return methodToField(toClass(lambda), lambda.getImplMethodName());
     }
-    public static <T> Field lambdaToField(FunctionSerialize<T, ?> func) {
-        SerializedLambda lambda = getLambdaMataInfo(func);
-        return methodToField(lambdaToClass(lambda), lambda.getImplMethodName());
+    public static <T> Field toField(FunctionSerialize<T, ?> function) {
+        SerializedLambda lambda = getLambdaMataInfo(function);
+        return methodToField(toClass(lambda), lambda.getImplMethodName());
     }
 
-    public static <T> String lambdaFieldToTableName(SupplierSerialize<T> supp) {
-        return lambdaFieldToTableName("", supp);
+    public static <T> String toTableName(SupplierSerialize<T> supplier) {
+        return toTableName("", supplier);
     }
-    public static <T> String lambdaFieldToTableName(String tablePrefix, SupplierSerialize<T> supp) {
-        return toTableName(tablePrefix, lambdaToClass(supp));
+    public static <T> String toTableName(String tablePrefix, SupplierSerialize<T> supplier) {
+        return toTableName(tablePrefix, toClass(supplier));
     }
     private static String toTableName(String tablePrefix, Class<?> clazz) {
         TableInfo tableInfo = clazz.getAnnotation(TableInfo.class);
@@ -105,15 +105,15 @@ public final class QueryLambdaUtil {
             return tableInfo.ignore() ? "" : tableInfo.value();
         }
     }
-    public static <T> String lambdaFieldToTableName(FunctionSerialize<T, ?> func) {
-        return lambdaFieldToTableName("", func);
+    public static <T> String toTableName(FunctionSerialize<T, ?> function) {
+        return toTableName("", function);
     }
-    public static <T> String lambdaFieldToTableName(String tablePrefix, FunctionSerialize<T, ?> func) {
-        return toTableName(tablePrefix, lambdaToClass(func));
+    public static <T> String toTableName(String tablePrefix, FunctionSerialize<T, ?> function) {
+        return toTableName(tablePrefix, toClass(function));
     }
 
-    public static <T> String lambdaFieldToColumnName(SupplierSerialize<T> supp) {
-        return toColumnName(lambdaToField(supp));
+    public static <T> String toColumnName(SupplierSerialize<T> supplier) {
+        return toColumnName(toField(supplier));
     }
     private static String toColumnName(Field field) {
         ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
@@ -123,7 +123,7 @@ public final class QueryLambdaUtil {
             return columnInfo.ignore() ? "" : columnInfo.value();
         }
     }
-    public static <T> String lambdaFieldToColumnName(FunctionSerialize<T, ?> func) {
-        return toColumnName(lambdaToField(func));
+    public static <T> String toColumnName(FunctionSerialize<T, ?> function) {
+        return toColumnName(toField(function));
     }
 }
