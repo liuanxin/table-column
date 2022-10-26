@@ -2,7 +2,8 @@ package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.annotation.ColumnInfo;
 import com.github.liuanxin.query.annotation.TableInfo;
-import com.github.liuanxin.query.model.FunctionSerialize;
+import com.github.liuanxin.query.function.FunctionSerialize;
+import com.github.liuanxin.query.function.SupplierSerialize;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
@@ -16,15 +17,15 @@ public final class QueryLambdaUtil {
     private static final Map<String, Class<?>> CLASS_MAP = new ConcurrentHashMap<>();
     private static final Map<String, Field> CLASS_FIELD_MAP = new ConcurrentHashMap<>();
 
-    private static <T> SerializedLambda toLambdaMataInfo(FunctionSerialize<T, ?> func) {
+    private static SerializedLambda getLambdaMataInfo(Object obj) {
         try {
-            Method lambdaMethod = func.getClass().getDeclaredMethod("writeReplace");
+            Method lambdaMethod = obj.getClass().getDeclaredMethod("writeReplace");
             // noinspection deprecation
             boolean accessible = lambdaMethod.isAccessible();
             if (!accessible) {
                 lambdaMethod.setAccessible(true);
             }
-            SerializedLambda lambda = (SerializedLambda) lambdaMethod.invoke(func);
+            SerializedLambda lambda = (SerializedLambda) lambdaMethod.invoke(obj);
             if (!accessible) {
                 lambdaMethod.setAccessible(false);
             }
@@ -52,11 +53,11 @@ public final class QueryLambdaUtil {
     }
 
     private static Field methodToField(Class<?> clazz, String methodName) {
+        String className = clazz.getName();
         if (!methodName.startsWith("is") && !methodName.startsWith("get")) {
-            throw new RuntimeException("method(" + methodName + ") is not a get-method of a property");
+            throw new RuntimeException("method(" + methodName + ") in(" + className + ") is not a get-method of a property");
         }
 
-        String className = clazz.getName();
         String fieldMethodName = methodName.substring(methodName.startsWith("is") ? 2 : 3);
         String fieldName = fieldMethodName.substring(0, 1).toLowerCase() + fieldMethodName.substring(1);
         try {
@@ -73,32 +74,49 @@ public final class QueryLambdaUtil {
         }
     }
 
+    public static <T> Class<?> lambdaToClass(SupplierSerialize<T> supp) {
+        return lambdaToClass(getLambdaMataInfo(supp));
+    }
     public static <T> Class<?> lambdaToClass(FunctionSerialize<T, ?> func) {
-        return lambdaToClass(toLambdaMataInfo(func));
+        return lambdaToClass(getLambdaMataInfo(func));
     }
 
+    public static <T> Field lambdaToField(SupplierSerialize<T> supp) {
+        SerializedLambda lambda = getLambdaMataInfo(supp);
+        return methodToField(lambdaToClass(lambda), lambda.getImplMethodName());
+    }
     public static <T> Field lambdaToField(FunctionSerialize<T, ?> func) {
-        SerializedLambda lambda = toLambdaMataInfo(func);
+        SerializedLambda lambda = getLambdaMataInfo(func);
         return methodToField(lambdaToClass(lambda), lambda.getImplMethodName());
     }
 
-    public static <T> String lambdaToTable(String tablePrefix, FunctionSerialize<T, ?> func) {
-        Class<?> clazz = lambdaToClass(func);
+    public static <T> String fieldToTableName(String tablePrefix, SupplierSerialize<T> supp) {
+        return toTableName(tablePrefix, lambdaToClass(supp));
+    }
+    private static String toTableName(String tablePrefix, Class<?> clazz) {
         TableInfo tableInfo = clazz.getAnnotation(TableInfo.class);
-        if (QueryUtil.isNull(tableInfo) || tableInfo.ignore()) {
+        if (QueryUtil.isNull(tableInfo)) {
             return QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
         } else {
-            return tableInfo.value();
+            return tableInfo.ignore() ? "" : tableInfo.value();
         }
     }
+    public static <T> String fieldToTableName(String tablePrefix, FunctionSerialize<T, ?> func) {
+        return toTableName(tablePrefix, lambdaToClass(func));
+    }
 
-    public static <T> String lambdaToColumn(FunctionSerialize<T, ?> func) {
-        Field field = lambdaToField(func);
+    public static <T> String fieldToColumnName(SupplierSerialize<T> supp) {
+        return toColumnName(lambdaToField(supp));
+    }
+    private static String toColumnName(Field field) {
         ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
-        if (QueryUtil.isNull(columnInfo) || columnInfo.ignore()) {
+        if (QueryUtil.isNull(columnInfo)) {
             return QueryUtil.fieldToColumnName(field.getName());
         } else {
-            return columnInfo.value();
+            return columnInfo.ignore() ? "" : columnInfo.value();
         }
+    }
+    public static <T> String fieldToColumnName(FunctionSerialize<T, ?> func) {
+        return toColumnName(lambdaToField(func));
     }
 }
