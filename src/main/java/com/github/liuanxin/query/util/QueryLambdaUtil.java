@@ -5,6 +5,7 @@ import com.github.liuanxin.query.annotation.TableInfo;
 import com.github.liuanxin.query.function.FunctionSerialize;
 import com.github.liuanxin.query.function.SupplierSerialize;
 
+import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -17,7 +18,7 @@ public final class QueryLambdaUtil {
     private static final Map<String, Class<?>> CLASS_MAP = new ConcurrentHashMap<>();
     private static final Map<String, Field> CLASS_FIELD_MAP = new ConcurrentHashMap<>();
 
-    private static SerializedLambda getLambdaMataInfo(Object obj) {
+    private static SerializedLambda getLambdaMataInfo(Serializable obj) {
         try {
             Method lambdaMethod = obj.getClass().getDeclaredMethod("writeReplace");
             // noinspection deprecation
@@ -90,7 +91,10 @@ public final class QueryLambdaUtil {
         return methodToField(lambdaToClass(lambda), lambda.getImplMethodName());
     }
 
-    public static <T> String fieldToTableName(String tablePrefix, SupplierSerialize<T> supp) {
+    public static <T> String lambdaFieldToTableName(SupplierSerialize<T> supp) {
+        return lambdaFieldToTableName("", supp);
+    }
+    public static <T> String lambdaFieldToTableName(String tablePrefix, SupplierSerialize<T> supp) {
         return toTableName(tablePrefix, lambdaToClass(supp));
     }
     private static String toTableName(String tablePrefix, Class<?> clazz) {
@@ -101,11 +105,14 @@ public final class QueryLambdaUtil {
             return tableInfo.ignore() ? "" : tableInfo.value();
         }
     }
-    public static <T> String fieldToTableName(String tablePrefix, FunctionSerialize<T, ?> func) {
+    public static <T> String lambdaFieldToTableName(FunctionSerialize<T, ?> func) {
+        return lambdaFieldToTableName("", func);
+    }
+    public static <T> String lambdaFieldToTableName(String tablePrefix, FunctionSerialize<T, ?> func) {
         return toTableName(tablePrefix, lambdaToClass(func));
     }
 
-    public static <T> String fieldToColumnName(SupplierSerialize<T> supp) {
+    public static <T> String lambdaFieldToColumnName(SupplierSerialize<T> supp) {
         return toColumnName(lambdaToField(supp));
     }
     private static String toColumnName(Field field) {
@@ -116,7 +123,7 @@ public final class QueryLambdaUtil {
             return columnInfo.ignore() ? "" : columnInfo.value();
         }
     }
-    public static <T> String fieldToColumnName(FunctionSerialize<T, ?> func) {
+    public static <T> String lambdaFieldToColumnName(FunctionSerialize<T, ?> func) {
         return toColumnName(lambdaToField(func));
     }
 }
