@@ -18,7 +18,7 @@ public final class QueryLambdaUtil {
     private static final Map<String, Class<?>> CLASS_MAP = new ConcurrentHashMap<>();
     private static final Map<String, Field> CLASS_FIELD_MAP = new ConcurrentHashMap<>();
 
-    private static SerializedLambda getLambdaMataInfo(Serializable obj) {
+    private static SerializedLambda toMataInfo(Serializable obj) {
         try {
             Method lambdaMethod = obj.getClass().getDeclaredMethod("writeReplace");
             // noinspection deprecation
@@ -76,18 +76,18 @@ public final class QueryLambdaUtil {
     }
 
     public static <T> Class<?> toClass(SupplierSerialize<T> supplier) {
-        return toClass(getLambdaMataInfo(supplier));
+        return toClass(toMataInfo(supplier));
     }
     public static <T> Class<?> toClass(FunctionSerialize<T, ?> function) {
-        return toClass(getLambdaMataInfo(function));
+        return toClass(toMataInfo(function));
     }
 
     public static <T> Field toField(SupplierSerialize<T> supp) {
-        SerializedLambda lambda = getLambdaMataInfo(supp);
+        SerializedLambda lambda = toMataInfo(supp);
         return methodToField(toClass(lambda), lambda.getImplMethodName());
     }
     public static <T> Field toField(FunctionSerialize<T, ?> function) {
-        SerializedLambda lambda = getLambdaMataInfo(function);
+        SerializedLambda lambda = toMataInfo(function);
         return methodToField(toClass(lambda), lambda.getImplMethodName());
     }
 
