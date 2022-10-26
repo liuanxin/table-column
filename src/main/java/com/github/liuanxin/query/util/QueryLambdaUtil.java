@@ -2,6 +2,7 @@ package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.annotation.ColumnInfo;
 import com.github.liuanxin.query.annotation.TableInfo;
+import com.github.liuanxin.query.model.FunctionSerialize;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
@@ -15,15 +16,15 @@ public final class QueryLambdaUtil {
     private static final Map<String, Class<?>> CLASS_MAP = new ConcurrentHashMap<>();
     private static final Map<String, Field> CLASS_FIELD_MAP = new ConcurrentHashMap<>();
 
-    private static SerializedLambda toLambdaMataInfo(SupplierSerialize<?> supplier) {
+    private static <T> SerializedLambda toLambdaMataInfo(FunctionSerialize<T, ?> func) {
         try {
-            Method lambdaMethod = supplier.getClass().getDeclaredMethod("writeReplace");
+            Method lambdaMethod = func.getClass().getDeclaredMethod("writeReplace");
             // noinspection deprecation
             boolean accessible = lambdaMethod.isAccessible();
             if (!accessible) {
                 lambdaMethod.setAccessible(true);
             }
-            SerializedLambda lambda = (SerializedLambda) lambdaMethod.invoke(supplier);
+            SerializedLambda lambda = (SerializedLambda) lambdaMethod.invoke(func);
             if (!accessible) {
                 lambdaMethod.setAccessible(false);
             }
@@ -72,17 +73,17 @@ public final class QueryLambdaUtil {
         }
     }
 
-    public static Class<?> lambdaToClass(SupplierSerialize<?> supplier) {
-        return lambdaToClass(toLambdaMataInfo(supplier));
+    public static <T> Class<?> lambdaToClass(FunctionSerialize<T, ?> func) {
+        return lambdaToClass(toLambdaMataInfo(func));
     }
 
-    public static Field lambdaToField(SupplierSerialize<?> supplier) {
-        SerializedLambda lambda = toLambdaMataInfo(supplier);
+    public static <T> Field lambdaToField(FunctionSerialize<T, ?> func) {
+        SerializedLambda lambda = toLambdaMataInfo(func);
         return methodToField(lambdaToClass(lambda), lambda.getImplMethodName());
     }
 
-    public static String lambdaToTable(String tablePrefix, SupplierSerialize<?> supplier) {
-        Class<?> clazz = lambdaToClass(supplier);
+    public static <T> String lambdaToTable(String tablePrefix, FunctionSerialize<T, ?> func) {
+        Class<?> clazz = lambdaToClass(func);
         TableInfo tableInfo = clazz.getAnnotation(TableInfo.class);
         if (QueryUtil.isNull(tableInfo) || tableInfo.ignore()) {
             return QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
@@ -91,8 +92,8 @@ public final class QueryLambdaUtil {
         }
     }
 
-    public static String lambdaToColumn(SupplierSerialize<?> supplier) {
-        Field field = lambdaToField(supplier);
+    public static <T> String lambdaToColumn(FunctionSerialize<T, ?> func) {
+        Field field = lambdaToField(func);
         ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
         if (QueryUtil.isNull(columnInfo) || columnInfo.ignore()) {
             return QueryUtil.fieldToColumnName(field.getName());
