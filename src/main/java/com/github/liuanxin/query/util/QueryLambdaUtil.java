@@ -42,34 +42,36 @@ public final class QueryLambdaUtil {
         String className = lambda.getImplClass();
         try {
             Class<?> clazz = CLASS_MAP.get(className);
-            if (clazz == null) {
+            if (QueryUtil.isNotNull(clazz)) {
+                return clazz;
+            } else {
                 Class<?> useClazz = Class.forName(className.replace("/", "."));
                 CLASS_MAP.put(className, useClazz);
                 return useClazz;
             }
-            return clazz;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("no Class(" + className + ")", e);
         }
     }
 
     private static Field methodToField(Class<?> clazz, String methodName) {
-        String className = clazz.getName();
-        if (!methodName.startsWith("is") && !methodName.startsWith("get")) {
-            throw new RuntimeException("method(" + methodName + ") in(" + className + ") is not a get-method of a property");
+        if (!methodName.startsWith("is") && !methodName.startsWith("get") && !methodName.startsWith("set")) {
+            throw new RuntimeException("'" + methodName + "' is not an access method for a field");
         }
 
+        String className = clazz.getName();
         String fieldMethodName = methodName.substring(methodName.startsWith("is") ? 2 : 3);
         String fieldName = fieldMethodName.substring(0, 1).toLowerCase() + fieldMethodName.substring(1);
         try {
             String key = className + "-->" + fieldName;
             Field field = CLASS_FIELD_MAP.get(key);
-            if (field == null) {
+            if (QueryUtil.isNotNull(field)) {
+                return field;
+            } else {
                 Field useField = clazz.getDeclaredField(fieldName);
                 CLASS_FIELD_MAP.put(key, useField);
                 return useField;
             }
-            return field;
         } catch (NoSuchFieldException e) {
             throw new RuntimeException("Class(" + className + ") no field(" + fieldName + ")", e);
         }
