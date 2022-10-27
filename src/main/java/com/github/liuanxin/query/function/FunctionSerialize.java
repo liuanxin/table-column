@@ -5,7 +5,7 @@ import java.util.function.Function;
 
 /**
  * <pre>
- * public static &lt;T&gt; void func(FunctionSerialize&lt;T, ?&gt; func) {
+ * public static &lt;T&gt; void func(FunctionSerialize&lt;T, ?&gt; f) {
  * }
  *
  * class Example {
@@ -17,7 +17,7 @@ import java.util.function.Function;
  *
  * public void main(String[] args) {
  *     Example example = new Example();
- *     // func(example::getId); // compile error : <span style="color:red">Cannot resolve method 'getId'</span>
+ *     // func(example::getId); <span style="color:red">// compile error : Cannot resolve method 'getId'</span>
  *     func(Example::getId);
  * }
  * </pre>

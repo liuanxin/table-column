@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 /**
  * <pre>
- * public static &lt;T&gt; void supp(SupplierSerialize&lt;T&gt; supplier) {
+ * public static &lt;T&gt; void supp(SupplierSerialize&lt;T&gt; s) {
  * }
  *
  * class Example {
@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  * public void main(String[] args) {
  *     Example example = new Example();
  *     supp(example::getId);
- *     // supp(Example::getId); // compile error : <span style="color:red">Non-static method cannot be referenced from a static context</span>
+ *     // supp(Example::getId); <span style="color:red">// compile error : Non-static method cannot be referenced from a static context</span>
  * }
  * </pre>
  */
