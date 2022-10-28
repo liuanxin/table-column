@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum ResultType {
 
     ARR("数组"),
-    OBJ("对象(键值对映射)");
+    OBJ("实体");
 
     private final String msg;
 

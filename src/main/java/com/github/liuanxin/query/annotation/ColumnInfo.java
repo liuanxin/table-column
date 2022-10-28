@@ -27,6 +27,12 @@ public @interface ColumnInfo {
     /** varchar column's length */
     int varcharLength() default 0;
 
+    /** true: this column not null */
+    boolean notNull() default false;
+
+    /** true: this column has default value */
+    boolean hasDefault() default false;
+
     /** logic delete: default value. for example: 0 */
     String logicValue() default "";
 

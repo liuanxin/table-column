@@ -119,6 +119,7 @@ public class QueryInfoUtil {
                 String columnName, columnDesc, columnAlias, fieldName = field.getName();
                 boolean primary;
                 Integer strLen;
+                boolean notNull, hasDefault;
                 if (QueryUtil.isNotNull(columnInfo)) {
                     if (columnInfo.ignore()) {
                         continue;
@@ -141,6 +142,8 @@ public class QueryInfoUtil {
                     columnAlias = QueryUtil.defaultIfBlank(QueryUtil.defaultIfBlank(columnInfo.alias(), columnName), fieldName);
                     primary = columnInfo.primary();
                     strLen = columnInfo.varcharLength();
+                    notNull = columnInfo.notNull();
+                    hasDefault = columnInfo.hasDefault();
 
                     String tableAndColumn = tableName + "." + columnName;
                     columnInfoMap.put(tableAndColumn, columnInfo);
@@ -151,6 +154,8 @@ public class QueryInfoUtil {
                     columnName = QueryUtil.fieldToColumnName(columnAlias);
                     primary = "id".equalsIgnoreCase(columnAlias);
                     strLen = null;
+                    notNull = false;
+                    hasDefault = false;
                 }
 
                 if (columnNameSet.contains(columnName)) {
@@ -164,7 +169,7 @@ public class QueryInfoUtil {
 
                 aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
-                        ((strLen == null || strLen <= 0) ? null : strLen), fieldType, fieldName));
+                        ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
             }
             if (QueryUtil.isEmpty(logicColumn)) {
                 // noinspection DuplicatedCode
@@ -249,7 +254,7 @@ public class QueryInfoUtil {
         if (!tableColumnList.isEmpty()) {
             for (Map<String, Object> tableColumn : tableColumnList) {
                 String key = QueryUtil.toStr(tableColumn.get("tn"));
-                tableColumnMap.computeIfAbsent(key, (k1) -> new ArrayList<>()).add(tableColumn);
+                tableColumnMap.computeIfAbsent(key, (k) -> new ArrayList<>()).add(tableColumn);
             }
         }
         Map<String, Map<String, Map<String, Object>>> relationColumnMap = new HashMap<>();
@@ -284,10 +289,13 @@ public class QueryInfoUtil {
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
+                boolean notNull = QueryUtil.toBool(QueryUtil.toStr(columnInfo.get("ine")));
+                boolean primaryIncrement = primary && "auto_increment".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ex")));
+                boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
 
                 aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
-                        ((strLen == null || strLen <= 0) ? null : strLen), fieldType, fieldName));
+                        ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
             }
             String logicColumn = null, logicValue = null, logicDeleteValue = null;
             // noinspection DuplicatedCode

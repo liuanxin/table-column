@@ -3,7 +3,10 @@ package com.github.liuanxin.query.model;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.util.QueryUtil;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TableColumnInfo {
 
@@ -69,16 +72,6 @@ public class TableColumnInfo {
     public TableColumn findTableColumn(String tableName, String columnName) {
         Table table = findTable(tableName);
         return QueryUtil.isNull(table) ? null : findTableColumn(table, columnName);
-    }
-
-    public Map<String, TableColumnRelation> findRelationByMaster(String masterTable) {
-        if (QueryUtil.isEmpty(masterTable)) {
-            return Collections.emptyMap();
-        }
-
-        String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + masterTable);
-        Map<String, TableColumnRelation> relationMap = masterChildTableMap.get(tableAlias);
-        return QueryUtil.isEmpty(relationMap) ? masterChildTableMap.get(masterTable) : relationMap;
     }
 
     public TableColumnRelation findRelationByMasterChild(String masterTable, String childTable) {

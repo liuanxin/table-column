@@ -11,14 +11,12 @@ import java.util.stream.Collectors;
 /**
  * <pre>
  * global:
- *   is null      不常用
- *   is not null  不常用
+ *   is null
+ *   is not null
  *   =
  *   <>
- *
- * list:
- *   in
- *   not in
+ *   in     (list)
+ *   not in (list)
  *
  * number/date:
  *   >
@@ -29,7 +27,7 @@ import java.util.stream.Collectors;
  *
  * string:
  *   like
- *   not like     不常用
+ *   not like
  * </pre>
  */
 public enum ConditionType {

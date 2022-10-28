@@ -143,10 +143,25 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table.trim());
         if (QueryUtil.isNull(tableInfo)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("insert: has no table({}) defined", table);
+            throw new RuntimeException("insert: table(" + table + ") has no defined");
+        }
+
+        Set<String> needCheckColumnSet = new HashSet<>();
+        for (TableColumn tc : tableInfo.getColumnMap().values()) {
+            if (tc.isNotNull() && !tc.isHasDefault()) {
+                needCheckColumnSet.add(tc.getAlias());
             }
-            return 0;
+        }
+        if (QueryUtil.isNotEmpty(needCheckColumnSet)) {
+            List<String> columnList = new ArrayList<>();
+            for (String alias : needCheckColumnSet) {
+                if (QueryUtil.isNull(data.get(alias))) {
+                    columnList.add(alias);
+                }
+            }
+            if (QueryUtil.isNotEmpty(columnList)) {
+                throw new RuntimeException("insert: table(" + table + ") columns" + columnList + " can't be null");
+            }
         }
 
         List<Object> params = new ArrayList<>();
@@ -175,10 +190,28 @@ public class TableColumnTemplate implements InitializingBean {
 
         Table tableInfo = tcInfo.findTable(table);
         if (QueryUtil.isNull(tableInfo)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("insert: has no table({}) defined", table);
+            throw new RuntimeException("batch insert: table(" + table + ") has no defined");
+        }
+
+        Set<String> needCheckColumnSet = new HashSet<>();
+        for (TableColumn tc : tableInfo.getColumnMap().values()) {
+            if (tc.isNotNull() && !tc.isHasDefault()) {
+                needCheckColumnSet.add(tc.getAlias());
             }
-            return 0;
+        }
+        if (QueryUtil.isNotEmpty(needCheckColumnSet)) {
+            Map<Integer, List<String>> columnMap = new LinkedHashMap<>();
+            int size = list.size();
+            for (String alias : needCheckColumnSet) {
+                for (int i = 0; i < size; i++) {
+                    if (QueryUtil.isNull(list.get(i).get(alias))) {
+                        columnMap.computeIfAbsent(i + 1, (k) -> new ArrayList<>()).add(alias);
+                    }
+                }
+            }
+            if (QueryUtil.isNotEmpty(columnMap)) {
+                throw new RuntimeException("batch insert: table(" + table + ") " + columnMap + " can't be null");
+            }
         }
 
         int flag = 0;
@@ -206,10 +239,33 @@ public class TableColumnTemplate implements InitializingBean {
         Class<?> clazz = obj.getClass();
         Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("insert: class({}) has no table defined", clazz.getName());
+            throw new RuntimeException("insert: table(" + clazz + ") has no defined");
+        }
+
+        Set<String> needCheckFieldSet = new HashSet<>();
+        for (TableColumn tc : table.getColumnMap().values()) {
+            if (tc.isNotNull() && !tc.isHasDefault()) {
+                needCheckFieldSet.add(tc.getFieldName());
             }
-            return 0;
+        }
+        if (QueryUtil.isNotEmpty(needCheckFieldSet)) {
+            List<String> nullColumnList = new ArrayList<>();
+            List<String> errorList = new ArrayList<>();
+            for (String field : needCheckFieldSet) {
+                try {
+                    if (QueryUtil.isNull(QueryUtil.getFieldData(clazz, field, obj))) {
+                        nullColumnList.add(field);
+                    }
+                } catch (IllegalAccessException e) {
+                    errorList.add(field);
+                }
+            }
+            if (QueryUtil.isNotEmpty(nullColumnList)) {
+                throw new RuntimeException("insert: table(" + clazz + ") field" + nullColumnList + " can't be null");
+            }
+            if (QueryUtil.isNotEmpty(errorList)) {
+                throw new RuntimeException("insert: table(" + clazz + ") get field" + errorList + " data error");
+            }
         }
 
         List<Object> params = new ArrayList<>();
@@ -239,10 +295,37 @@ public class TableColumnTemplate implements InitializingBean {
         Class<?> clazz = list.get(0).getClass();
         Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("insert: class({}) has no table defined", clazz.getName());
+            throw new RuntimeException("batch insert: table(" + clazz + ") has no defined");
+        }
+
+        Set<String> needCheckFieldSet = new HashSet<>();
+        for (TableColumn tc : table.getColumnMap().values()) {
+            if (tc.isNotNull() && !tc.isHasDefault()) {
+                needCheckFieldSet.add(tc.getFieldName());
             }
-            return 0;
+        }
+        if (QueryUtil.isNotEmpty(needCheckFieldSet)) {
+            Map<Integer, List<String>> nullColumnMap = new LinkedHashMap<>();
+            Map<Integer, List<String>> errorColumnMap = new LinkedHashMap<>();
+            int size = list.size();
+            for (String field : needCheckFieldSet) {
+                for (int i = 0; i < size; i++) {
+                    int index = i + 1;
+                    try {
+                        if (QueryUtil.isNull(QueryUtil.getFieldData(clazz, field, list.get(i)))) {
+                            nullColumnMap.computeIfAbsent(index, (k) -> new ArrayList<>()).add(field);
+                        }
+                    } catch (IllegalAccessException e) {
+                        errorColumnMap.computeIfAbsent(index, (k) -> new ArrayList<>()).add(field);
+                    }
+                }
+            }
+            if (QueryUtil.isNotEmpty(nullColumnMap)) {
+                throw new RuntimeException("batch insert: table(" + table + ") " + nullColumnMap + " can't be null");
+            }
+            if (QueryUtil.isNotEmpty(errorColumnMap)) {
+                throw new RuntimeException("batch insert: table(" + table + ") get field " + errorColumnMap + " data error");
+            }
         }
 
         int flag = 0;

@@ -4,35 +4,41 @@ import java.util.Objects;
 
 public class TableColumn {
 
-    /** 表列名 */
+    /** column name */
     private String name;
 
-    /** 表列说明 */
+    /** column desc */
     private String desc;
 
-    /** 表列别名 */
+    /** column alias */
     private String alias;
 
-    /** true 表示是主键字段 */
+    /** true: column has primary key */
     private boolean primary;
 
-    /** 字符串长度 */
+    /** varchar type's length */
     private Integer strLen;
 
-    /** 表列对应的实体的类型 */
+    /** true: column has not null */
+    private boolean notNull;
+
+    /** true: column has default value */
+    private boolean hasDefault;
+
     private Class<?> fieldType;
 
-    /** 表列对应的实体的列名 */
     private String fieldName;
 
     public TableColumn() {}
-    public TableColumn(String name, String desc, String alias, boolean primary,
-                       Integer strLen, Class<?> fieldType, String fieldName) {
+    public TableColumn(String name, String desc, String alias, boolean primary, Integer strLen,
+                       boolean notNull, boolean hasDefault, Class<?> fieldType, String fieldName) {
         this.name = name;
         this.desc = desc;
         this.alias = alias;
         this.primary = primary;
         this.strLen = strLen;
+        this.notNull = notNull;
+        this.hasDefault = hasDefault;
         this.fieldType = fieldType;
         this.fieldName = fieldName;
     }
@@ -72,6 +78,20 @@ public class TableColumn {
         this.strLen = strLen;
     }
 
+    public boolean isNotNull() {
+        return notNull;
+    }
+    public void setNotNull(boolean notNull) {
+        this.notNull = notNull;
+    }
+
+    public boolean isHasDefault() {
+        return hasDefault;
+    }
+    public void setHasDefault(boolean hasDefault) {
+        this.hasDefault = hasDefault;
+    }
+
     public Class<?> getFieldType() {
         return fieldType;
     }
@@ -93,13 +113,14 @@ public class TableColumn {
         TableColumn that = (TableColumn) o;
         return primary == that.primary && Objects.equals(name, that.name)
                 && Objects.equals(desc, that.desc) && Objects.equals(alias, that.alias)
-                && Objects.equals(strLen, that.strLen) && Objects.equals(fieldType, that.fieldType)
+                && Objects.equals(strLen, that.strLen) && Objects.equals(notNull, that.notNull)
+                && Objects.equals(hasDefault, that.hasDefault) && Objects.equals(fieldType, that.fieldType)
                 && Objects.equals(fieldName, that.fieldName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, desc, alias, primary, strLen, fieldType, fieldName);
+        return Objects.hash(name, desc, alias, primary, strLen, notNull, hasDefault, fieldType, fieldName);
     }
 
     @Override
@@ -110,6 +131,8 @@ public class TableColumn {
                 ", alias='" + alias + '\'' +
                 ", primary=" + primary +
                 ", strLen=" + strLen +
+                ", notNull=" + notNull +
+                ", hasDefault=" + hasDefault +
                 ", fieldType=" + fieldType +
                 ", fieldName='" + fieldName + '\'' +
                 '}';

@@ -8,7 +8,7 @@ import com.github.liuanxin.query.util.QueryUtil;
 public enum ResultGroup {
 
     COUNT("COUNT(%s)", "CNT%s", "总条数"),
-    COUNT_DISTINCT("COUNT(DISTINCT %s)", "CNT_DIS_%s", "总条数(去重)"),
+    COUNT_DISTINCT("COUNT(DISTINCT %s)", "CNT_DIS_%s", "去重后的总条数"),
     SUM("SUM(%s)", "SUM_%S", "总和"),
     MIN("MIN(%s)", "MIN_%s", "最小"),
     MAX("MAX(%s)", "MAX_%s", "最大"),

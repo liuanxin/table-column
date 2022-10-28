@@ -9,28 +9,28 @@ import java.util.*;
 
 public class Table {
 
-    /** 表名 */
+    /** table name */
     private String name;
 
-    /** 表说明 */
+    /** table desc */
     private String desc;
 
-    /** 表别名 */
+    /** table alias */
     private String alias;
 
-    /** 逻辑删除列 */
+    /** logic delete column name */
     private String logicColumn;
 
-    /** 逻辑删除列的默认值(0) */
+    /** logic delete column default value. for example: 0 */
     private String logicValue;
 
-    /** 逻辑删除列的删除值(1 或 id 或 UNIX_TIMESTAMP() 等) */
+    /** logic delete column delete value. for example: 1 or id or UNIX_TIMESTAMP() */
     private String logicDeleteValue;
 
-    /** 列信息 */
+    /** column mapping info */
     private Map<String, TableColumn> columnMap;
 
-    /** 主键列 */
+    /** primary key */
     private List<String> idKey;
 
     public Table() {}
@@ -247,22 +247,22 @@ public class Table {
     private <T> String firstInsert(T obj, Class<?> clazz, boolean generateNullField,
                                    List<String> placeholderList, List<Object> params) {
         List<String> fieldList = new ArrayList<>();
+        List<String> errorList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
-            Field field = QueryUtil.getField(clazz, fieldName);
-            if (QueryUtil.isNotNull(field)) {
-                try {
-                    field.setAccessible(true);
-                    Object fieldInfo = field.get(obj);
-                    if (QueryUtil.isNotNull(fieldInfo) || generateNullField) {
-                        fieldList.add(QuerySqlUtil.toSqlField(column.getName()));
-                        placeholderList.add("?");
-                        params.add(fieldInfo);
-                    }
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(String.format("obj(%s) get field(%s) exception", obj, fieldName), e);
+            try {
+                Object fieldData = QueryUtil.getFieldData(clazz, fieldName, obj);
+                if (QueryUtil.isNotNull(fieldData) || generateNullField) {
+                    fieldList.add(QuerySqlUtil.toSqlField(column.getName()));
+                    placeholderList.add("?");
+                    params.add(fieldData);
                 }
+            } catch (IllegalAccessException e) {
+                errorList.add(fieldName);
             }
+        }
+        if (QueryUtil.isNotEmpty(errorList)) {
+            throw new RuntimeException("get field" + errorList + " data error");
         }
         if (fieldList.isEmpty()) {
             return null;
@@ -283,38 +283,38 @@ public class Table {
 
         StringJoiner sj = new StringJoiner(", ");
         if (list.size() > 1) {
-            List<String> errorList = new ArrayList<>();
+            Map<Integer, List<String>> errorMap = new LinkedHashMap<>();
+            List<String> countErrorList = new ArrayList<>();
             int ps = placeholderList.size();
             for (int i = 1; i < list.size(); i++) {
+                int index = i + 1;
                 T obj = list.get(i);
                 List<String> values = new ArrayList<>();
                 for (TableColumn column : columnMap.values()) {
                     String fieldName = column.getFieldName();
-                    Field field = QueryUtil.getField(clazz, fieldName);
-                    if (QueryUtil.isNotNull(field)) {
-                        try {
-                            field.setAccessible(true);
-                            Object fieldInfo = field.get(obj);
-                            if (QueryUtil.isNotNull(fieldInfo) || generateNullField) {
-                                values.add("?");
-                                params.add(fieldInfo);
-                            }
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(String.format("index(%s) obj(%s) get field(%s) exception",
-                                    (i + 1), obj, fieldName), e);
+                    try {
+                        Object fieldData = QueryUtil.getFieldData(clazz, fieldName, obj);
+                        if (QueryUtil.isNotNull(fieldData) || generateNullField) {
+                            values.add("?");
+                            params.add(fieldData);
                         }
+                    } catch (IllegalAccessException e) {
+                        errorMap.computeIfAbsent(index, (k) -> new ArrayList<>()).add(fieldName);
                     }
+                }
+                if (QueryUtil.isNotEmpty(errorMap)) {
+                    throw new RuntimeException("get field" + errorMap + " data error");
                 }
                 int vs = values.size();
                 if (vs != ps) {
-                    errorList.add((i + 1) + " : " + vs);
+                    countErrorList.add(index + " : " + vs);
                 }
                 if (!values.isEmpty()) {
                     sj.add("(" + String.join(", ", values) + ")");
                 }
             }
-            if (!errorList.isEmpty()) {
-                throw new RuntimeException("field number error. 1 : " + ps + " but " + errorList);
+            if (!countErrorList.isEmpty()) {
+                throw new RuntimeException("field number error. 1 : " + ps + " but " + countErrorList);
             }
         }
         return (sj.length() == 0) ? sql : (sql + ", " + sj);

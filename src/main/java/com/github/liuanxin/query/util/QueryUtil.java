@@ -132,6 +132,22 @@ public class QueryUtil {
     public static Field getField(Class<?> clazz, String fieldName) {
         return getFields(clazz, 0).get(fieldName);
     }
+    public static Object getFieldData(Class<?> clazz, String fieldName, Object obj) throws IllegalAccessException {
+        Field field = getField(clazz, fieldName);
+        if (isNotNull(field)) {
+            // noinspection deprecation
+            boolean accessible = field.isAccessible();
+            if (!accessible) {
+                field.setAccessible(true);
+            }
+            Object fieldData = field.get(obj);
+            if (!accessible) {
+                field.setAccessible(false);
+            }
+            return fieldData;
+        }
+        return null;
+    }
 
     public static Class<?> mappingClass(String dbType) {
         String type = dbType.toLowerCase();
@@ -145,6 +161,10 @@ public class QueryUtil {
 
     public static String toStr(Object obj) {
         return obj == null ? "" : obj.toString().trim();
+    }
+
+    public static boolean toBool(Object obj) {
+        return (QueryUtil.isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase()));
     }
 
     public static Boolean toBoolean(Object obj) {
