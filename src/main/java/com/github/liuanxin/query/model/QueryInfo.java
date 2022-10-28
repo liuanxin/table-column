@@ -83,16 +83,20 @@ public class QueryInfo {
         /** 列类型是字符串时的长度 */
         private Integer length;
 
-        /** 关联信息 */
-        private String relation;
+        /** 关联表 */
+        private String relationTable;
+
+        /** 关联字段 */
+        private String relationColumn;
 
         public QueryColumn() {}
-        public QueryColumn(String name, String desc, String type, Integer length, String relation) {
+        public QueryColumn(String name, String desc, String type, Integer length, String relationTable, String relationColumn) {
             this.name = name;
             this.desc = desc;
             this.type = type;
             this.length = length;
-            this.relation = relation;
+            this.relationTable = relationTable;
+            this.relationColumn = relationColumn;
         }
 
         public String getName() {
@@ -123,11 +127,18 @@ public class QueryInfo {
             this.length = length;
         }
 
-        public String getRelation() {
-            return relation;
+        public String getRelationTable() {
+            return relationTable;
         }
-        public void setRelation(String relation) {
-            this.relation = relation;
+        public void setRelationTable(String relationTable) {
+            this.relationTable = relationTable;
+        }
+
+        public String getRelationColumn() {
+            return relationColumn;
+        }
+        public void setRelationColumn(String relationColumn) {
+            this.relationColumn = relationColumn;
         }
 
         @Override
@@ -137,12 +148,12 @@ public class QueryInfo {
             QueryColumn that = (QueryColumn) o;
             return Objects.equals(name, that.name) && Objects.equals(desc, that.desc)
                     && Objects.equals(type, that.type) && Objects.equals(length, that.length)
-                    && Objects.equals(relation, that.relation);
+                    && Objects.equals(relationTable, that.relationTable) && Objects.equals(relationColumn, that.relationColumn);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, desc, type, length, relation);
+            return Objects.hash(name, desc, type, length, relationTable, relationColumn);
         }
 
         @Override
@@ -152,7 +163,8 @@ public class QueryInfo {
                     ", desc='" + desc + '\'' +
                     ", type='" + type + '\'' +
                     ", length=" + length +
-                    ", relation='" + relation + '\'' +
+                    ", relationTable='" + relationTable + '\'' +
+                    ", relationColumn='" + relationColumn + '\'' +
                     '}';
         }
     }

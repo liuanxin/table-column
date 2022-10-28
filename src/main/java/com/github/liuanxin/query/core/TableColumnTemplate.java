@@ -111,15 +111,17 @@ public class TableColumnTemplate implements InitializingBean {
                     String type = sc.getFieldType().getSimpleName();
                     Integer length = sc.getStrLen();
                     TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), sc.getName());
-                    String tableColumn;
+                    String relationTable, relationColumn;
                     if (QueryUtil.isNull(relation)) {
-                        tableColumn = null;
+                        relationTable = null;
+                        relationColumn = null;
                     } else {
                         Table tb = tcInfo.findTable(relation.getOneTable());
                         TableColumn tc = tb.getColumnMap().get(relation.getOneColumn());
-                        tableColumn = tb.getAlias() + "." + tc.getAlias();
+                        relationTable = tb.getAlias();
+                        relationColumn = tc.getAlias();
                     }
-                    columnList.add(new QueryInfo.QueryColumn(sc.getAlias(), sc.getDesc(), type, length, tableColumn));
+                    columnList.add(new QueryInfo.QueryColumn(sc.getAlias(), sc.getDesc(), type, length, relationTable, relationColumn));
                 }
                 queryList.add(new QueryInfo(table.getAlias(), table.getDesc(), columnList));
             }

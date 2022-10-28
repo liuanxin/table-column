@@ -276,9 +276,7 @@ public class QueryInfoUtil {
             String tableAlias = QueryUtil.tableNameToClass(tablePrefix, tableName);
             String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
             Map<String, TableColumn> columnMap = new LinkedHashMap<>();
-
-            List<Map<String, Object>> columnList = tableColumnMap.get(tableName);
-            for (Map<String, Object> columnInfo : columnList) {
+            for (Map<String, Object> columnInfo : tableColumnMap.get(tableName)) {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
                 String fieldName = QueryUtil.columnNameToField(columnName);

@@ -24,12 +24,13 @@ public @interface ColumnInfo {
     /** true: this column is primary key */
     boolean primary() default false;
 
+    /** varchar column's length */
     int varcharLength() default 0;
 
-    /** logic delete: default value */
+    /** logic delete: default value. for example: 0 */
     String logicValue() default "";
 
-    /** logic delete: delete value */
+    /** logic delete: delete value. for example: 1, id, UNIX_TIMESTAMP() */
     String logicDeleteValue() default "";
 
     /** just set on child table, no need to mark on the main table */
