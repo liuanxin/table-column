@@ -57,96 +57,96 @@ public enum ConditionType {
 
     NU("IS NULL", "为空") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return String.format(" %s %s", QuerySqlUtil.toSqlField(column), getValue());
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, printSql);
         }
     },
     NN("IS NOT NULL", "不为空") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return String.format(" %s %s", QuerySqlUtil.toSqlField(column), getValue());
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, printSql);
         }
     },
 
     EQ("=", "等于") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
         }
     },
     NE("<>", "不等于") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
         }
     },
 
     IN("IN", "包含") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateMulti(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
         }
     },
     NI("NOT IN", "不包含") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateMulti(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
         }
     },
 
     BET("BETWEEN", "区间") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateMulti(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
         }
     },
     NBE("NOT BETWEEN", "不在区间") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateMulti(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
         }
     },
     GT(">", "大于") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
         }
     },
     GE(">=", "大于等于") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
         }
     },
     LT("<", "小于") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
         }
     },
     LE("<=", "小于等于") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, value, params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
         }
     },
 
     FUZZY("LIKE", "模糊") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, ("%" + value + "%"), params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, ("%" + value + "%"), params, printSql);
         }
     },
     START("LIKE", "开头") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, (value + "%"), params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, (value + "%"), params, printSql);
         }
     },
     END("LIKE", "结尾") {
         @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params) {
-            return generateCondition(column, type, ("%" + value), params);
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, ("%" + value), params, printSql);
         }
     };
 
@@ -185,7 +185,7 @@ public enum ConditionType {
     }
 
 
-    public abstract String generateSql(String column, Class<?> type, Object value, List<Object> params);
+    public abstract String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql);
 
 
     public String info() {
@@ -198,15 +198,22 @@ public enum ConditionType {
     }
 
 
-    protected String generateCondition(String column, Class<?> type, Object value, List<Object> params) {
+    protected String generateCondition(String column, StringBuilder printSql) {
+        String sqlField = QuerySqlUtil.toSqlField(column);
+        String value = getValue();
+        printSql.append(sqlField).append(value);
+        return String.format("%s %s", sqlField, value);
+    }
+    protected String generateCondition(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
         if (value == null) {
             return "";
         } else {
-            params.add(toValue(type, value));
-            return String.format(" %s %s ?", column, getValue());
+            params.add(QuerySqlUtil.toValue(type, value));
+            printSql.append(String.format("%s %s %s", column, getValue(), QuerySqlUtil.toPrintValue(type, value)));
+            return String.format("%s %s ?", column, getValue());
         }
     }
-    protected String generateMulti(String column, Class<?> type, Object value, List<Object> params) {
+    protected String generateMulti(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
         if (value == null || !MULTI_TYPE.contains(this) || !(value instanceof Collection<?>)) {
             return "";
         }
@@ -222,33 +229,44 @@ public enum ConditionType {
 
             StringBuilder sbd = new StringBuilder();
             if (QueryUtil.isNotNull(start) && QueryUtil.isNotNull(end)) {
-                params.add(toValue(type, start));
-                params.add(toValue(type, end));
-                sbd.append(" ").append(column).append(" BETWEEN ? AND ?");
+                params.add(QuerySqlUtil.toValue(type, start));
+                params.add(QuerySqlUtil.toValue(type, end));
+                printSql.append(column).append(" BETWEEN ").append(QuerySqlUtil.toPrintValue(type, start))
+                        .append(" AND ").append(QuerySqlUtil.toPrintValue(type, end));
+                sbd.append(column).append(" BETWEEN ? AND ?");
             } else {
                 if (QueryUtil.isNotNull(start)) {
-                    params.add(toValue(type, start));
-                    sbd.append(" ").append(column).append(" >= ?");
+                    params.add(QuerySqlUtil.toValue(type, start));
+                    printSql.append(column).append(" >= ").append(QuerySqlUtil.toPrintValue(type, start));
+                    sbd.append(column).append(" >= ?");
                 }
                 if (QueryUtil.isNotNull(end)) {
-                    params.add(toValue(type, end));
-                    sbd.append(" ").append(column).append(" <= ?");
+                    params.add(QuerySqlUtil.toValue(type, end));
+                    printSql.append(column).append(" <= ").append(QuerySqlUtil.toPrintValue(type, end));
+                    sbd.append(column).append(" <= ?");
                 }
             }
             return sbd.toString();
         } else {
             boolean hasChange = false;
             StringJoiner sj = new StringJoiner(", ");
+            StringJoiner printSj = new StringJoiner(", ");
             for (Object obj : c) {
                 if (obj != null) {
                     if (!hasChange) {
                         hasChange = true;
                     }
+                    params.add(QuerySqlUtil.toValue(type, obj));
+                    printSj.add(QuerySqlUtil.toPrintValue(type, obj));
                     sj.add("?");
-                    params.add(toValue(type, obj));
                 }
             }
-            return hasChange ? String.format(" %s %s (%s)", column, getValue(), sj) : "";
+            if (hasChange) {
+                printSql.append(String.format("%s %s (%s)", column, getValue(), printSj));
+                return String.format("%s %s (%s)", column, getValue(), sj);
+            } else {
+                return "";
+            }
         }
     }
 
@@ -301,7 +319,7 @@ public enum ConditionType {
             DATE_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
 
     /**  非 string/number/date 类型: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
-    private static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
+    public static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
             EQ,
             NE,
             IN,
@@ -311,10 +329,6 @@ public enum ConditionType {
     ));
     private static final String OTHER_TYPE_INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
             OTHER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
-
-    private static final Set<Class<?>> BOOLEAN_TYPE_SET = new HashSet<>(Arrays.asList(Boolean.class, boolean.class));
-    private static final Set<Class<?>> INT_TYPE_SET = new HashSet<>(Arrays.asList(Integer.class, int.class));
-    private static final Set<Class<?>> LONG_TYPE_SET = new HashSet<>(Arrays.asList(Long.class, long.class));
 
 
     private void checkType(Class<?> type, String column) {
@@ -363,29 +377,13 @@ public enum ConditionType {
         }
     }
     private void checkValueType(Class<?> type, String column, Object value, Integer strLen) {
-        Object obj = toValue(type, value);
+        Object obj = QuerySqlUtil.toValue(type, value);
         if (QueryUtil.isNull(obj)) {
             throw new RuntimeException(String.format("column(%s) data(%s) has not %s type",
                     column, value, type.getSimpleName().toLowerCase()));
         }
         if (QueryUtil.isNotNull(strLen) && strLen > 0 && obj.toString().length() > strLen) {
             throw new RuntimeException(String.format("column(%s) data(%s) length can only be <= %s", column, value, strLen));
-        }
-    }
-
-    private Object toValue(Class<?> type, Object value) {
-        if (BOOLEAN_TYPE_SET.contains(type)) {
-            return QueryUtil.toBoolean(value);
-        } else if (INT_TYPE_SET.contains(type)) {
-            return QueryUtil.toInteger(value);
-        } else if (LONG_TYPE_SET.contains(type)) {
-            return QueryUtil.toLonger(value);
-        } else if (Number.class.isAssignableFrom(type)) {
-            return QueryUtil.toDecimal(value);
-        } else if (Date.class.isAssignableFrom(type)) {
-            return QueryUtil.toDate(value);
-        } else {
-            return value;
         }
     }
 }

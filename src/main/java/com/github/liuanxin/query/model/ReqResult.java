@@ -405,7 +405,8 @@ public class ReqResult {
         return (hasGroup && sj.length() > 0) ? (" GROUP BY " + sj) : "";
     }
 
-    public String generateHavingSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo, List<Object> params) {
+    public String generateHavingSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo,
+                                    List<Object> params, StringBuilder printSql) {
         // 只支持 AND 条件过滤, 复杂的嵌套暂没有想到好的抽象方式
         StringJoiner groupSj = new StringJoiner(" AND ");
         for (Object obj : columns) {
@@ -426,7 +427,7 @@ public class ReqResult {
                         ConditionType conditionType = ConditionType.deserializer(groups.get(i));
                         Object value = groups.get(i + 1);
 
-                        String sql = conditionType.generateSql(groupAlias, fieldType, value, params);
+                        String sql = conditionType.generateSql(groupAlias, fieldType, value, params, printSql);
                         if (!sql.isEmpty()) {
                             groupSj.add(sql);
                         }

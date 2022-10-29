@@ -183,46 +183,55 @@ public class Table {
     }
 
 
-    public String generateInsertMap(Map<String, Object> data, boolean generateNullField, List<Object> params) {
-        return firstInsertMap(data, generateNullField, new ArrayList<>(), params);
+    public String generateInsertMap(Map<String, Object> data, boolean generateNullField,
+                                    List<Object> params, StringBuilder printSql) {
+        return firstInsertMap(data, generateNullField, new ArrayList<>(), params, printSql);
     }
-    private String firstInsertMap(Map<String, Object> data, boolean generateNullField,
-                                  List<String> placeholderList, List<Object> params) {
+    private String firstInsertMap(Map<String, Object> data, boolean generateNullField, List<String> placeholderList,
+                                  List<Object> params, StringBuilder printSql) {
         StringJoiner sj = new StringJoiner(", ");
+        List<String> printList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             Object obj = data.get(column.getAlias());
             if (QueryUtil.isNotNull(obj) || generateNullField) {
                 sj.add(QuerySqlUtil.toSqlField(column.getName()));
                 placeholderList.add("?");
+                printList.add(QuerySqlUtil.toPrintValue(column.getFieldType(), obj));
                 params.add(obj);
             }
         }
         if (sj.length() == 0) {
-            return null;
+            return "";
         }
         String table = QuerySqlUtil.toSqlField(name);
         String values = String.join(", ", placeholderList);
+        String print = String.join(", ", printList);
+        printSql.append("INSERT INTO ").append(table).append("(").append(sj).append(") VALUES (").append(print).append(")");
         return "INSERT INTO " + table + "(" + sj + ") VALUES (" + values + ")";
     }
-    public String generateBatchInsertMap(List<Map<String, Object>> list, boolean generateNullField, List<Object> params) {
+    public String generateBatchInsertMap(List<Map<String, Object>> list, boolean generateNullField,
+                                         List<Object> params, StringBuilder printSql) {
         Map<String, Object> first = QueryUtil.first(list);
         List<String> placeholderList = new ArrayList<>();
-        String sql = firstInsertMap(first, generateNullField, placeholderList, params);
+        String sql = firstInsertMap(first, generateNullField, placeholderList, params, printSql);
         if (QueryUtil.isEmpty(sql)) {
-            return null;
+            return "";
         }
 
         StringJoiner sj = new StringJoiner(", ");
+        StringJoiner print = new StringJoiner(", ");
         if (list.size() > 1) {
             List<String> errorList = new ArrayList<>();
             int ps = placeholderList.size();
             for (int i = 1; i < list.size(); i++) {
                 Map<String, Object> data = list.get(i);
                 List<String> values = new ArrayList<>();
+                List<String> printList = new ArrayList<>();
                 for (TableColumn column : columnMap.values()) {
                     Object obj = data.get(column.getAlias());
                     if (QueryUtil.isNotNull(obj) || generateNullField) {
                         values.add("?");
+                        printList.add(QuerySqlUtil.toPrintValue(column.getFieldType(), obj));
                         params.add(obj);
                     }
                 }
@@ -232,21 +241,28 @@ public class Table {
                 }
                 if (!values.isEmpty()) {
                     sj.add("(" + String.join(", ", values) + ")");
+                    print.add("(" + String.join(", ", printList) + ")");
                 }
             }
             if (!errorList.isEmpty()) {
                 throw new RuntimeException("field number error. 1 : " + ps + " but " + errorList);
             }
         }
-        return (sj.length() == 0) ? sql : (sql + ", " + sj);
+        if (sj.length() == 0) {
+            return sql;
+        } else {
+            printSql.append(sql).append(", ").append(print);
+            return sql + ", " + sj;
+        }
     }
 
-    public <T> String generateInsert(T obj, boolean generateNullField, List<Object> params) {
-        return firstInsert(obj, obj.getClass(), generateNullField, new ArrayList<>(), params);
+    public <T> String generateInsert(T obj, boolean generateNullField, List<Object> params, StringBuilder printSql) {
+        return firstInsert(obj, obj.getClass(), generateNullField, new ArrayList<>(), params, printSql);
     }
     private <T> String firstInsert(T obj, Class<?> clazz, boolean generateNullField,
-                                   List<String> placeholderList, List<Object> params) {
+                                   List<String> placeholderList, List<Object> params, StringBuilder printSql) {
         List<String> fieldList = new ArrayList<>();
+        List<String> printList = new ArrayList<>();
         List<String> errorList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
@@ -255,6 +271,7 @@ public class Table {
                 if (QueryUtil.isNotNull(fieldData) || generateNullField) {
                     fieldList.add(QuerySqlUtil.toSqlField(column.getName()));
                     placeholderList.add("?");
+                    printList.add(QuerySqlUtil.toPrintValue(column.getFieldType(), fieldData));
                     params.add(fieldData);
                 }
             } catch (IllegalAccessException e) {
@@ -270,13 +287,15 @@ public class Table {
         String table = QuerySqlUtil.toSqlField(name);
         String fields = String.join(", ", fieldList);
         String values = String.join(", ", placeholderList);
+        String print = String.join(", ", printList);
+        printSql.append("INSERT INTO ").append(table).append("(").append(fields).append(") VALUES (").append(print).append(")");
         return "INSERT INTO " + table + "(" + fields + ") VALUES (" + values + ")";
     }
-    public <T> String generateBatchInsert(List<T> list, boolean generateNullField, List<Object> params) {
+    public <T> String generateBatchInsert(List<T> list, boolean generateNullField, List<Object> params, StringBuilder printSql) {
         T first = QueryUtil.first(list);
         Class<?> clazz = first.getClass();
         List<String> placeholderList = new ArrayList<>();
-        String sql = firstInsert(first, clazz, generateNullField, placeholderList, params);
+        String sql = firstInsert(first, clazz, generateNullField, placeholderList, params, printSql);
         if (QueryUtil.isEmpty(sql)) {
             return null;
         }
@@ -317,12 +336,18 @@ public class Table {
                 throw new RuntimeException("field number error. 1 : " + ps + " but " + countErrorList);
             }
         }
-        return (sj.length() == 0) ? sql : (sql + ", " + sj);
+        if (sj.length() == 0) {
+            return sql;
+        } else {
+            return sql + ", " + sj;
+        }
     }
 
 
-    public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, boolean force) {
-        String where = query.generateSql(name, tcInfo, params);
+    public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo,
+                                 List<Object> params, StringBuilder printSql, boolean force) {
+        StringBuilder print = new StringBuilder();
+        String where = query.generateSql(name, tcInfo, params, print);
         if (QueryUtil.isEmpty(where)) {
             return null;
         }
@@ -334,27 +359,37 @@ public class Table {
                 set = logicColumn + " = " + logicDeleteValue;
             }
             if (QueryUtil.isNotEmpty(set)) {
+                printSql.append("UPDATE ").append(table).append(" SET ").append(set).append(" WHERE ").append(print);
                 return "UPDATE " + table + " SET " + set + " WHERE " + where;
             }
         }
+        printSql.append("DELETE FROM ").append(table).append(" WHERE ").append(print);
         return "DELETE FROM " + table + " WHERE " + where;
     }
 
 
-    public String generateCountQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params,
-                                     String groupBy, String having, String orderBy, List<Integer> pageList,
-                                     boolean force) {
-        return generateSelectQuery(query, tcInfo, params, "COUNT(*)", groupBy,
-                having, orderBy, pageList, force);
+    public String generateCountQuery(SingleTableWhere query, TableColumnInfo tcInfo,
+                                     List<Object> params, StringBuilder printSql,
+                                     String groupBy, String having, String havingPrint, String orderBy,
+                                     List<Integer> pageList, boolean force) {
+        return generateQuery(query, tcInfo, params, printSql, "COUNT(*)", groupBy, having, havingPrint, orderBy, pageList, force);
     }
-    private String generateSelectQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, String column,
-                                       String groupBy, String having, String orderBy, List<Integer> pageList, boolean force) {
-        String where = query.generateSql(name, tcInfo, params);
+    public String generateQuery(SingleTableWhere query, TableColumnInfo tcInfo,
+                                List<Object> params, StringBuilder printSql,
+                                String column, String groupBy, String having, String havingPrint, String orderBy,
+                                List<Integer> pageList, boolean force) {
+        if (QueryUtil.isEmpty(column)) {
+            return "";
+        }
+
+        StringBuilder wherePrint = new StringBuilder();
+        String where = query.generateSql(name, tcInfo, params, wherePrint);
         if (QueryUtil.isEmpty(where)) {
             return "";
         }
 
         String limit = "";
+        StringBuilder limitPrint = new StringBuilder();
         if (QueryUtil.isNotEmpty(pageList)) {
             Integer page = pageList.get(0);
             Integer limitSize = (pageList.size() > 1) ? pageList.get(1) : 0;
@@ -364,19 +399,17 @@ public class Table {
             if (index == 1) {
                 params.add(size);
                 limit = " LIMIT ?";
+                limitPrint.append(" LIMIT ").append(size);
             } else {
                 params.add((index - 1) * size);
                 params.add(size);
                 limit = " LIMIT ?, ?";
+                limitPrint.append(" LIMIT ").append((index - 1) * size).append(", ").append(size);
             }
         }
 
-        String logicDeleteCondition = "";
-        if (!force) {
-            if (QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue)) {
-                logicDeleteCondition = " AND " + logicColumn + " = " + logicDeleteValue;
-            }
-        }
+        String logicDeleteCondition = (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue))
+                ? (" AND " + logicColumn + " = " + logicDeleteValue) : "";
         // 1. FROM: determine
         // 2. WHERE: filters on the rows
         // 3. GROUP BY: combines those rows into groups
@@ -384,36 +417,41 @@ public class Table {
         // 5. ORDER BY: arranges the remaining rows/groups
         // 6. LIMIT: filters on the remaining rows/groups
         String table = QuerySqlUtil.toSqlField(name);
+        printSql.append("SELECT ").append(column)
+                .append(" FROM ").append(table)
+                .append(" WHERE ").append(wherePrint)
+                .append(logicDeleteCondition)
+                .append(QueryUtil.toStr(groupBy))
+                .append(QueryUtil.toStr(havingPrint))
+                .append(QueryUtil.toStr(orderBy))
+                .append(limitPrint);
         return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDeleteCondition
                 + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
     }
 
-    public String generateQuery(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, String column,
-                                String groupBy, String having, String orderBy, List<Integer> pageList, boolean force) {
-        if (QueryUtil.isEmpty(column)) {
-            return "";
-        }
-        return generateSelectQuery(query, tcInfo, params, column, groupBy,
-                having, orderBy, pageList, force);
-    }
-
 
     public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField,
-                                    SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params) {
+                                    SingleTableWhere query, TableColumnInfo tcInfo,
+                                    List<Object> params, StringBuilder printSql) {
         List<String> setList = new ArrayList<>();
+        List<String> setPrintList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             Object data = updateObj.get(column.getAlias());
             if (QueryUtil.isNotNull(data) || generateNullField) {
                 setList.add(QuerySqlUtil.toSqlField(column.getName()) + " = ?");
+                setPrintList.add(QuerySqlUtil.toSqlField(column.getName()) + " = "
+                        + QuerySqlUtil.toPrintValue(column.getFieldType(), data));
                 params.add(data);
             }
         }
-        return update(query, tcInfo, params, setList);
+        return update(query, tcInfo, params, printSql, setList, setPrintList);
     }
 
     public <T> String generateUpdate(T updateObj, boolean generateNullField,
-                                     SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params) {
+                                     SingleTableWhere query, TableColumnInfo tcInfo,
+                                     List<Object> params, StringBuilder printSql) {
         List<String> setList = new ArrayList<>();
+        List<String> setPrintList = new ArrayList<>();
         Class<?> clazz = updateObj.getClass();
         for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
@@ -424,6 +462,8 @@ public class Table {
                     Object fieldInfo = field.get(updateObj);
                     if (QueryUtil.isNotNull(fieldInfo) || generateNullField) {
                         setList.add(QuerySqlUtil.toSqlField(column.getName()) + " = ?");
+                        setPrintList.add(QuerySqlUtil.toSqlField(column.getName()) + " = "
+                                + QuerySqlUtil.toPrintValue(column.getFieldType(), fieldInfo));
                         params.add(fieldInfo);
                     }
                 } catch (IllegalAccessException e) {
@@ -431,21 +471,26 @@ public class Table {
                 }
             }
         }
-        return update(query, tcInfo, params, setList);
+        return update(query, tcInfo, params, printSql, setList, setPrintList);
     }
 
-    private String update(SingleTableWhere query, TableColumnInfo tcInfo, List<Object> params, List<String> setList) {
+    private String update(SingleTableWhere query, TableColumnInfo tcInfo,
+                          List<Object> params, StringBuilder printSql,
+                          List<String> setList, List<String> setPrintList) {
         if (setList.isEmpty()) {
             return null;
         }
 
-        String where = query.generateSql(name, tcInfo, params);
+        StringBuilder print = new StringBuilder();
+        String where = query.generateSql(name, tcInfo, params, print);
         if (QueryUtil.isEmpty(where)) {
             return null;
         }
 
         String set = String.join(", ", setList);
+        String setPrint = String.join(", ", setPrintList);
         String table = QuerySqlUtil.toSqlField(name);
+        printSql.append("UPDATE ").append(table).append(" SET ").append(setPrint).append(" WHERE ").append(print);
         return "UPDATE " + table + " SET " + set + " WHERE " + where;
     }
 }

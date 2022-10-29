@@ -149,13 +149,14 @@ public class SingleTableWhere {
         ));
     }
 
-    public String generateSql(String table, TableColumnInfo tcInfo, List<Object> params) {
+    public String generateSql(String table, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql) {
         if (QueryUtil.isEmpty(conditions)) {
             return "";
         }
 
         String operateType = (QueryUtil.isNull(operate) ? OperateType.AND : operate).name().toUpperCase();
         StringJoiner sj = new StringJoiner(" " + operateType + " ");
+        StringJoiner printSj = new StringJoiner(" " + operateType + " ");
         for (Object condition : conditions) {
             if (QueryUtil.isNotNull(condition)) {
                 if (condition instanceof List<?>) {
@@ -169,22 +170,27 @@ public class SingleTableWhere {
 
                         Class<?> columnType = tcInfo.findTableColumn(table, column).getFieldType();
                         String useColumn = QueryUtil.getQueryColumn(false, column, table, tcInfo);
-                        String sql = type.generateSql(useColumn, columnType, value, params);
+                        StringBuilder print = new StringBuilder();
+                        String sql = type.generateSql(useColumn, columnType, value, params, print);
                         if (QueryUtil.isNotEmpty(sql)) {
                             sj.add(sql);
+                            printSj.add(print);
                         }
                     }
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (QueryUtil.isNotNull(compose)) {
-                        String innerWhereSql = compose.generateSql(table, tcInfo, false, params);
+                        StringBuilder print = new StringBuilder();
+                        String innerWhereSql = compose.generateSql(table, tcInfo, false, params, print);
                         if (QueryUtil.isNotEmpty(innerWhereSql)) {
                             sj.add("( " + innerWhereSql + " )");
+                            printSj.add("( " + print + " )");
                         }
                     }
                 }
             }
         }
+        printSql.append(printSj);
         return sj.toString().trim();
     }
 }

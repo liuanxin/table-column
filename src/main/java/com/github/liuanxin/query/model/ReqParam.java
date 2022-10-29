@@ -120,12 +120,19 @@ public class ReqParam {
         return paramTableSet;
     }
 
-    public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params) {
+    public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias,
+                                   List<Object> params, StringBuilder printSql) {
         if (query == null) {
             return "";
         } else {
-            String where = query.generateSql(mainTable, tcInfo, needAlias, params);
-            return where.isEmpty() ? "" : (" WHERE " + where);
+            StringBuilder print = new StringBuilder();
+            String where = query.generateSql(mainTable, tcInfo, needAlias, params, print);
+            if (where.isEmpty()) {
+                return "";
+            } else {
+                printSql.append(" WHERE ").append(print);
+                return " WHERE " + where;
+            }
         }
     }
 
@@ -167,24 +174,27 @@ public class ReqParam {
         Integer limitParam = page.size() > 1 ? page.get(1) : 0;
         return QueryConst.LIMIT_SET.contains(limitParam) ? limitParam : QueryConst.DEFAULT_LIMIT;
     }
-    public String generatePageSql(List<Object> params) {
+    public String generatePageSql(List<Object> params, StringBuilder printSql) {
         if (needQueryPage()) {
             int index = page.get(0);
             int limit = calcLimit();
 
             if (index == 1) {
                 params.add(limit);
+                printSql.append(" LIMIT ").append(limit);
                 return " LIMIT ?";
             } else {
                 params.add((index - 1) * limit);
                 params.add(limit);
+                printSql.append(" LIMIT ").append((index - 1) * limit).append(", ").append(limit);
                 return " LIMIT ?, ?";
             }
         }
         return "";
     }
-    public String generateArrToObjSql(List<Object> params) {
+    public String generateArrToObjSql(List<Object> params, StringBuilder printSql) {
         params.add(1);
+        printSql.append(" LIMIT 1");
         return " LIMIT ?";
     }
 

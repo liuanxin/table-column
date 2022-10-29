@@ -196,13 +196,14 @@ public class ReqParamOperate {
         return queryTableSet;
     }
 
-    public String generateSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params) {
+    public String generateSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params, StringBuilder printSql) {
         if (QueryUtil.isEmpty(conditions)) {
             return "";
         }
 
         String operateType = (QueryUtil.isNull(operate) ? OperateType.AND : operate).name().toUpperCase();
         StringJoiner sj = new StringJoiner(" " + operateType + " ");
+        StringJoiner printSj = new StringJoiner(" " + operateType + " ");
         for (Object condition : conditions) {
             if (condition != null) {
                 if (condition instanceof List<?>) {
@@ -219,22 +220,31 @@ public class ReqParamOperate {
                         String columnName = QueryUtil.getColumnName(column);
                         Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
                         String useColumn = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
-                        String sql = type.generateSql(useColumn, columnType, value, params);
+                        StringBuilder print = new StringBuilder();
+                        String sql = type.generateSql(useColumn, columnType, value, params, print);
                         if (!sql.isEmpty()) {
                             sj.add(sql);
+                            printSj.add(print);
                         }
                     }
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (compose != null) {
-                        String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params);
+                        StringBuilder print = new StringBuilder();
+                        String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params, print);
                         if (!innerWhereSql.isEmpty()) {
                             sj.add("( " + innerWhereSql + " )");
+                            printSj.add("(" + print + ")");
                         }
                     }
                 }
             }
         }
-        return (sj.length() == 0) ? "" : sj.toString().trim();
+        if (sj.length() == 0) {
+            return "";
+        } else {
+            printSql.append(printSj);
+            return sj.toString().trim();
+        }
     }
 }
