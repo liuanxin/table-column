@@ -90,7 +90,7 @@ public class QuerySqlUtil {
             printSql.append(functionSql);
         }
 
-        sbd.append(fromAndWhere);
+        sbd.append(" ").append(fromAndWhere);
         printSql.append(fromAndWherePrint);
 
         String group = result.generateGroupSql(mainTable, needAlias, tcInfo);
@@ -125,8 +125,8 @@ public class QuerySqlUtil {
         String orderSql = param.generateOrderSql(mainTable, !allTableSet.isEmpty(), tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
-        printSql.append("SELECT ").append(selectField).append(fromAndWhere).append(orderSql).append(pagePrint);
-        return "SELECT " + selectField + fromAndWhere + orderSql + pageSql;
+        printSql.append("SELECT ").append(selectField).append(" ").append(fromAndWhere).append(orderSql).append(pagePrint);
+        return "SELECT " + selectField + " " + fromAndWhere + orderSql + pageSql;
     }
 
     public static String toIdPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint, String mainTable,
