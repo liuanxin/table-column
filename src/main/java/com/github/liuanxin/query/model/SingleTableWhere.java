@@ -150,6 +150,7 @@ public class SingleTableWhere {
     }
 
     public String generateSql(String table, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql) {
+        // noinspection DuplicatedCode
         if (QueryUtil.isEmpty(conditions)) {
             return "";
         }
