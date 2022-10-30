@@ -113,14 +113,14 @@ public class ReqParam {
 
         if (needQueryPage()) {
             Integer index = (page.size() > 0) ? page.get(0) : null;
-            if (QueryUtil.isNull(index) || index < 0) {
-                throw new RuntimeException("param page-index error");
+            if (QueryUtil.isNull(index) || index <= 0) {
+                throw new RuntimeException("param page-index error, required > 0");
             }
 
             if (page.size() > 1) {
                 Integer limit = QueryUtil.toInteger(page.get(1));
                 if (QueryUtil.isNull(limit) || !QueryConst.LIMIT_SET.contains(limit)) {
-                    throw new RuntimeException("param page-limit error, just support: " + QueryConst.LIMIT_SET);
+                    throw new RuntimeException("param page-limit error, just in " + QueryConst.LIMIT_SET);
                 }
             }
         }
