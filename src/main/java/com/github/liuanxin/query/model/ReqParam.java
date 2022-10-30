@@ -163,7 +163,7 @@ public class ReqParam {
     }
 
     public boolean needQueryPage() {
-        return QueryUtil.isNotEmpty(page);
+        return QueryUtil.isNotNull(page);
     }
     public boolean needQueryCount() {
         return notCount == null || !notCount;
