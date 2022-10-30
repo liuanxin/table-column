@@ -25,7 +25,7 @@ public class ReqParam {
     private ReqParamOperate query;
     /** 排序信息 */
     private Map<String, String> sort;
-    /** 分页信息 [ 当前页, 每页行数 ], 每页行数在「10, 20, 50, 100, 200, 500, 1000」中, 省略则默认是 10 */
+    /** 分页信息 ( 当前页, 每页行数 ), 每页行数在「10, 20, 50, 100, 200, 500, 1000」中, 省略则默认是 10 */
     private List<Integer> page;
     /** 当上面的分页信息有值且当前值是 true 时表示不发起 SELECT COUNT(*) 查询 */
     private Boolean notCount;
@@ -112,9 +112,19 @@ public class ReqParam {
         }
 
         if (needQueryPage()) {
-            Integer indexParam = page.get(0);
-            if (indexParam == null || indexParam <= 0) {
-                throw new RuntimeException("param page error");
+            Integer index = page.get(0);
+            if (QueryUtil.isNull(index) || index < 0) {
+                throw new RuntimeException("param page-index error");
+            }
+
+            if (page.size() > 1) {
+                Integer limit = QueryUtil.toInteger(page.get(1));
+                if (QueryUtil.isNull(limit)) {
+                    throw new RuntimeException("param page-limit error");
+                }
+                if (!QueryConst.LIMIT_SET.contains(limit)) {
+                    throw new RuntimeException("param page-limit just support: " + QueryConst.LIMIT_SET);
+                }
             }
         }
         return paramTableSet;
@@ -162,7 +172,7 @@ public class ReqParam {
         if (count <= 0) {
             return false;
         }
-        int index = page.get(0);
+        int index = calcIndex();
         if (index == 1) {
             return true;
         }
@@ -170,13 +180,16 @@ public class ReqParam {
         // 比如总条数有 100 条, index 是 11, limit 是 10, 这时候是没必要发起 limit 查询的, 只有 index 在 1 ~ 10 才需要
         return ((long) index * limit) <= count;
     }
+    private int calcIndex() {
+        Integer index = page.get(0);
+        return (index == null || index == 0) ? 1 : index;
+    }
     private int calcLimit() {
-        Integer limitParam = page.size() > 1 ? page.get(1) : 0;
-        return QueryConst.LIMIT_SET.contains(limitParam) ? limitParam : QueryConst.DEFAULT_LIMIT;
+        return (page.size() == 1) ? QueryConst.DEFAULT_LIMIT : page.get(1);
     }
     public String generatePageSql(List<Object> params, StringBuilder printSql) {
         if (needQueryPage()) {
-            int index = page.get(0);
+            int index = calcIndex();
             int limit = calcLimit();
 
             if (index == 1) {
@@ -199,6 +212,6 @@ public class ReqParam {
     }
 
     public boolean hasDeepPage(int maxSize) {
-        return needQueryPage() && (((page.get(0) - 1) * calcLimit()) > maxSize);
+        return needQueryPage() && (((calcIndex() - 1) * calcLimit()) > maxSize);
     }
 }

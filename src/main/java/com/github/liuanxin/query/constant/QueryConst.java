@@ -69,7 +69,7 @@ public final class QueryConst {
     public static final List<Integer> LIMIT_ONE = Arrays.asList(1, 1);
 
     public static final Integer DEFAULT_LIMIT = 10;
-    public static final Set<Integer> LIMIT_SET = new HashSet<>(Arrays.asList(
+    public static final Set<Integer> LIMIT_SET = new LinkedHashSet<>(Arrays.asList(
             1, 2, 5, DEFAULT_LIMIT, 20, 50, 100, 200, 500, 1000)
     );
 
