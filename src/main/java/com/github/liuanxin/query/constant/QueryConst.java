@@ -70,7 +70,7 @@ public final class QueryConst {
 
     public static final Integer DEFAULT_LIMIT = 10;
     public static final Set<Integer> LIMIT_SET = new HashSet<>(Arrays.asList(
-            DEFAULT_LIMIT, 20, 50, 100, 200, 500, 1000)
+            1, 2, 5, DEFAULT_LIMIT, 20, 50, 100, 200, 500, 1000)
     );
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
