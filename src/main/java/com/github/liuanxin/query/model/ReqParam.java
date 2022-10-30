@@ -113,7 +113,7 @@ public class ReqParam {
 
         if (needQueryPage()) {
             Integer index = (page.size() > 0) ? page.get(0) : null;
-            if (QueryUtil.isNotNull(index) && index < 0) {
+            if (QueryUtil.isNull(index) || index < 0) {
                 throw new RuntimeException("param page-index error");
             }
 
@@ -178,7 +178,7 @@ public class ReqParam {
         return ((long) index * limit) <= count;
     }
     private int calcIndex() {
-        return (page.isEmpty() || QueryUtil.isNull(page.get(0))) ? QueryConst.DEFAULT_INDEX : page.get(0);
+        return (page.size() == 0) ? QueryConst.DEFAULT_INDEX : page.get(0);
     }
     private int calcLimit() {
         return (page.size() == 1) ? QueryConst.DEFAULT_LIMIT : page.get(1);
