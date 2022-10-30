@@ -178,7 +178,7 @@ public class TableColumnTemplate implements InitializingBean {
                 }
             }
             if (QueryUtil.isNotEmpty(columnList)) {
-                throw new RuntimeException("insert: table(" + table + ") columns" + columnList + " can't be null");
+                throw new RuntimeException("insert: table(" + table + ") columns" + QueryUtil.toStr(columnList) + " can't be null");
             }
         }
 
@@ -233,7 +233,7 @@ public class TableColumnTemplate implements InitializingBean {
                 }
             }
             if (QueryUtil.isNotEmpty(columnMap)) {
-                throw new RuntimeException("batch insert-map: table(" + table + ") " + columnMap + " can't be null");
+                throw new RuntimeException("batch insert-map: table(" + table + ") " + QueryUtil.toStr(columnMap) + " can't be null");
             }
         }
 
@@ -288,10 +288,10 @@ public class TableColumnTemplate implements InitializingBean {
                 }
             }
             if (QueryUtil.isNotEmpty(nullColumnList)) {
-                throw new RuntimeException("insert: table(" + clazz + ") field" + nullColumnList + " can't be null");
+                throw new RuntimeException("insert: table(" + clazz + ") field" + QueryUtil.toStr(nullColumnList) + " can't be null");
             }
             if (QueryUtil.isNotEmpty(errorList)) {
-                throw new RuntimeException("insert: table(" + clazz + ") get field" + errorList + " data error");
+                throw new RuntimeException("insert: table(" + clazz + ") get field" + QueryUtil.toStr(errorList) + " data error");
             }
         }
 
@@ -353,10 +353,10 @@ public class TableColumnTemplate implements InitializingBean {
                 }
             }
             if (QueryUtil.isNotEmpty(nullColumnMap)) {
-                throw new RuntimeException("batch insert: table(" + table + ") " + nullColumnMap + " can't be null");
+                throw new RuntimeException("batch insert: table(" + table + ") " + QueryUtil.toStr(nullColumnMap) + " can't be null");
             }
             if (QueryUtil.isNotEmpty(errorColumnMap)) {
-                throw new RuntimeException("batch insert: table(" + table + ") get field " + errorColumnMap + " data error");
+                throw new RuntimeException("batch insert: table(" + table + ") get field " + QueryUtil.toStr(errorColumnMap) + " data error");
             }
         }
 

@@ -167,12 +167,35 @@ public class QueryUtil {
         return obj == null ? "" : obj.toString();
     }
 
+    public static String toStr(Collection<?> list) {
+        if (isEmpty(list)) {
+            return "";
+        }
+        StringJoiner sj = new StringJoiner(", ", "[", "]");
+        for (Object obj : list) {
+            sj.add(toStr(obj));
+        }
+        return sj.toString();
+    }
+    public static String toStr(Map<?, ?> map) {
+        if (isEmpty(map)) {
+            return "";
+        }
+        StringJoiner sj = new StringJoiner(", ", "{", "}");
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            Object v = entry.getValue();
+            String value = Collection.class.isAssignableFrom(v.getClass()) ? toStr((Collection<?>) v) : toStr(v);
+            sj.add(toStr(entry.getKey()) + " : " + value);
+        }
+        return sj.toString();
+    }
+
     public static boolean toBool(Object obj) {
-        return (QueryUtil.isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase()));
+        return isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase());
     }
 
     public static Boolean toBoolean(Object obj) {
-        return (QueryUtil.isNotNull(obj) && QueryConst.BOOLEAN_SET.contains(obj.toString().toLowerCase())) ? true : null;
+        return (isNotNull(obj) && QueryConst.BOOLEAN_SET.contains(obj.toString().toLowerCase())) ? true : null;
     }
 
     public static int toInt(Object obj) {

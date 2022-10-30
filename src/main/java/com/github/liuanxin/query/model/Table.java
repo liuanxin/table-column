@@ -210,7 +210,7 @@ public class Table {
             }
         }
         if (QueryUtil.isNotEmpty(charLengthMap)) {
-            throw new RuntimeException(String.format("table(%s) data length error(%s)", alias, charLengthMap));
+            throw new RuntimeException(String.format("table(%s) data length error -> %s", alias, QueryUtil.toStr(charLengthMap)));
         }
         if (sj.length() == 0) {
             return "";
@@ -267,10 +267,10 @@ public class Table {
                 }
             }
             if (QueryUtil.isNotEmpty(dataLengthMap)) {
-                throw new RuntimeException(String.format("data(%s) length error(%s)", alias, dataLengthMap));
+                throw new RuntimeException(String.format("table(%s) data length error -> %s", alias, QueryUtil.toStr(dataLengthMap)));
             }
             if (!errorList.isEmpty()) {
-                throw new RuntimeException("field number error. 1 : " + ps + " but " + errorList);
+                throw new RuntimeException("field number error. 1 : " + ps + " but " + QueryUtil.toStr(errorList));
             }
         }
         if (sj.length() == 0) {
@@ -312,10 +312,10 @@ public class Table {
             }
         }
         if (QueryUtil.isNotEmpty(errorList)) {
-            throw new RuntimeException("get field" + errorList + " data error");
+            throw new RuntimeException(String.format("table(%s) get field data error -> %s", alias, QueryUtil.toStr(errorList)));
         }
         if (QueryUtil.isNotEmpty(charLengthMap)) {
-            throw new RuntimeException(String.format("table(%s) char length error(%s)", alias, charLengthMap));
+            throw new RuntimeException(String.format("table(%s) data length error -> %s", alias, QueryUtil.toStr(charLengthMap)));
         }
         if (sj.length() == 0) {
             return "";
@@ -374,13 +374,13 @@ public class Table {
                 }
             }
             if (QueryUtil.isNotEmpty(errorMap)) {
-                throw new RuntimeException("get field" + errorMap + " data error");
+                throw new RuntimeException(String.format("table(%s) get field data error -> %s", alias, QueryUtil.toStr(errorMap)));
             }
             if (QueryUtil.isNotEmpty(dataLengthMap)) {
-                throw new RuntimeException("data length" + dataLengthMap + " error");
+                throw new RuntimeException(String.format("table(%s) data length error -> %s", alias, QueryUtil.toStr(dataLengthMap)));
             }
             if (!countErrorList.isEmpty()) {
-                throw new RuntimeException("field number error. 1 : " + ps + " but " + countErrorList);
+                throw new RuntimeException("field number error. 1 : " + ps + " but " + QueryUtil.toStr(countErrorList));
             }
         }
         if (sj.length() == 0) {

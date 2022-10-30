@@ -290,7 +290,7 @@ public class QueryInfoUtil {
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
-                boolean notNull = QueryUtil.toBool(QueryUtil.toStr(columnInfo.get("ine")));
+                boolean notNull = !QueryUtil.toBool(QueryUtil.toStr(columnInfo.get("ine")));
                 boolean primaryIncrement = primary && "auto_increment".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ex")));
                 boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
 
