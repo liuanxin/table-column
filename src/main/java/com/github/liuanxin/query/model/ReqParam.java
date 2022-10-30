@@ -178,12 +178,7 @@ public class ReqParam {
         return ((long) index * limit) <= count;
     }
     private int calcIndex() {
-        if (page.isEmpty()) {
-            return QueryConst.DEFAULT_INDEX;
-        }
-
-        Integer index = page.get(0);
-        return QueryUtil.isNull(index) ? QueryConst.DEFAULT_INDEX : index;
+        return (page.isEmpty() || QueryUtil.isNull(page.get(0))) ? QueryConst.DEFAULT_INDEX : page.get(0);
     }
     private int calcLimit() {
         return (page.size() == 1) ? QueryConst.DEFAULT_LIMIT : page.get(1);
