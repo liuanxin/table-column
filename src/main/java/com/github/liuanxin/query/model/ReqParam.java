@@ -113,7 +113,7 @@ public class ReqParam {
 
         if (needQueryPage()) {
             Integer index = (page.size() > 0) ? page.get(0) : null;
-            if (QueryUtil.isNull(index) || index < 0) {
+            if (QueryUtil.isNotNull(index) && index < 0) {
                 throw new RuntimeException("param page-index error");
             }
 
