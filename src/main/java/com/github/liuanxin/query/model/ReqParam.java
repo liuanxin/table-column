@@ -15,7 +15,7 @@ import java.util.*;
  *   "query": ...
  *   "sort": { "createTime" : "desc", "yy.id" : "asc" },
  *   "page": [ 1, 20 ],
- *   "notCount": true  -- 当 page 有值时, true 表示不发起 SELECT COUNT(*) 查询, 不设置则默认是 false
+ *   "notCount": true  -- 当 page 不为空时, true 表示不发起 SELECT COUNT(*) 查询, 不设置则默认是 false
  * }
  * </pre>
  */
@@ -112,8 +112,8 @@ public class ReqParam {
         }
 
         if (needQueryPage()) {
-            Integer index = page.get(0);
-            if (QueryUtil.isNull(index) || index < 0) {
+            Integer index = (page.size() > 0) ? page.get(0) : null;
+            if (QueryUtil.isNotNull(index) && index < 0) {
                 throw new RuntimeException("param page-index error");
             }
 
@@ -181,7 +181,7 @@ public class ReqParam {
         return ((long) index * limit) <= count;
     }
     private int calcIndex() {
-        Integer index = page.get(0);
+        Integer index = (page.size() > 0) ? page.get(0) : null;
         return (index == null || index == 0) ? 1 : index;
     }
     private int calcLimit() {
