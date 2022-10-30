@@ -18,11 +18,11 @@ import java.util.*;
  * {
  *   -- "operate": "and",    -- 并且(and) 和 或者(or) 两种, 不设置则默认是 and
  *   "conditions": [
- *     [ "name", "sta", "abc" ],
+ *     [ "name", "start", "abc" ],
  *     [ "gender", -- "eq", --  1 ],  -- eq 可以省略
  *     [ "age", "bet", [ 18, 40 ] ],
  *     [ "province", "in", [ "x", "y", "z" ] ],
- *     [ "city", "inc", "xx" ],
+ *     [ "city", "fuzzy", "xx" ],
  *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
@@ -34,7 +34,7 @@ import java.util.*;
  * and time >= 'xxxx-xx-xx xx:xx:xx'
  * {
  *   "conditions": [
- *     [ "name", "sta", "abc" ],
+ *     [ "name", "start", "abc" ],
  *     {
  *       "operate": "or",
  *       "conditions": [
@@ -46,7 +46,7 @@ import java.util.*;
  *       "operate": "or",
  *       "conditions": [
  *         [ "province", "in", [ "x", "y", "z" ] ],
- *         [ "city", "inc", "xx" ]
+ *         [ "city", "fuzzy", "xx" ]
  *       ]
  *     },
  *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
@@ -67,7 +67,7 @@ import java.util.*;
  *     [ "gender", 1 ],
  *     [ "age", "bet", [ 18, 40 ] ],
  *     [ "province", "in", [ "x", "y", "z" ] ],
- *     [ "city", "inc", "xx" ],
+ *     [ "city", "fuzzy", "xx" ],
  *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
@@ -80,7 +80,7 @@ import java.util.*;
  * {
  *   "operate": "or",
  *   "conditions": [
- *     [ "name", "sta", "abc" ],
+ *     [ "name", "start", "abc" ],
  *     {
  *       "conditions": [
  *         [ "gender", 1 ],
@@ -90,7 +90,7 @@ import java.util.*;
  *     {
  *       "conditions": [
  *         [ "province", "in", [ "x", "y", "z" ] ],
- *         [ "city", "inc", "xx" ]
+ *         [ "city", "fuzzy", "xx" ]
  *       ]
  *     },
  *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
