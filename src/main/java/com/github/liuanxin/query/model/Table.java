@@ -7,6 +7,7 @@ import com.github.liuanxin.query.util.QueryUtil;
 import java.lang.reflect.Field;
 import java.util.*;
 
+@SuppressWarnings("DuplicatedCode")
 public class Table {
 
     /** table name */
@@ -190,15 +191,26 @@ public class Table {
     private String firstInsertMap(Map<String, Object> data, boolean generateNullField, List<String> placeholderList,
                                   List<Object> params, StringBuilder printSql) {
         StringJoiner sj = new StringJoiner(", ");
+        Map<String, String> charLengthMap = new LinkedHashMap<>();
         List<String> printList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             Object obj = data.get(column.getAlias());
             if (QueryUtil.isNotNull(obj) || generateNullField) {
+                if (column.getFieldType() == String.class) {
+                    int dataLen = QueryUtil.toString(obj).length();
+                    int charLen = QueryUtil.toInt(column.getStrLen());
+                    if (charLen > 0 && dataLen > charLen) {
+                        charLengthMap.put(column.getAlias(), String.format("max(%s) current(%s)", charLen, dataLen));
+                    }
+                }
                 sj.add(QuerySqlUtil.toSqlField(column.getName()));
                 placeholderList.add("?");
                 printList.add(QuerySqlUtil.toPrintValue(column.getFieldType(), obj));
                 params.add(obj);
             }
+        }
+        if (QueryUtil.isNotEmpty(charLengthMap)) {
+            throw new RuntimeException(String.format("table(%s) data length error(%s)", alias, charLengthMap));
         }
         if (sj.length() == 0) {
             return "";
@@ -221,15 +233,25 @@ public class Table {
         StringJoiner sj = new StringJoiner(", ");
         StringJoiner print = new StringJoiner(", ");
         if (list.size() > 1) {
+            Map<Integer, Map<String, String>> dataLengthMap = new LinkedHashMap<>();
             List<String> errorList = new ArrayList<>();
             int ps = placeholderList.size();
             for (int i = 1; i < list.size(); i++) {
+                int index = i + 1;
                 Map<String, Object> data = list.get(i);
                 List<String> values = new ArrayList<>();
                 List<String> printList = new ArrayList<>();
                 for (TableColumn column : columnMap.values()) {
                     Object obj = data.get(column.getAlias());
                     if (QueryUtil.isNotNull(obj) || generateNullField) {
+                        if (column.getFieldType() == String.class) {
+                            int dataLen = QueryUtil.toString(obj).length();
+                            int charLen = QueryUtil.toInt(column.getStrLen());
+                            if (charLen > 0 && dataLen > charLen) {
+                                dataLengthMap.computeIfAbsent(index, (k) -> new LinkedHashMap<>())
+                                        .put(column.getAlias(), String.format("max(%s), current(%s)", charLen, dataLen));
+                            }
+                        }
                         values.add("?");
                         printList.add(QuerySqlUtil.toPrintValue(column.getFieldType(), obj));
                         params.add(obj);
@@ -237,12 +259,15 @@ public class Table {
                 }
                 int vs = values.size();
                 if (vs != ps) {
-                    errorList.add((i + 1) + " : " + vs);
+                    errorList.add(index + " : " + vs);
                 }
                 if (!values.isEmpty()) {
                     sj.add("(" + String.join(", ", values) + ")");
                     print.add("(" + String.join(", ", printList) + ")");
                 }
+            }
+            if (QueryUtil.isNotEmpty(dataLengthMap)) {
+                throw new RuntimeException(String.format("data(%s) length error(%s)", alias, dataLengthMap));
             }
             if (!errorList.isEmpty()) {
                 throw new RuntimeException("field number error. 1 : " + ps + " but " + errorList);
@@ -261,15 +286,23 @@ public class Table {
     }
     private <T> String firstInsert(T obj, Class<?> clazz, boolean generateNullField,
                                    List<String> placeholderList, List<Object> params, StringBuilder printSql) {
-        List<String> fieldList = new ArrayList<>();
+        StringJoiner sj = new StringJoiner(", ");
         List<String> printList = new ArrayList<>();
         List<String> errorList = new ArrayList<>();
+        Map<String, String> charLengthMap = new LinkedHashMap<>();
         for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
             try {
                 Object fieldData = QueryUtil.getFieldData(clazz, fieldName, obj);
                 if (QueryUtil.isNotNull(fieldData) || generateNullField) {
-                    fieldList.add(QuerySqlUtil.toSqlField(column.getName()));
+                    if (column.getFieldType() == String.class) {
+                        int dataLen = QueryUtil.toString(fieldData).length();
+                        int charLen = QueryUtil.toInt(column.getStrLen());
+                        if (charLen > 0 && dataLen > charLen) {
+                            charLengthMap.put(column.getAlias(), String.format("max(%s) current(%s)", charLen, dataLen));
+                        }
+                    }
+                    sj.add(QuerySqlUtil.toSqlField(column.getName()));
                     placeholderList.add("?");
                     printList.add(QuerySqlUtil.toPrintValue(column.getFieldType(), fieldData));
                     params.add(fieldData);
@@ -281,15 +314,17 @@ public class Table {
         if (QueryUtil.isNotEmpty(errorList)) {
             throw new RuntimeException("get field" + errorList + " data error");
         }
-        if (fieldList.isEmpty()) {
+        if (QueryUtil.isNotEmpty(charLengthMap)) {
+            throw new RuntimeException(String.format("table(%s) char length error(%s)", alias, charLengthMap));
+        }
+        if (sj.length() == 0) {
             return "";
         }
         String table = QuerySqlUtil.toSqlField(name);
-        String fields = String.join(", ", fieldList);
         String values = String.join(", ", placeholderList);
         String print = String.join(", ", printList);
-        printSql.append("INSERT INTO ").append(table).append("(").append(fields).append(") VALUES (").append(print).append(")");
-        return "INSERT INTO " + table + "(" + fields + ") VALUES (" + values + ")";
+        printSql.append("INSERT INTO ").append(table).append("(").append(sj).append(") VALUES (").append(print).append(")");
+        return "INSERT INTO " + table + "(" + sj + ") VALUES (" + values + ")";
     }
     public <T> String generateBatchInsert(List<T> list, boolean generateNullField, List<Object> params, StringBuilder printSql) {
         T first = QueryUtil.first(list);
@@ -303,6 +338,7 @@ public class Table {
         StringJoiner sj = new StringJoiner(", ");
         if (list.size() > 1) {
             Map<Integer, List<String>> errorMap = new LinkedHashMap<>();
+            Map<Integer, Map<String, String>> dataLengthMap = new LinkedHashMap<>();
             List<String> countErrorList = new ArrayList<>();
             int ps = placeholderList.size();
             for (int i = 1; i < list.size(); i++) {
@@ -314,15 +350,20 @@ public class Table {
                     try {
                         Object fieldData = QueryUtil.getFieldData(clazz, fieldName, obj);
                         if (QueryUtil.isNotNull(fieldData) || generateNullField) {
+                            if (column.getFieldType() == String.class) {
+                                int dataLen = QueryUtil.toString(fieldData).length();
+                                int charLen = QueryUtil.toInt(column.getStrLen());
+                                if (charLen > 0 && dataLen > charLen) {
+                                    dataLengthMap.computeIfAbsent(index, (k) -> new LinkedHashMap<>())
+                                            .put(column.getAlias(), String.format("max(%s) current(%s)", charLen, dataLen));
+                                }
+                            }
                             values.add("?");
                             params.add(fieldData);
                         }
                     } catch (IllegalAccessException e) {
                         errorMap.computeIfAbsent(index, (k) -> new ArrayList<>()).add(fieldName);
                     }
-                }
-                if (QueryUtil.isNotEmpty(errorMap)) {
-                    throw new RuntimeException("get field" + errorMap + " data error");
                 }
                 int vs = values.size();
                 if (vs != ps) {
@@ -331,6 +372,12 @@ public class Table {
                 if (!values.isEmpty()) {
                     sj.add("(" + String.join(", ", values) + ")");
                 }
+            }
+            if (QueryUtil.isNotEmpty(errorMap)) {
+                throw new RuntimeException("get field" + errorMap + " data error");
+            }
+            if (QueryUtil.isNotEmpty(dataLengthMap)) {
+                throw new RuntimeException("data length" + dataLengthMap + " error");
             }
             if (!countErrorList.isEmpty()) {
                 throw new RuntimeException("field number error. 1 : " + ps + " but " + countErrorList);
@@ -453,6 +500,7 @@ public class Table {
         List<String> setList = new ArrayList<>();
         List<String> setPrintList = new ArrayList<>();
         Class<?> clazz = updateObj.getClass();
+        List<String> errorColumnList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
             String fieldName = column.getFieldName();
             Field field = QueryUtil.getField(clazz, fieldName);
@@ -467,9 +515,12 @@ public class Table {
                         params.add(fieldInfo);
                     }
                 } catch (IllegalAccessException e) {
-                    throw new RuntimeException(String.format("obj(%s) get field(%s) exception", updateObj, fieldName), e);
+                    errorColumnList.add(fieldName);
                 }
             }
+        }
+        if (QueryUtil.isNotEmpty(errorColumnList)) {
+            throw new RuntimeException(String.format("obj(%s) get field(%s) exception", updateObj, errorColumnList));
         }
         return update(query, tcInfo, params, printSql, setList, setPrintList);
     }

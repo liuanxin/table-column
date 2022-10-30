@@ -163,12 +163,30 @@ public class QueryUtil {
         return obj == null ? "" : obj.toString().trim();
     }
 
+    public static String toString(Object obj) {
+        return obj == null ? "" : obj.toString();
+    }
+
     public static boolean toBool(Object obj) {
         return (QueryUtil.isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase()));
     }
 
     public static Boolean toBoolean(Object obj) {
         return (QueryUtil.isNotNull(obj) && QueryConst.BOOLEAN_SET.contains(obj.toString().toLowerCase())) ? true : null;
+    }
+
+    public static int toInt(Object obj) {
+        if (obj == null) {
+            return 0;
+        }
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
+        }
+        try {
+            return Integer.parseInt(obj.toString().trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     public static Integer toInteger(Object obj) {

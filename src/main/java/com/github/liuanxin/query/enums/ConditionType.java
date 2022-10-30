@@ -364,8 +364,8 @@ public enum ConditionType {
                         }
                     }
                     if (count > maxListCount) {
-                        throw new RuntimeException(String.format("(%s) condition, column(%s), data Collection length(%s) has <= %s, current length(%s)",
-                                info(), column, count, maxListCount, count));
+                        throw new RuntimeException(String.format("(%s) condition, column(%s), data Collection length has be <= %s, current length(%s)",
+                                info(), column, maxListCount, count));
                     }
                 } else {
                     throw new RuntimeException(String.format("%s condition, column(%s), data required has Collection",
