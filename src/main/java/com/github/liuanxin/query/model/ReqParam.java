@@ -113,17 +113,14 @@ public class ReqParam {
 
         if (needQueryPage()) {
             Integer index = (page.size() > 0) ? page.get(0) : null;
-            if (QueryUtil.isNotNull(index) && index < 0) {
+            if (QueryUtil.isNull(index) || index < 0) {
                 throw new RuntimeException("param page-index error");
             }
 
             if (page.size() > 1) {
                 Integer limit = QueryUtil.toInteger(page.get(1));
-                if (QueryUtil.isNull(limit)) {
-                    throw new RuntimeException("param page-limit error");
-                }
-                if (!QueryConst.LIMIT_SET.contains(limit)) {
-                    throw new RuntimeException("param page-limit just support: " + QueryConst.LIMIT_SET);
+                if (QueryUtil.isNull(limit) || !QueryConst.LIMIT_SET.contains(limit)) {
+                    throw new RuntimeException("param page-limit error, just support: " + QueryConst.LIMIT_SET);
                 }
             }
         }
@@ -181,8 +178,12 @@ public class ReqParam {
         return ((long) index * limit) <= count;
     }
     private int calcIndex() {
-        Integer index = (page.size() > 0) ? page.get(0) : null;
-        return (index == null || index == 0) ? 1 : index;
+        if (page.isEmpty()) {
+            return QueryConst.DEFAULT_INDEX;
+        }
+
+        Integer index = page.get(0);
+        return QueryUtil.isNull(index) ? QueryConst.DEFAULT_INDEX : index;
     }
     private int calcLimit() {
         return (page.size() == 1) ? QueryConst.DEFAULT_LIMIT : page.get(1);
