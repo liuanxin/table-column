@@ -282,7 +282,7 @@ public class Table {
             throw new RuntimeException("get field" + errorList + " data error");
         }
         if (fieldList.isEmpty()) {
-            return null;
+            return "";
         }
         String table = QuerySqlUtil.toSqlField(name);
         String fields = String.join(", ", fieldList);
@@ -297,7 +297,7 @@ public class Table {
         List<String> placeholderList = new ArrayList<>();
         String sql = firstInsert(first, clazz, generateNullField, placeholderList, params, printSql);
         if (QueryUtil.isEmpty(sql)) {
-            return null;
+            return "";
         }
 
         StringJoiner sj = new StringJoiner(", ");
@@ -349,7 +349,7 @@ public class Table {
         StringBuilder print = new StringBuilder();
         String where = query.generateSql(name, tcInfo, params, print);
         if (QueryUtil.isEmpty(where)) {
-            return null;
+            return "";
         }
 
         String table = QuerySqlUtil.toSqlField(name);
@@ -478,13 +478,13 @@ public class Table {
                           List<Object> params, StringBuilder printSql,
                           List<String> setList, List<String> setPrintList) {
         if (setList.isEmpty()) {
-            return null;
+            return "";
         }
 
         StringBuilder print = new StringBuilder();
         String where = query.generateSql(name, tcInfo, params, print);
         if (QueryUtil.isEmpty(where)) {
-            return null;
+            return "";
         }
 
         String set = String.join(", ", setList);

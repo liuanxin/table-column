@@ -200,6 +200,12 @@ public class QueryUtil {
     }
 
     public static BigDecimal toDecimal(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof BigDecimal) {
+            return (BigDecimal) obj;
+        }
         try {
             return new BigDecimal(obj.toString().trim());
         } catch (Exception e) {
@@ -208,6 +214,12 @@ public class QueryUtil {
     }
 
     public static Date toDate(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Date) {
+            return (Date) obj;
+        }
         for (String pattern : QueryConst.DATE_PATTERN_LIST) {
             try {
                 Date date = new SimpleDateFormat(pattern).parse(obj.toString().trim());

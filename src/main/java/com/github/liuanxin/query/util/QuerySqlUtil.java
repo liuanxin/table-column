@@ -117,15 +117,15 @@ public class QuerySqlUtil {
         }
     }
 
-    public static String toPageWithoutGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String mainTable,
-                                               ReqParam param, ReqResult result, Set<String> allTableSet,
+    public static String toPageWithoutGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
+                                               String mainTable, ReqParam param, ReqResult result, Set<String> allTableSet,
                                                List<Object> params, StringBuilder printSql) {
         String selectField = result.generateAllSelectSql(mainTable, tcInfo, allTableSet);
         // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
         String orderSql = param.generateOrderSql(mainTable, !allTableSet.isEmpty(), tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
-        printSql.append("SELECT ").append(selectField).append(" ").append(fromAndWhere).append(orderSql).append(pagePrint);
+        printSql.append("SELECT ").append(selectField).append(" ").append(fromAndWherePrint).append(orderSql).append(pagePrint);
         return "SELECT " + selectField + " " + fromAndWhere + orderSql + pageSql;
     }
 

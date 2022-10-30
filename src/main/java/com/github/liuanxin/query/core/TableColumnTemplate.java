@@ -1083,7 +1083,8 @@ public class TableColumnTemplate implements InitializingBean {
             sql = QuerySqlUtil.toSelectWithIdSql(tcInfo, mainTable, allFromSql, result, idList, allTableSet, params, printSql);
         } else {
             // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
-            sql = QuerySqlUtil.toPageWithoutGroupSql(tcInfo, fromAndWhere, mainTable, param, result, allTableSet, params, printSql);
+            sql = QuerySqlUtil.toPageWithoutGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
+                    mainTable, param, result, allTableSet, params, printSql);
         }
         return assemblyResult(sql, needAlias, params, printSql, mainTable, result);
     }

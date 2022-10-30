@@ -235,7 +235,7 @@ public class ReqParamOperate {
                         String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params, print);
                         if (!innerWhereSql.isEmpty()) {
                             sj.add("( " + innerWhereSql + " )");
-                            printSj.add("(" + print + ")");
+                            printSj.add("( " + print + " )");
                         }
                     }
                 }
