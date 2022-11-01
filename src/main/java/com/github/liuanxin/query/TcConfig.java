@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-public class TableColumnConfig {
+public class TcConfig {
 
     @Bean
     @ConditionalOnMissingBean
