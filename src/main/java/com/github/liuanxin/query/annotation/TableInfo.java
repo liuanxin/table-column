@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 public @interface TableInfo {
 
     /** table name */
-    String value();
+    String value() default "";
 
     /** table alias, use class name if empty */
     String alias() default "";

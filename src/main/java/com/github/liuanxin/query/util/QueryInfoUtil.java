@@ -334,8 +334,9 @@ public class QueryInfoUtil {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void generateModel(Set<String> tableSet, String targetPath, String packagePath, String tablePrefix,
-                                     List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
+    public static void generateModel(Set<String> tableSet, String targetPath, String packagePath,
+                                     String modelSuffix, String tablePrefix, List<Map<String, Object>> tableList,
+                                     List<Map<String, Object>> tableColumnList) {
         File dir = new File(targetPath.replace(".", "/"));
         deleteDirectory(dir);
 
@@ -353,7 +354,7 @@ public class QueryInfoUtil {
             sbd.setLength(0);
             importSet.clear();
             javaImportSet.clear();
-            String className = QueryUtil.tableNameToClass(tablePrefix, tableName);
+            String className = QueryUtil.tableNameToClass(tablePrefix, tableName) + QueryUtil.toStr(modelSuffix);
             String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
 
             List<String> fieldList = new ArrayList<>();

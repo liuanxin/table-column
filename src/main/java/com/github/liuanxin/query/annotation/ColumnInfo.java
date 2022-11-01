@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 public @interface ColumnInfo {
 
     /** table column name */
-    String value();
+    String value() default "";
 
     /** table column alias, use column name if empty */
     String alias() default "";
