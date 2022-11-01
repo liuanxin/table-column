@@ -1,7 +1,5 @@
 package com.github.liuanxin.query.annotation;
 
-import com.github.liuanxin.query.enums.TableRelationType;
-
 import java.lang.annotation.*;
 
 @Target(ElementType.FIELD)
@@ -38,13 +36,4 @@ public @interface ColumnInfo {
 
     /** logic delete: delete value. for example: 1, id, UNIX_TIMESTAMP() */
     String logicDeleteValue() default "";
-
-    /** just set on child table, no need to mark on the main table */
-    TableRelationType relationType() default TableRelationType.NULL;
-
-    /** use if relationType has not NULL, use on child Table's column, no support multiple column by master Table */
-    String relationTable() default "";
-
-    /** use if relationType has not NULL, use on child Table's column, no support multiple column by master Table */
-    String relationColumn() default "";
 }

@@ -14,15 +14,16 @@ public class TableColumnInfo {
     private final Map<String, String> tableClassMap;
     private final Map<String, Table> tableMap;
 
-    private final Map<String, Map<String, TableColumnRelation>> childRelationMap;
-    private final Map<String, Map<String, TableColumnRelation>> masterChildTableMap;
+    private Map<String, Map<String, TableColumnRelation>> childRelationMap;
+    private Map<String, Map<String, TableColumnRelation>> masterChildTableMap;
 
-    public TableColumnInfo(Map<String, String> aliasMap, Map<String, String> tableClassMap,
-                           Map<String, Table> tableMap, List<TableColumnRelation> relationList) {
+    public TableColumnInfo(Map<String, String> aliasMap, Map<String, String> tableClassMap, Map<String, Table> tableMap) {
         this.aliasMap = aliasMap;
         this.tableClassMap = tableClassMap;
         this.tableMap = tableMap;
+    }
 
+    public void handleRelation(List<TableColumnRelation> relationList) {
         Map<String, Map<String, TableColumnRelation>> childRelationMap = new HashMap<>();
         Map<String, Map<String, TableColumnRelation>> masterChildTableMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(relationList)) {

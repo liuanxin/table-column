@@ -98,16 +98,24 @@ public class ReqParam {
         }
 
         if (QueryUtil.isNotEmpty(sort)) {
+            List<String> noTableList = new ArrayList<>();
+            List<String> noColumnList = new ArrayList<>();
             for (String column : sort.keySet()) {
                 String tableName = QueryUtil.getTableName(column, mainTable);
                 Table table = tcInfo.findTable(tableName);
                 if (table == null) {
-                    throw new RuntimeException("param sort(" + column + ") has no defined table");
+                    noTableList.add(column);
                 }
                 if (tcInfo.findTableColumn(table, QueryUtil.getColumnName(column)) == null) {
-                    throw new RuntimeException("param sort(" + column + ") has no defined column");
+                    noColumnList.add(column);
                 }
                 paramTableSet.add(table.getAlias());
+            }
+            if (QueryUtil.isNotEmpty(noTableList)) {
+                throw new RuntimeException("param sort: table " + noTableList + " has no defined");
+            }
+            if (QueryUtil.isNotEmpty(noColumnList)) {
+                throw new RuntimeException("param sort: column " + noTableList + " has no defined");
             }
         }
 

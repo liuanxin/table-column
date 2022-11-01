@@ -11,14 +11,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.*;
 
-@SuppressWarnings({"unused", "DuplicatedCode"})
-@Component
+@SuppressWarnings({"DuplicatedCode"})
 public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
@@ -59,14 +57,16 @@ public class TableColumnTemplate implements InitializingBean {
     private TableColumnInfo tcInfo;
 
     private final JdbcTemplate jdbcTemplate;
-    public TableColumnTemplate(JdbcTemplate jdbcTemplate) {
+    private final List<TableColumnRelation> relationList;
+    public TableColumnTemplate(JdbcTemplate jdbcTemplate, List<TableColumnRelation> relationList) {
         this.jdbcTemplate = jdbcTemplate;
+        this.relationList = relationList;
     }
 
     @Override
     public void afterPropertiesSet() {
         if (QueryUtil.isNotEmpty(scanPackages)) {
-            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages,
+            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages, relationList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
         } else {
             String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
@@ -74,13 +74,10 @@ public class TableColumnTemplate implements InitializingBean {
             List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
             // table_name, column_name, column_type, column_comment, has_pri, varchar_length
             List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
-            // table_name, column_name, relation_table_name, relation_column_name (relation : one or many)
-            List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
-            // table_name, column_name, has_single_unique
-            List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
-            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList, relationColumnList, indexList,
+            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
         }
+        QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
     }
 
 
@@ -95,10 +92,6 @@ public class TableColumnTemplate implements InitializingBean {
         List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
         // table_name, column_name, column_type, column_comment, has_pri, varchar_length
         List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
-        // table_name, column_name, relation_table_name, relation_column_name (relation : one or many)
-        List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
-        // table_name, column_name, has_single_unique
-        List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
         Set<String> tableSet = new LinkedHashSet<>();
         if (QueryUtil.isNotEmpty(tables)) {
             for (String te : tables.split(",")) {
@@ -108,8 +101,7 @@ public class TableColumnTemplate implements InitializingBean {
                 }
             }
         }
-        QueryInfoUtil.generateModel(tableSet, targetPath, packagePath, tablePrefix,
-                tableList, tableColumnList, relationColumnList, indexList);
+        QueryInfoUtil.generateModel(tableSet, targetPath, packagePath, tablePrefix, tableList, tableColumnList);
     }
 
 

@@ -1,9 +1,9 @@
 package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.annotation.ColumnInfo;
+import com.github.liuanxin.query.annotation.RelationInfo;
 import com.github.liuanxin.query.annotation.TableInfo;
 import com.github.liuanxin.query.constant.QueryConst;
-import com.github.liuanxin.query.enums.TableRelationType;
 import com.github.liuanxin.query.model.Table;
 import com.github.liuanxin.query.model.TableColumn;
 import com.github.liuanxin.query.model.TableColumnInfo;
@@ -34,10 +34,11 @@ public class QueryInfoUtil {
 
 
     public static TableColumnInfo infoWithScan(String tablePrefix, String classPackages,
+                                               List<TableColumnRelation> relationList,
                                                String globalLogicColumn, String globalLogicValue,
                                                String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                                String globalLogicDeleteLongValue) {
-        return infoWithClass(tablePrefix, scanPackage(classPackages),
+        return infoWithClass(tablePrefix, scanPackage(classPackages), relationList,
                 globalLogicColumn, globalLogicValue, globalLogicDeleteBooleanValue,
                 globalLogicDeleteIntValue, globalLogicDeleteLongValue);
     }
@@ -72,6 +73,7 @@ public class QueryInfoUtil {
     }
 
     private static TableColumnInfo infoWithClass(String tablePrefix, Set<Class<?>> classes,
+                                                 List<TableColumnRelation> relationList,
                                                  String globalLogicColumn, String globalLogicValue,
                                                  String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                                  String globalLogicDeleteLongValue) {
@@ -82,10 +84,7 @@ public class QueryInfoUtil {
         Map<String, String> aliasMap = new HashMap<>();
         Map<String, String> tableClassMap = new HashMap<>();
         Map<String, Table> tableMap = new LinkedHashMap<>();
-        List<TableColumnRelation> relationList = new ArrayList<>();
 
-        Map<String, ColumnInfo> columnInfoMap = new LinkedHashMap<>();
-        Map<String, Class<?>> columnClassMap = new HashMap<>();
         Set<String> tableNameSet = new HashSet<>();
         Set<String> tableAliasSet = new HashSet<>();
         Set<String> columnNameSet = new HashSet<>();
@@ -151,9 +150,10 @@ public class QueryInfoUtil {
                     notNull = columnInfo.notNull();
                     hasDefault = columnInfo.hasDefault();
 
-                    String tableAndColumn = tableName + "." + columnName;
-                    columnInfoMap.put(tableAndColumn, columnInfo);
-                    columnClassMap.put(tableAndColumn, fieldType);
+                    RelationInfo ri = field.getAnnotation(RelationInfo.class);
+                    if (QueryUtil.isNotNull(ri)) {
+                        relationList.add(new TableColumnRelation(ri.masterTable(), ri.masterColumn(), ri.type(), tableName, columnName));
+                    }
                 } else {
                     columnDesc = "";
                     columnAlias = field.getName();
@@ -200,70 +200,74 @@ public class QueryInfoUtil {
             tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias,
                     logicColumn, logicValue, logicDeleteValue, columnMap));
         }
+        return new TableColumnInfo(aliasMap, tableClassMap, tableMap);
+    }
 
-        for (Map.Entry<String, ColumnInfo> entry : columnInfoMap.entrySet()) {
-            ColumnInfo columnInfo = entry.getValue();
-            TableRelationType relationType = columnInfo.relationType();
-            if (relationType != TableRelationType.NULL) {
-                String oneTable = columnInfo.relationTable();
-                String oneColumn = columnInfo.relationColumn();
-                if (!oneTable.isEmpty() && !oneColumn.isEmpty()) {
-                    String tableAndColumn = entry.getKey();
-                    Table table = tableMap.get(aliasMap.get(QueryConst.TABLE_PREFIX + oneTable));
-                    if (QueryUtil.isNull(table)) {
-                        table = tableMap.get(oneTable);
-                    }
-                    if (QueryUtil.isNull(table)) {
-                        throw new RuntimeException(tableAndColumn + "'s relation no table(" + oneTable + ")");
-                    }
+    public static void checkAndSetRelation(List<TableColumnRelation> relationList, TableColumnInfo tcInfo) {
+        if (QueryUtil.isNotEmpty(relationList)) {
+            List<String> noTableList = new ArrayList<>();
+            List<String> noColumnList = new ArrayList<>();
+            List<String> typeErrorList = new ArrayList<>();
 
-                    Map<String, TableColumn> columnMap = table.getColumnMap();
-                    TableColumn column = columnMap.get(aliasMap.get(QueryConst.COLUMN_PREFIX + oneColumn));
-                    if (QueryUtil.isNull(column)) {
-                        column = columnMap.get(oneColumn);
-                    }
-                    if (QueryUtil.isNull(column)) {
-                        throw new RuntimeException(tableAndColumn + "'s relation no table-column("
-                                + oneTable + "." + oneColumn + ")");
-                    }
-                    Class<?> sourceClass = columnClassMap.get(tableAndColumn);
-                    Class<?> targetClass = column.getFieldType();
-                    if (sourceClass != targetClass) {
-                        throw new RuntimeException(tableAndColumn + "'s data type has " + sourceClass.getSimpleName()
-                                + ", but relation " + oneTable + "'s data type has" + targetClass.getSimpleName());
-                    }
-                    String[] arr = tableAndColumn.split("\\.");
-                    String relationTable = arr[0];
-                    String relationColumn = arr[1];
-                    relationList.add(new TableColumnRelation(table.getName(), column.getName(),
-                            relationType, relationTable, relationColumn));
+            Set<TableColumnRelation> set = new LinkedHashSet<>(relationList);
+            for (TableColumnRelation relation : set) {
+                String oneTable = relation.getOneTable();
+                Table table = tcInfo.findTable(oneTable);
+                if (QueryUtil.isNull(table)) {
+                    noTableList.add(oneTable);
+                }
+                String oneColumn = relation.getOneColumn();
+                TableColumn tableColumn = tcInfo.findTableColumn(table, oneColumn);
+                if (QueryUtil.isNull(tableColumn)) {
+                    noColumnList.add(oneColumn);
+                }
+
+                String omTable = relation.getOneOrManyTable();
+                Table oneOrManyTable = tcInfo.findTable(omTable);
+                if (QueryUtil.isNull(oneOrManyTable)) {
+                    noTableList.add(omTable);
+                }
+                String omColumn = relation.getOneOrManyColumn();
+                TableColumn oneOrManyColumn = tcInfo.findTableColumn(oneOrManyTable, omColumn);
+                if (QueryUtil.isNull(oneOrManyColumn)) {
+                    noColumnList.add(omColumn);
+                }
+
+                Class<?> oneType = tableColumn.getFieldType();
+                Class<?> omType = oneOrManyColumn.getFieldType();
+                int oneLen = QueryUtil.toInt(tableColumn.getStrLen());
+                int omLen = QueryUtil.toInt(oneOrManyColumn.getStrLen());
+                if (oneType != omType || !Objects.equals(oneLen, omLen)) {
+                    String one = oneTable + "." + oneColumn + "(" + oneType.getSimpleName() + (oneLen > 0 ? (":" + oneLen) : "") + ")";
+                    String om = omTable + "." + omColumn + "(" + omType.getSimpleName() + (omLen > 0 ? (":" + omLen) : "") + ")";
+                    typeErrorList.add(one + " : " + om);
                 }
             }
+            if (QueryUtil.isNotEmpty(noTableList)) {
+                throw new RuntimeException("check relation: table(" + String.join(", ", noTableList) + ") has no defined");
+            }
+            if (QueryUtil.isNotEmpty(noColumnList)) {
+                throw new RuntimeException("check relation: column(" + String.join(", ", noColumnList) + ") has no defined");
+            }
+            if (QueryUtil.isNotEmpty(typeErrorList)) {
+                throw new RuntimeException("check relation: column data type or length(" + String.join(", ", typeErrorList) + ") error");
+            }
+            tcInfo.handleRelation(new ArrayList<>(set));
         }
-        return new TableColumnInfo(aliasMap, tableClassMap, tableMap, relationList);
     }
 
 
     public static TableColumnInfo infoWithDb(String tablePrefix,
                                              List<Map<String, Object>> tableList,
                                              List<Map<String, Object>> tableColumnList,
-                                             List<Map<String, Object>> relationColumnList,
-                                             List<Map<String, Object>> indexList,
                                              String globalLogicColumn, String globalLogicValue,
                                              String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                              String globalLogicDeleteLongValue) {
         Map<String, String> aliasMap = new HashMap<>();
         Map<String, Table> tableMap = new LinkedHashMap<>();
-        List<TableColumnRelation> relationList = new ArrayList<>();
 
         Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
         tableColumnListToMap(tableColumnList, tableColumnMap);
-
-        Map<String, Map<String, Map<String, Object>>> relationColumnMap = new HashMap<>();
-        relationColumnListToMap(relationColumnList, relationColumnMap);
-
-        Map<String, Set<String>> columnUniqueMap = new HashMap<>();
-        columnUniqueListToMap(indexList, columnUniqueMap);
 
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
@@ -307,25 +311,7 @@ public class QueryInfoUtil {
             tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias,
                     logicColumn, logicValue, logicDeleteValue, columnMap));
         }
-
-        if (!relationColumnMap.isEmpty()) {
-            for (Map.Entry<String, Map<String, Map<String, Object>>> entry : relationColumnMap.entrySet()) {
-                String relationTable = entry.getKey();
-                Set<String> uniqueColumnSet = columnUniqueMap.get(relationTable);
-                for (Map.Entry<String, Map<String, Object>> columnEntry : entry.getValue().entrySet()) {
-                    String relationColumn = columnEntry.getKey();
-                    TableRelationType type = uniqueColumnSet.contains(relationColumn)
-                            ? TableRelationType.ONE_TO_ONE : TableRelationType.ONE_TO_MANY;
-
-                    Map<String, Object> relationInfoMap = columnEntry.getValue();
-                    String oneTable = QueryUtil.toStr(relationInfoMap.get("ftn"));
-                    String oneColumn = QueryUtil.toStr(relationInfoMap.get("fcn"));
-
-                    relationList.add(new TableColumnRelation(oneTable, oneColumn, type, relationTable, relationColumn));
-                }
-            }
-        }
-        return new TableColumnInfo(aliasMap, new HashMap<>(), tableMap, relationList);
+        return new TableColumnInfo(aliasMap, new HashMap<>(), tableMap);
     }
 
     private static void tableColumnListToMap(List<Map<String, Object>> tableColumnList,
@@ -362,39 +348,12 @@ public class QueryInfoUtil {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath, String tablePrefix,
-                                     List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList,
-                                     List<Map<String, Object>> relationColumnList, List<Map<String, Object>> indexList) {
+                                     List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
         File dir = new File(targetPath.replace(".", "/"));
         deleteDirectory(dir);
 
         Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
         tableColumnListToMap(tableColumnList, tableColumnMap);
-
-        Map<String, Map<String, Map<String, Object>>> relationColumnMap = new HashMap<>();
-        relationColumnListToMap(relationColumnList, relationColumnMap);
-
-        Map<String, Set<String>> columnUniqueMap = new HashMap<>();
-        columnUniqueListToMap(indexList, columnUniqueMap);
-
-        Map<String, TableColumnRelation> relationMap = new HashMap<>();
-        if (!relationColumnMap.isEmpty()) {
-            for (Map.Entry<String, Map<String, Map<String, Object>>> entry : relationColumnMap.entrySet()) {
-                String relationTable = entry.getKey();
-                Set<String> uniqueColumnSet = columnUniqueMap.get(relationTable);
-                for (Map.Entry<String, Map<String, Object>> columnEntry : entry.getValue().entrySet()) {
-                    String relationColumn = columnEntry.getKey();
-                    TableRelationType type = uniqueColumnSet.contains(relationColumn)
-                            ? TableRelationType.ONE_TO_ONE : TableRelationType.ONE_TO_MANY;
-
-                    Map<String, Object> relationInfoMap = columnEntry.getValue();
-                    String oneTable = QueryUtil.toStr(relationInfoMap.get("ftn"));
-                    String oneColumn = QueryUtil.toStr(relationInfoMap.get("fcn"));
-
-                    relationMap.put(relationTable + "<->" + relationColumn,
-                            new TableColumnRelation(oneTable, oneColumn, type, relationTable, relationColumn));
-                }
-            }
-        }
 
         StringBuilder sbd = new StringBuilder();
         Set<String> importSet = new TreeSet<>();
@@ -446,14 +405,6 @@ public class QueryInfoUtil {
                 }
                 if (hasDefault) {
                     columnInfoList.add("hasDefault = true");
-                }
-                TableColumnRelation relation = relationMap.get(tableName + "<->" + columnName);
-                if (QueryUtil.isNotNull(relation)) {
-                    importSet.add("import " + TableRelationType.class.getName() + ";");
-                    TableRelationType relationType = relation.getType();
-                    columnInfoList.add("relationType = " + relationType.getClass().getSimpleName() + "." + relationType.name());
-                    columnInfoList.add("relationTable = \"" + relation.getOneTable() + "\"");
-                    columnInfoList.add("relationColumn = \"" + relation.getOneColumn() + "\"");
                 }
                 if (QueryUtil.isNotEmpty(columnInfoList)) {
                     importSet.add("import " + ColumnInfo.class.getName() + ";");

@@ -2,14 +2,19 @@ package com.github.liuanxin.query.enums;
 
 public enum TableRelationType {
 
-    NULL,
+    ONE_TO_ONE("一对一"),
+    ONE_TO_MANY("一对多");
+    // 不支持多对多
 
-    ONE_TO_ONE,
-    ONE_TO_MANY,
-    // MANY_TO_MANY
-    ;
+    private final String msg;
+    TableRelationType(String msg) {
+        this.msg = msg;
+    }
+    public String getMsg() {
+        return msg;
+    }
 
     public boolean hasMany() {
-        return this != NULL && this != ONE_TO_ONE;
+        return this != ONE_TO_ONE;
     }
 }
