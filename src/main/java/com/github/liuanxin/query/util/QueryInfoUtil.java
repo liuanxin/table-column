@@ -213,24 +213,32 @@ public class QueryInfoUtil {
             for (TableColumnRelation relation : set) {
                 String oneTable = relation.getOneTable();
                 Table table = tcInfo.findTable(oneTable);
-                if (QueryUtil.isNull(table)) {
-                    noTableList.add(oneTable);
-                }
-                String oneColumn = relation.getOneColumn();
-                TableColumn tableColumn = tcInfo.findTableColumn(table, oneColumn);
-                if (QueryUtil.isNull(tableColumn)) {
-                    noColumnList.add(oneColumn);
-                }
 
                 String omTable = relation.getOneOrManyTable();
                 Table oneOrManyTable = tcInfo.findTable(omTable);
-                if (QueryUtil.isNull(oneOrManyTable)) {
-                    noTableList.add(omTable);
+                if (QueryUtil.isNull(table) || QueryUtil.isNull(oneOrManyTable)) {
+                    if (QueryUtil.isNull(table)) {
+                        noTableList.add(oneTable);
+                    }
+                    if (QueryUtil.isNull(oneOrManyTable)) {
+                        noTableList.add(omTable);
+                    }
+                    continue;
                 }
+
+                String oneColumn = relation.getOneColumn();
+                TableColumn tableColumn = tcInfo.findTableColumn(table, oneColumn);
+
                 String omColumn = relation.getOneOrManyColumn();
                 TableColumn oneOrManyColumn = tcInfo.findTableColumn(oneOrManyTable, omColumn);
-                if (QueryUtil.isNull(oneOrManyColumn)) {
-                    noColumnList.add(omColumn);
+                if (QueryUtil.isNull(tableColumn) || QueryUtil.isNull(oneOrManyColumn)) {
+                    if (QueryUtil.isNull(tableColumn)) {
+                        noColumnList.add(oneColumn);
+                    }
+                    if (QueryUtil.isNull(oneOrManyColumn)) {
+                        noColumnList.add(omColumn);
+                    }
+                    continue;
                 }
 
                 Class<?> oneType = tableColumn.getFieldType();
@@ -250,7 +258,7 @@ public class QueryInfoUtil {
                 throw new RuntimeException("check relation: column(" + String.join(", ", noColumnList) + ") has no defined");
             }
             if (QueryUtil.isNotEmpty(typeErrorList)) {
-                throw new RuntimeException("check relation: column data type or length(" + String.join(", ", typeErrorList) + ") error");
+                throw new RuntimeException("check relation: column data type or length { " + String.join(", ", typeErrorList) + " } error");
             }
             tcInfo.handleRelation(new ArrayList<>(set));
         }
