@@ -86,6 +86,9 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public void generateModel(String tables, String targetPath, String packagePath) {
+        generateModel(tables, targetPath, packagePath, "");
+    }
     public void generateModel(String tables, String targetPath, String packagePath, String modelSuffix) {
         String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
         // table_name, table_comment
