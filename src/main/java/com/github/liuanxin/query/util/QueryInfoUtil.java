@@ -427,53 +427,70 @@ public class QueryInfoUtil {
                 if (QueryUtil.isNotEmpty(columnDesc)) {
                     fieldSbd.append(space(4)).append(String.format("/** %s --> %s */\n", columnDesc, columnName));
                 }
-                importSet.add("import " + ColumnInfo.class.getName() + ";");
 
-                fieldSbd.append(space(4));
-                fieldSbd.append(String.format("@ColumnInfo(value = \"%s\"", columnName));
+                List<String> columnInfoList = new ArrayList<>();
+                if (!columnName.equals(fieldName)) {
+                    columnInfoList.add(String.format("value = \"%s\"", columnName));
+                }
                 if (QueryUtil.isNotEmpty(columnDesc)) {
-                    fieldSbd.append(String.format(", desc = \"%s\"", columnDesc));
+                    columnInfoList.add(String.format("desc = \"%s\"", columnDesc));
                 }
                 if (primary) {
-                    fieldSbd.append(", primary = true");
+                    columnInfoList.add("primary = true");
                 }
                 if (hasLen) {
-                    fieldSbd.append(", varcharLength = ").append(strLen);
+                    columnInfoList.add("varcharLength = " + strLen);
                 }
                 if (notNull) {
-                    fieldSbd.append(", notNull = true");
+                    columnInfoList.add("notNull = true");
                 }
                 if (hasDefault) {
-                    fieldSbd.append(", hasDefault = true");
+                    columnInfoList.add("hasDefault = true");
                 }
                 TableColumnRelation relation = relationMap.get(tableName + "<->" + columnName);
                 if (QueryUtil.isNotNull(relation)) {
                     importSet.add("import " + TableRelationType.class.getName() + ";");
-                    fieldSbd.append(",\n").append(space(12)).append("relationType = ");
                     TableRelationType relationType = relation.getType();
-                    fieldSbd.append(relationType.getClass().getSimpleName()).append(".").append(relationType.name());
-                    fieldSbd.append(", relationTable = \"").append(relation.getOneTable()).append("\"");
-                    fieldSbd.append(", relationColumn = \"").append(relation.getOneColumn()).append("\"");
+                    columnInfoList.add("relationType = " + relationType.getClass().getSimpleName() + "." + relationType.name());
+                    columnInfoList.add("relationTable = \"" + relation.getOneTable() + "\"");
+                    columnInfoList.add("relationColumn = \"" + relation.getOneColumn() + "\"");
                 }
-                fieldSbd.append(")\n");
-                fieldSbd.append(space(4)).append("private ");
+                if (QueryUtil.isNotEmpty(columnInfoList)) {
+                    importSet.add("import " + ColumnInfo.class.getName() + ";");
+                    fieldSbd.append(space(4)).append("@ColumnInfo(").append(String.join(", ", columnInfoList)).append(")\n");
+                }
+
                 String classType = fieldType.getName();
                 if (!classType.startsWith("java.lang")) {
                     javaImportSet.add("import " + classType + ";");
                 }
-                fieldSbd.append(fieldType.getSimpleName()).append(" ").append(fieldName).append(";\n");
+                fieldSbd.append(space(4)).append("private ").append(fieldType.getSimpleName()).append(" ").append(fieldName).append(";\n");
                 fieldList.add(fieldSbd.toString());
             }
+
+            List<String> tableInfoList = new ArrayList<>();
+            if (!tableName.equals(className)) {
+                tableInfoList.add(String.format("value = \"%s\"", tableName));
+            }
+            if (QueryUtil.isNotEmpty(tableDesc)) {
+                tableInfoList.add(String.format("desc = \"%s\"", tableDesc));
+            }
+
             importSet.add("import lombok.Data;");
-            importSet.add("import " + TableInfo.class.getName() + ";");
+            if (QueryUtil.isNotEmpty(tableInfoList)) {
+                importSet.add("import " + TableInfo.class.getName() + ";");
+            }
+
+            sbd.append("package ").append(packagePath.replace("/", ".")).append(";\n\n");
+            sbd.append(String.join("\n", importSet)).append("\n\n");
+            sbd.append(String.join("\n", javaImportSet)).append("\n\n");
             sbd.append("@Data\n");
-            sbd.append(String.format("@TableInfo(value = \"%s\", desc = \"%s\")\n", tableName, tableDesc));
+            if (QueryUtil.isNotEmpty(tableInfoList)) {
+                sbd.append("@TableInfo(").append(String.join(" ,", tableInfoList)).append(")\n");
+            }
             sbd.append("public class ").append(className).append(" {\n\n");
             sbd.append(String.join("\n", fieldList));
             sbd.append("}\n");
-            sbd.insert(0, "package " + packagePath.replace("/", ".") + ";\n\n"
-                    + String.join("\n", importSet) + "\n\n"
-                    + String.join("\n", javaImportSet) + "\n\n");
             File packageDir = new File(dir, packagePath.replace(".", "/"));
             if (!packageDir.exists()) {
                 packageDir.mkdirs();
