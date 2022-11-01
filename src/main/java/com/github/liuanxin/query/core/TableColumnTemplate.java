@@ -132,21 +132,22 @@ public class TableColumnTemplate implements InitializingBean {
             String tableAlias = table.getAlias();
             if (tableSet.isEmpty() || tableSet.contains(tableAlias.toLowerCase())) {
                 List<QueryInfo.QueryColumn> columnList = new ArrayList<>();
-                for (TableColumn sc : table.getColumnMap().values()) {
-                    String type = sc.getFieldType().getSimpleName();
-                    Integer length = sc.getStrLen();
-                    TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), sc.getName());
+                for (TableColumn tc : table.getColumnMap().values()) {
+                    String type = tc.getFieldType().getSimpleName();
+                    Integer length = tc.getStrLen();
+                    TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), tc.getName());
                     String relationTable, relationColumn;
                     if (QueryUtil.isNull(relation)) {
                         relationTable = null;
                         relationColumn = null;
                     } else {
                         Table tb = tcInfo.findTable(relation.getOneTable());
-                        TableColumn tc = tb.getColumnMap().get(relation.getOneColumn());
                         relationTable = tb.getAlias();
-                        relationColumn = tc.getAlias();
+                        relationColumn = tb.getColumnMap().get(relation.getOneColumn()).getAlias();
                     }
-                    columnList.add(new QueryInfo.QueryColumn(sc.getAlias(), sc.getDesc(), type, length, relationTable, relationColumn));
+                    boolean needValue = tc.isNotNull() && !tc.isHasDefault();
+                    columnList.add(new QueryInfo.QueryColumn(tc.getAlias(), tc.getDesc(), type,
+                            needValue, length, relationTable, relationColumn));
                 }
                 queryList.add(new QueryInfo(tableAlias, table.getDesc(), columnList));
             }
