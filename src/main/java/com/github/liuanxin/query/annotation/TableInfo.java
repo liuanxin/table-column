@@ -8,14 +8,11 @@ import java.lang.annotation.*;
 public @interface TableInfo {
 
     /** table name */
-    String value() default "";
+    String value();
 
-    /** table alias, use table name if empty */
+    /** table alias, use class name if empty */
     String alias() default "";
 
     /** table comment */
     String desc() default "";
-
-    /** true: this class is not associated with a table */
-    boolean ignore() default false;
 }

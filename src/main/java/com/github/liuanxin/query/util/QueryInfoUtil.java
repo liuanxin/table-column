@@ -1,8 +1,6 @@
 package com.github.liuanxin.query.util;
 
-import com.github.liuanxin.query.annotation.ColumnInfo;
-import com.github.liuanxin.query.annotation.RelationInfo;
-import com.github.liuanxin.query.annotation.TableInfo;
+import com.github.liuanxin.query.annotation.*;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.model.Table;
 import com.github.liuanxin.query.model.TableColumn;
@@ -90,20 +88,21 @@ public class QueryInfoUtil {
         Set<String> columnNameSet = new HashSet<>();
         Set<String> columnAliasSet = new HashSet<>();
         for (Class<?> clazz : classes) {
+            TableIgnore tableIgnore = clazz.getAnnotation(TableIgnore.class);
+            if (QueryUtil.isNotNull(tableIgnore) && tableIgnore.value()) {
+                continue;
+            }
+
             TableInfo tableInfo = clazz.getAnnotation(TableInfo.class);
             String tableName, tableDesc, tableAlias;
             if (QueryUtil.isNotNull(tableInfo)) {
-                if (tableInfo.ignore()) {
-                    continue;
-                }
-
+                tableAlias = QueryUtil.defaultIfBlank(tableInfo.alias(), clazz.getSimpleName());
                 tableName = tableInfo.value();
                 tableDesc = tableInfo.desc();
-                tableAlias = QueryUtil.defaultIfBlank(tableInfo.alias(), tableName);
             } else {
-                tableDesc = "";
                 tableAlias = clazz.getSimpleName();
                 tableName = QueryUtil.classToTableName(tablePrefix, tableAlias);
+                tableDesc = "";
             }
 
             if (tableNameSet.contains(tableName)) {
@@ -118,6 +117,11 @@ public class QueryInfoUtil {
             Map<String, TableColumn> columnMap = new LinkedHashMap<>();
             String logicColumn = "", logicValue = "", logicDeleteValue = "";
             for (Field field : QueryUtil.getFields(clazz)) {
+                ColumnIgnore columnIgnore = field.getAnnotation(ColumnIgnore.class);
+                if (QueryUtil.isNotNull(columnIgnore) && columnIgnore.value()) {
+                    continue;
+                }
+
                 ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
                 Class<?> fieldType = field.getType();
                 String columnName, columnDesc, columnAlias, fieldName = field.getName();
@@ -125,28 +129,13 @@ public class QueryInfoUtil {
                 Integer strLen;
                 boolean notNull, hasDefault;
                 if (QueryUtil.isNotNull(columnInfo)) {
-                    if (columnInfo.ignore()) {
-                        continue;
-                    }
-
                     columnName = QueryUtil.defaultIfBlank(columnInfo.value(), QueryUtil.fieldToColumnName(fieldName));
-
-                    String columnLogicValue = columnInfo.logicValue();
-                    String columnLogicDeleteValue = columnInfo.logicDeleteValue();
-                    if (QueryUtil.isNotEmpty(columnLogicValue) && QueryUtil.isNotEmpty(columnLogicDeleteValue)) {
-                        if (QueryUtil.isNotEmpty(logicColumn)) {
-                            throw new RuntimeException("table(" + tableAlias + ") can only has one column with logic delete");
-                        }
-                        logicColumn = columnName;
-                        logicValue = columnLogicValue;
-                        logicDeleteValue = columnLogicDeleteValue;
-                    }
 
                     columnDesc = columnInfo.desc();
                     // 1. alias, 2. column-name, 3. field-name
                     columnAlias = QueryUtil.defaultIfBlank(QueryUtil.defaultIfBlank(columnInfo.alias(), columnName), fieldName);
                     primary = columnInfo.primary();
-                    strLen = columnInfo.varcharLength();
+                    strLen = columnInfo.strLen();
                     notNull = columnInfo.notNull();
                     hasDefault = columnInfo.hasDefault();
 
@@ -162,6 +151,18 @@ public class QueryInfoUtil {
                     strLen = null;
                     notNull = false;
                     hasDefault = false;
+                }
+
+                LogicDelete logicDelete = field.getAnnotation(LogicDelete.class);
+                String columnLogicValue = logicDelete.value();
+                String columnLogicDeleteValue = logicDelete.deleteValue();
+                if (QueryUtil.isNotEmpty(columnLogicValue) && QueryUtil.isNotEmpty(columnLogicDeleteValue)) {
+                    if (QueryUtil.isNotEmpty(logicColumn)) {
+                        throw new RuntimeException("table(" + tableAlias + ") can only has one column with logic delete");
+                    }
+                    logicColumn = columnName;
+                    logicValue = columnLogicValue;
+                    logicDeleteValue = columnLogicDeleteValue;
                 }
 
                 if (columnNameSet.contains(columnName)) {
@@ -392,7 +393,7 @@ public class QueryInfoUtil {
 
                 StringBuilder fieldSbd = new StringBuilder();
                 if (QueryUtil.isNotEmpty(columnDesc)) {
-                    fieldSbd.append(space(4)).append(String.format("/** %s --> %s */\n", columnDesc, columnName));
+                    fieldSbd.append("    ").append(String.format("/** %s --> %s */\n", columnDesc, columnName));
                 }
 
                 List<String> columnInfoList = new ArrayList<>();
@@ -406,7 +407,7 @@ public class QueryInfoUtil {
                     columnInfoList.add("primary = true");
                 }
                 if (hasLen) {
-                    columnInfoList.add("varcharLength = " + strLen);
+                    columnInfoList.add("strLen = " + strLen);
                 }
                 if (notNull) {
                     columnInfoList.add("notNull = true");
@@ -416,14 +417,14 @@ public class QueryInfoUtil {
                 }
                 if (QueryUtil.isNotEmpty(columnInfoList)) {
                     importSet.add("import " + ColumnInfo.class.getName() + ";");
-                    fieldSbd.append(space(4)).append("@ColumnInfo(").append(String.join(", ", columnInfoList)).append(")\n");
+                    fieldSbd.append("    ").append("@ColumnInfo(").append(String.join(", ", columnInfoList)).append(")\n");
                 }
 
                 String classType = fieldType.getName();
                 if (!classType.startsWith("java.lang")) {
                     javaImportSet.add("import " + classType + ";");
                 }
-                fieldSbd.append(space(4)).append("private ").append(fieldType.getSimpleName()).append(" ").append(fieldName).append(";\n");
+                fieldSbd.append("    ").append("private ").append(fieldType.getSimpleName()).append(" ").append(fieldName).append(";\n");
                 fieldList.add(fieldSbd.toString());
             }
 
@@ -464,13 +465,6 @@ public class QueryInfoUtil {
                 throw new RuntimeException(String.format("generate file(%s) exception", file), e);
             }
         }
-    }
-    private static String space(int count) {
-        StringBuilder sbd = new StringBuilder();
-        for (int i = 0; i < count; i++) {
-            sbd.append(" ");
-        }
-        return sbd.toString();
     }
 
     private static void deleteDirectory(File f) {

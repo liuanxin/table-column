@@ -7,4 +7,9 @@ import java.lang.annotation.*;
 @Documented
 public @interface LogicDelete {
 
+    /** logic delete: default value. for example: 0 */
+    String value() default "";
+
+    /** logic delete: delete value. for example: 1, id, UNIX_TIMESTAMP() */
+    String deleteValue() default "";
 }

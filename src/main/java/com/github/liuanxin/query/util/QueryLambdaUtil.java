@@ -1,6 +1,8 @@
 package com.github.liuanxin.query.util;
 
+import com.github.liuanxin.query.annotation.ColumnIgnore;
 import com.github.liuanxin.query.annotation.ColumnInfo;
+import com.github.liuanxin.query.annotation.TableIgnore;
 import com.github.liuanxin.query.annotation.TableInfo;
 import com.github.liuanxin.query.function.FunctionSerialize;
 import com.github.liuanxin.query.function.SupplierSerialize;
@@ -101,12 +103,19 @@ public final class QueryLambdaUtil {
         return toTableName(tablePrefix, toClass(supplier));
     }
     private static String toTableName(String tablePrefix, Class<?> clazz) {
-        TableInfo tableInfo = clazz.getAnnotation(TableInfo.class);
-        if (QueryUtil.isNull(tableInfo)) {
-            return QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
-        } else {
-            return tableInfo.ignore() ? "" : tableInfo.value();
+        TableIgnore tableIgnore = clazz.getAnnotation(TableIgnore.class);
+        if (QueryUtil.isNotNull(tableIgnore) && tableIgnore.value()) {
+            return "";
         }
+
+        TableInfo ti = clazz.getAnnotation(TableInfo.class);
+        if (QueryUtil.isNotNull(ti)) {
+            String tableName = ti.value();
+            if (QueryUtil.isNotEmpty(tableName)) {
+                return tableName;
+            }
+        }
+        return QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
     }
     public static <T> String toTableName(FunctionSerialize<T, ?> function) {
         return toTableName("", toClass(function));
@@ -119,12 +128,14 @@ public final class QueryLambdaUtil {
         return toColumnName(toField(supplier));
     }
     private static String toColumnName(Field field) {
-        ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
-        if (QueryUtil.isNotNull(columnInfo)) {
-            if (columnInfo.ignore()) {
-                return "";
-            }
-            String columnName = columnInfo.value();
+        ColumnIgnore columnIgnore = field.getAnnotation(ColumnIgnore.class);
+        if (QueryUtil.isNotNull(columnIgnore) && columnIgnore.value()) {
+            return "";
+        }
+
+        ColumnInfo ci = field.getAnnotation(ColumnInfo.class);
+        if (QueryUtil.isNotNull(ci)) {
+            String columnName = ci.value();
             if (QueryUtil.isNotEmpty(columnName)) {
                 return columnName;
             }
