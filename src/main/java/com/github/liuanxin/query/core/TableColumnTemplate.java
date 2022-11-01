@@ -89,6 +89,30 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public void generateModel(String tables, String targetPath, String packagePath) {
+        String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
+        // table_name, table_comment
+        List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
+        // table_name, column_name, column_type, column_comment, has_pri, varchar_length
+        List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
+        // table_name, column_name, relation_table_name, relation_column_name (relation : one or many)
+        List<Map<String, Object>> relationColumnList = jdbcTemplate.queryForList(QueryConst.RELATION_SQL, dbName);
+        // table_name, column_name, has_single_unique
+        List<Map<String, Object>> indexList = jdbcTemplate.queryForList(QueryConst.INDEX_SQL, dbName);
+        Set<String> tableSet = new LinkedHashSet<>();
+        if (QueryUtil.isNotEmpty(tables)) {
+            for (String te : tables.split(",")) {
+                String trim = te.trim();
+                if (!trim.isEmpty()) {
+                    tableSet.add(trim.toLowerCase());
+                }
+            }
+        }
+        QueryInfoUtil.generateModel(tableSet, targetPath, packagePath, tablePrefix,
+                tableList, tableColumnList, relationColumnList, indexList);
+    }
+
+
     public List<QueryInfo> info(String tables) {
         if (online) {
             return Collections.emptyList();

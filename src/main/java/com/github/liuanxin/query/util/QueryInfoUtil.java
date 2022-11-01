@@ -15,9 +15,14 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 
+@SuppressWarnings("DuplicatedCode")
 public class QueryInfoUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(QueryInfoUtil.class);
@@ -251,30 +256,13 @@ public class QueryInfoUtil {
         List<TableColumnRelation> relationList = new ArrayList<>();
 
         Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
-        if (!tableColumnList.isEmpty()) {
-            for (Map<String, Object> tableColumn : tableColumnList) {
-                String key = QueryUtil.toStr(tableColumn.get("tn"));
-                tableColumnMap.computeIfAbsent(key, (k) -> new ArrayList<>()).add(tableColumn);
-            }
-        }
+        tableColumnListToMap(tableColumnList, tableColumnMap);
+
         Map<String, Map<String, Map<String, Object>>> relationColumnMap = new HashMap<>();
-        if (!relationColumnList.isEmpty()) {
-            for (Map<String, Object> relationColumn : relationColumnList) {
-                String tableName = QueryUtil.toStr(relationColumn.get("tn"));
-                Map<String, Map<String, Object>> columnMap = relationColumnMap.getOrDefault(tableName, new HashMap<>());
-                columnMap.put(QueryUtil.toStr(relationColumn.get("cn")), relationColumn);
-                relationColumnMap.put(tableName, columnMap);
-            }
-        }
+        relationColumnListToMap(relationColumnList, relationColumnMap);
+
         Map<String, Set<String>> columnUniqueMap = new HashMap<>();
-        if (!indexList.isEmpty()) {
-            for (Map<String, Object> index : indexList) {
-                String tableName = QueryUtil.toStr(index.get("tn"));
-                Set<String> uniqueColumnSet = columnUniqueMap.getOrDefault(tableName, new HashSet<>());
-                uniqueColumnSet.add(QueryUtil.toStr(index.get("cn")));
-                columnUniqueMap.put(tableName, uniqueColumnSet);
-            }
-        }
+        columnUniqueListToMap(indexList, columnUniqueMap);
 
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
@@ -337,5 +325,162 @@ public class QueryInfoUtil {
             }
         }
         return new TableColumnInfo(aliasMap, new HashMap<>(), tableMap, relationList);
+    }
+
+    private static void tableColumnListToMap(List<Map<String, Object>> tableColumnList,
+                                             Map<String, List<Map<String, Object>>> tableColumnMap) {
+        if (!tableColumnList.isEmpty()) {
+            for (Map<String, Object> tableColumn : tableColumnList) {
+                String key = QueryUtil.toStr(tableColumn.get("tn"));
+                tableColumnMap.computeIfAbsent(key, (k) -> new ArrayList<>()).add(tableColumn);
+            }
+        }
+    }
+    private static void relationColumnListToMap(List<Map<String, Object>> relationColumnList,
+                                                Map<String, Map<String, Map<String, Object>>> relationColumnMap) {
+        if (!relationColumnList.isEmpty()) {
+            for (Map<String, Object> relationColumn : relationColumnList) {
+                String tableName = QueryUtil.toStr(relationColumn.get("tn"));
+                Map<String, Map<String, Object>> columnMap = relationColumnMap.getOrDefault(tableName, new HashMap<>());
+                columnMap.put(QueryUtil.toStr(relationColumn.get("cn")), relationColumn);
+                relationColumnMap.put(tableName, columnMap);
+            }
+        }
+    }
+    private static void columnUniqueListToMap(List<Map<String, Object>> indexList,
+                                              Map<String, Set<String>> columnUniqueMap) {
+        if (!indexList.isEmpty()) {
+            for (Map<String, Object> index : indexList) {
+                String tableName = QueryUtil.toStr(index.get("tn"));
+                Set<String> uniqueColumnSet = columnUniqueMap.getOrDefault(tableName, new HashSet<>());
+                uniqueColumnSet.add(QueryUtil.toStr(index.get("cn")));
+                columnUniqueMap.put(tableName, uniqueColumnSet);
+            }
+        }
+    }
+
+    public static void generateModel(Set<String> tableSet, String targetPath, String packagePath, String tablePrefix,
+                                     List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList,
+                                     List<Map<String, Object>> relationColumnList, List<Map<String, Object>> indexList) {
+        Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
+        tableColumnListToMap(tableColumnList, tableColumnMap);
+
+        Map<String, Map<String, Map<String, Object>>> relationColumnMap = new HashMap<>();
+        relationColumnListToMap(relationColumnList, relationColumnMap);
+
+        Map<String, Set<String>> columnUniqueMap = new HashMap<>();
+        columnUniqueListToMap(indexList, columnUniqueMap);
+
+        Map<String, TableColumnRelation> relationMap = new HashMap<>();
+        if (!relationColumnMap.isEmpty()) {
+            for (Map.Entry<String, Map<String, Map<String, Object>>> entry : relationColumnMap.entrySet()) {
+                String relationTable = entry.getKey();
+                Set<String> uniqueColumnSet = columnUniqueMap.get(relationTable);
+                for (Map.Entry<String, Map<String, Object>> columnEntry : entry.getValue().entrySet()) {
+                    String relationColumn = columnEntry.getKey();
+                    TableRelationType type = uniqueColumnSet.contains(relationColumn)
+                            ? TableRelationType.ONE_TO_ONE : TableRelationType.ONE_TO_MANY;
+
+                    Map<String, Object> relationInfoMap = columnEntry.getValue();
+                    String oneTable = QueryUtil.toStr(relationInfoMap.get("ftn"));
+                    String oneColumn = QueryUtil.toStr(relationInfoMap.get("fcn"));
+
+                    relationMap.put(relationTable + "<->" + relationColumn,
+                            new TableColumnRelation(oneTable, oneColumn, type, relationTable, relationColumn));
+                }
+            }
+        }
+
+        StringBuilder sbd = new StringBuilder();
+        Set<String> importSet = new TreeSet<>();
+        for (Map<String, Object> tableInfo : tableList) {
+            String tableName = QueryUtil.toStr(tableInfo.get("tn"));
+            if (QueryUtil.isNotEmpty(tableSet) && !tableSet.contains(tableName.toLowerCase())) {
+                continue;
+            }
+            sbd.setLength(0);
+            importSet.clear();
+            String className = QueryUtil.tableNameToClass(tablePrefix, tableName);
+            String tableAlias = QueryUtil.defaultIfBlank(className, tableName);
+            String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
+
+            importSet.add("import lombok.Data;");
+            importSet.add("import com.github.liuanxin.query.annotation.TableInfo;");
+            sbd.append("@Data");
+            sbd.append(String.format("@TableInfo(value = \"%s\", alias = \"%s\", desc = \"%s\")\n", tableName, tableAlias, tableDesc));
+            sbd.append("public class ").append(className).append(" {\n\n");
+            for (Map<String, Object> columnInfo : tableColumnMap.get(tableName)) {
+                Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
+                String columnName = QueryUtil.toStr(columnInfo.get("cn"));
+                String fieldName = QueryUtil.columnNameToField(columnName);
+                String columnAlias = QueryUtil.defaultIfBlank(fieldName, columnName);
+                String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
+                boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
+                Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
+                boolean hasLen = (strLen != null && strLen > 0);
+                boolean notNull = QueryUtil.toBool(QueryUtil.toStr(columnInfo.get("ine")));
+                boolean primaryIncrement = primary && "auto_increment".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ex")));
+                boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
+
+                sbd.append(space(4)).append(String.format("/** %s --> %s */", columnDesc, columnName));
+                importSet.add("import com.github.liuanxin.query.annotation.ColumnInfo;");
+
+                sbd.append(space(4));
+                sbd.append(String.format("@ColumnInfo(value = \"%s\", alias = \"%s\", desc = \"%s\"", columnName, columnAlias, columnDesc));
+                if (primary || hasLen || notNull || hasDefault) {
+                    sbd.append("\n");
+
+                    if (primary) {
+                        sbd.append(", primary = true");
+                    }
+                    if (hasLen) {
+                        sbd.append(", varcharLength = ").append(strLen);
+                    }
+                    if (notNull) {
+                        sbd.append(", notNull = true");
+                    }
+                    if (hasDefault) {
+                        sbd.append(", hasDefault = true");
+                    }
+                }
+                TableColumnRelation relation = relationMap.get(tableName + "<->" + columnName);
+                if (QueryUtil.isNotNull(relation)) {
+                    importSet.add("import com.github.liuanxin.query.enums.TableRelationType;");
+                    sbd.append("\n").append(space(12)).append(", relationType = ");
+                    if (relation.getType() == TableRelationType.ONE_TO_ONE) {
+                        sbd.append("TableRelationType.ONE_TO_ONE");
+                    } else {
+                        sbd.append("TableRelationType.ONE_TO_MANY");
+                    }
+                    sbd.append(", relationTable = \"").append(relation.getOneTable()).append("\"");
+                    sbd.append(", relationColumn = \"").append(relation.getOneColumn()).append("\"");
+                }
+                sbd.append(")\n");
+                sbd.append(space(4)).append("private ");
+                String classType = fieldType.getName();
+                if (!classType.startsWith("java.lang")) {
+                    importSet.add(classType);
+                }
+                sbd.append(fieldType.getSimpleName()).append(" ").append(fieldName).append(";\n");
+            }
+            sbd.append("}");
+            sbd.insert(0, "package " + packagePath.replace("/", ".") + ";\n\n" + String.join("\n", importSet) + "\n\n");
+            String fileName = className + ".java";
+            try {
+                Files.write(new File(targetPath.replace(".", "/"), fileName).toPath(), sbd.toString().getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("generate file({}) on path({}) exception", fileName, targetPath, e);
+                }
+                return;
+            }
+        }
+    }
+    private static String space(int count) {
+        StringBuilder sbd = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            sbd.append(" ");
+        }
+        return sbd.toString();
     }
 }

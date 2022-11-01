@@ -12,11 +12,11 @@ public @interface ColumnInfo {
     /** table column name */
     String value() default "";
 
-    /** table column comment */
-    String desc() default "";
-
     /** table column alias, use column name if empty */
     String alias() default "";
+
+    /** table column comment */
+    String desc() default "";
 
     /** true: this field is not associated with a column */
     boolean ignore() default false;
