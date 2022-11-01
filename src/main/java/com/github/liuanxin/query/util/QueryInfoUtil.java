@@ -85,8 +85,6 @@ public class QueryInfoUtil {
 
         Set<String> tableNameSet = new HashSet<>();
         Set<String> tableAliasSet = new HashSet<>();
-        Set<String> columnNameSet = new HashSet<>();
-        Set<String> columnAliasSet = new HashSet<>();
         for (Class<?> clazz : classes) {
             TableIgnore tableIgnore = clazz.getAnnotation(TableIgnore.class);
             if (QueryUtil.isNotNull(tableIgnore) && tableIgnore.value()) {
@@ -114,6 +112,8 @@ public class QueryInfoUtil {
             }
             tableAliasSet.add(tableAlias);
 
+            Set<String> columnNameSet = new HashSet<>();
+            Set<String> columnAliasSet = new HashSet<>();
             Map<String, TableColumn> columnMap = new LinkedHashMap<>();
             String logicColumn = "", logicValue = "", logicDeleteValue = "";
             for (Field field : QueryUtil.getFields(clazz)) {
@@ -154,15 +154,17 @@ public class QueryInfoUtil {
                 }
 
                 LogicDelete logicDelete = field.getAnnotation(LogicDelete.class);
-                String columnLogicValue = logicDelete.value();
-                String columnLogicDeleteValue = logicDelete.deleteValue();
-                if (QueryUtil.isNotEmpty(columnLogicValue) && QueryUtil.isNotEmpty(columnLogicDeleteValue)) {
-                    if (QueryUtil.isNotEmpty(logicColumn)) {
-                        throw new RuntimeException("table(" + tableAlias + ") can only has one column with logic delete");
+                if (QueryUtil.isNotNull(logicDelete)) {
+                    String columnLogicValue = logicDelete.value();
+                    String columnLogicDeleteValue = logicDelete.deleteValue();
+                    if (QueryUtil.isNotEmpty(columnLogicValue) && QueryUtil.isNotEmpty(columnLogicDeleteValue)) {
+                        if (QueryUtil.isNotEmpty(logicColumn)) {
+                            throw new RuntimeException("table(" + tableAlias + ") can only has one column with logic delete");
+                        }
+                        logicColumn = columnName;
+                        logicValue = columnLogicValue;
+                        logicDeleteValue = columnLogicDeleteValue;
                     }
-                    logicColumn = columnName;
-                    logicValue = columnLogicValue;
-                    logicDeleteValue = columnLogicDeleteValue;
                 }
 
                 if (columnNameSet.contains(columnName)) {
@@ -333,12 +335,19 @@ public class QueryInfoUtil {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath,
-                                     String modelSuffix, String tablePrefix, List<Map<String, Object>> tableList,
-                                     List<Map<String, Object>> tableColumnList) {
-        File dir = new File(targetPath.replace(".", "/"));
-        deleteDirectory(dir);
+                                     String modelSuffix, String tablePrefix,
+                                     List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
+        File packageDir = new File(targetPath.replace(".", "/"), packagePath.replace(".", "/"));
+        if (!packageDir.exists()) {
+            boolean flag = packageDir.mkdirs();
+            if (!flag) {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("directory({}) generate fail", packageDir);
+                }
+                return;
+            }
+        }
 
         Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
         tableColumnListToMap(tableColumnList, tableColumnMap);
@@ -430,11 +439,16 @@ public class QueryInfoUtil {
             sbd.append("public class ").append(className).append(" {\n\n");
             sbd.append(String.join("\n", fieldList));
             sbd.append("}\n");
-            File packageDir = new File(dir, packagePath.replace(".", "/"));
-            if (!packageDir.exists()) {
-                packageDir.mkdirs();
-            }
+
             File file = new File(packageDir, className + ".java");
+            if (file.exists()) {
+                boolean flag = file.delete();
+                if (!flag) {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("file({}) delete fail", file);
+                    }
+                }
+            }
             try {
                 Files.write(file.toPath(), sbd.toString().getBytes(StandardCharsets.UTF_8));
                 if (LOG.isInfoEnabled()) {
@@ -442,36 +456,6 @@ public class QueryInfoUtil {
                 }
             } catch (IOException e) {
                 throw new RuntimeException(String.format("generate file(%s) exception", file), e);
-            }
-        }
-    }
-
-    private static void deleteDirectory(File f) {
-        if (f.exists()) {
-            if (f.isDirectory()) {
-                File[] files = f.listFiles();
-                if (files != null && files.length > 0) {
-                    for (File file : files) {
-                        deleteDirectory(file);
-                    }
-                }
-                boolean flag = f.delete();
-                if (flag) {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("directory({}) delete success", f);
-                    }
-                } else {
-                    throw new RuntimeException(String.format("directory(%s) delete fail", f));
-                }
-            } else {
-                boolean flag = f.delete();
-                if (flag) {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("file({}) delete success", f);
-                    }
-                } else {
-                    throw new RuntimeException(String.format("file(%s) delete fail", f));
-                }
             }
         }
     }
