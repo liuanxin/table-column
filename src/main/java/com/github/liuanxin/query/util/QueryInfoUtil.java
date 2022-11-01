@@ -423,7 +423,9 @@ public class QueryInfoUtil {
                 boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
 
                 StringBuilder fieldSbd = new StringBuilder();
-                fieldSbd.append(space(4)).append(String.format("/** %s --> %s */\n", columnDesc, columnName));
+                if (QueryUtil.isNotEmpty(columnDesc)) {
+                    fieldSbd.append(space(4)).append(String.format("/** %s --> %s */\n", columnDesc, columnName));
+                }
                 importSet.add("import " + ColumnInfo.class.getName() + ";");
 
                 fieldSbd.append(space(4));
