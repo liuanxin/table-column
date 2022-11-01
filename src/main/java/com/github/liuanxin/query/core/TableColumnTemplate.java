@@ -129,7 +129,8 @@ public class TableColumnTemplate implements InitializingBean {
         }
         List<QueryInfo> queryList = new ArrayList<>();
         for (Table table : tcInfo.allTable()) {
-            if (tableSet.isEmpty() || tableSet.contains(table.getAlias().toLowerCase())) {
+            String tableAlias = table.getAlias();
+            if (tableSet.isEmpty() || tableSet.contains(tableAlias.toLowerCase())) {
                 List<QueryInfo.QueryColumn> columnList = new ArrayList<>();
                 for (TableColumn sc : table.getColumnMap().values()) {
                     String type = sc.getFieldType().getSimpleName();
@@ -147,7 +148,7 @@ public class TableColumnTemplate implements InitializingBean {
                     }
                     columnList.add(new QueryInfo.QueryColumn(sc.getAlias(), sc.getDesc(), type, length, relationTable, relationColumn));
                 }
-                queryList.add(new QueryInfo(table.getAlias(), table.getDesc(), columnList));
+                queryList.add(new QueryInfo(tableAlias, table.getDesc(), columnList));
             }
         }
         return queryList;

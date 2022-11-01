@@ -359,9 +359,13 @@ public class QueryInfoUtil {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath, String tablePrefix,
                                      List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList,
                                      List<Map<String, Object>> relationColumnList, List<Map<String, Object>> indexList) {
+        File dir = new File(targetPath.replace(".", "/"));
+        deleteDirectory(dir);
+
         Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
         tableColumnListToMap(tableColumnList, tableColumnMap);
 
@@ -393,6 +397,7 @@ public class QueryInfoUtil {
 
         StringBuilder sbd = new StringBuilder();
         Set<String> importSet = new TreeSet<>();
+        Set<String> javaImportSet = new TreeSet<>();
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             if (QueryUtil.isNotEmpty(tableSet) && !tableSet.contains(tableName.toLowerCase())) {
@@ -400,20 +405,15 @@ public class QueryInfoUtil {
             }
             sbd.setLength(0);
             importSet.clear();
+            javaImportSet.clear();
             String className = QueryUtil.tableNameToClass(tablePrefix, tableName);
-            String tableAlias = QueryUtil.defaultIfBlank(className, tableName);
             String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
 
-            importSet.add("import lombok.Data;");
-            importSet.add("import com.github.liuanxin.query.annotation.TableInfo;");
-            sbd.append("@Data");
-            sbd.append(String.format("@TableInfo(value = \"%s\", alias = \"%s\", desc = \"%s\")\n", tableName, tableAlias, tableDesc));
-            sbd.append("public class ").append(className).append(" {\n\n");
+            List<String> fieldList = new ArrayList<>();
             for (Map<String, Object> columnInfo : tableColumnMap.get(tableName)) {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
                 String fieldName = QueryUtil.columnNameToField(columnName);
-                String columnAlias = QueryUtil.defaultIfBlank(fieldName, columnName);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
@@ -422,57 +422,64 @@ public class QueryInfoUtil {
                 boolean primaryIncrement = primary && "auto_increment".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ex")));
                 boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
 
-                sbd.append(space(4)).append(String.format("/** %s --> %s */", columnDesc, columnName));
+                StringBuilder fieldSbd = new StringBuilder();
+                fieldSbd.append(space(4)).append(String.format("/** %s --> %s */\n", columnDesc, columnName));
                 importSet.add("import com.github.liuanxin.query.annotation.ColumnInfo;");
 
-                sbd.append(space(4));
-                sbd.append(String.format("@ColumnInfo(value = \"%s\", alias = \"%s\", desc = \"%s\"", columnName, columnAlias, columnDesc));
-                if (primary || hasLen || notNull || hasDefault) {
-                    sbd.append("\n");
-
-                    if (primary) {
-                        sbd.append(", primary = true");
-                    }
-                    if (hasLen) {
-                        sbd.append(", varcharLength = ").append(strLen);
-                    }
-                    if (notNull) {
-                        sbd.append(", notNull = true");
-                    }
-                    if (hasDefault) {
-                        sbd.append(", hasDefault = true");
-                    }
+                fieldSbd.append(space(4));
+                fieldSbd.append(String.format("@ColumnInfo(value = \"%s\"", columnName));
+                if (QueryUtil.isNotEmpty(columnDesc)) {
+                    fieldSbd.append(String.format(", desc = \"%s\"", columnDesc));
+                }
+                if (primary) {
+                    fieldSbd.append(", primary = true");
+                }
+                if (hasLen) {
+                    fieldSbd.append(", varcharLength = ").append(strLen);
+                }
+                if (notNull) {
+                    fieldSbd.append(", notNull = true");
+                }
+                if (hasDefault) {
+                    fieldSbd.append(", hasDefault = true");
                 }
                 TableColumnRelation relation = relationMap.get(tableName + "<->" + columnName);
                 if (QueryUtil.isNotNull(relation)) {
                     importSet.add("import com.github.liuanxin.query.enums.TableRelationType;");
-                    sbd.append("\n").append(space(12)).append(", relationType = ");
-                    if (relation.getType() == TableRelationType.ONE_TO_ONE) {
-                        sbd.append("TableRelationType.ONE_TO_ONE");
-                    } else {
-                        sbd.append("TableRelationType.ONE_TO_MANY");
-                    }
-                    sbd.append(", relationTable = \"").append(relation.getOneTable()).append("\"");
-                    sbd.append(", relationColumn = \"").append(relation.getOneColumn()).append("\"");
+                    fieldSbd.append(",\n").append(space(12)).append("relationType = ");
+                    TableRelationType relationType = relation.getType();
+                    fieldSbd.append(relationType.getClass().getName()).append(".").append(relationType.name());
+                    fieldSbd.append(", relationTable = \"").append(relation.getOneTable()).append("\"");
+                    fieldSbd.append(", relationColumn = \"").append(relation.getOneColumn()).append("\"");
                 }
-                sbd.append(")\n");
-                sbd.append(space(4)).append("private ");
+                fieldSbd.append(")\n");
+                fieldSbd.append(space(4)).append("private ");
                 String classType = fieldType.getName();
                 if (!classType.startsWith("java.lang")) {
-                    importSet.add(classType);
+                    javaImportSet.add("import " + classType + ";");
                 }
-                sbd.append(fieldType.getSimpleName()).append(" ").append(fieldName).append(";\n");
+                fieldSbd.append(fieldType.getSimpleName()).append(" ").append(fieldName).append(";\n");
+                fieldList.add(fieldSbd.toString());
             }
-            sbd.append("}");
-            sbd.insert(0, "package " + packagePath.replace("/", ".") + ";\n\n" + String.join("\n", importSet) + "\n\n");
+            importSet.add("import lombok.Data;");
+            importSet.add("import com.github.liuanxin.query.annotation.TableInfo;");
+            sbd.append("@Data\n");
+            sbd.append(String.format("@TableInfo(value = \"%s\", desc = \"%s\")\n", tableName, tableDesc));
+            sbd.append("public class ").append(className).append(" {\n\n");
+            sbd.append(String.join("\n", fieldList));
+            sbd.append("}\n");
+            sbd.insert(0, "package " + packagePath.replace("/", ".") + ";\n\n"
+                    + String.join("\n", importSet) + "\n\n"
+                    + String.join("\n", javaImportSet) + "\n\n");
+            File packageDir = new File(dir, packagePath.replace(".", "/"));
+            if (!packageDir.exists()) {
+                packageDir.mkdirs();
+            }
             String fileName = className + ".java";
             try {
-                Files.write(new File(targetPath.replace(".", "/"), fileName).toPath(), sbd.toString().getBytes(StandardCharsets.UTF_8));
+                Files.write(new File(packageDir, fileName).toPath(), sbd.toString().getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
-                if (LOG.isErrorEnabled()) {
-                    LOG.error("generate file({}) on path({}) exception", fileName, targetPath, e);
-                }
-                return;
+                throw new RuntimeException(String.format("generate file(%s) on path(%s) exception", fileName, packageDir), e);
             }
         }
     }
@@ -482,5 +489,25 @@ public class QueryInfoUtil {
             sbd.append(" ");
         }
         return sbd.toString();
+    }
+
+    private static void deleteDirectory(File f) {
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                File[] files = f.listFiles();
+                if (files != null && files.length > 0) {
+                    for (File file : files) {
+                        deleteDirectory(file);
+                    }
+                }
+                if (!f.delete()) {
+                    System.out.printf("directory(%s) delete fail\n", f);
+                }
+            } else {
+                if (!f.delete()) {
+                    throw new RuntimeException(String.format("file(%s) delete fail", f));
+                }
+            }
+        }
     }
 }
