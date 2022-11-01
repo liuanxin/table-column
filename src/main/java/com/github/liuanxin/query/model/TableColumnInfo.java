@@ -85,16 +85,18 @@ public class TableColumnInfo {
             return null;
         }
 
-        String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + table);
+        String tn = table.trim();
+        String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + tn);
         Map<String, TableColumnRelation> relationMap = tableRelationMap.get(tableAlias);
-        Map<String, TableColumnRelation> useRelationMap = QueryUtil.isEmpty(relationMap) ? tableRelationMap.get(table) : relationMap;
+        Map<String, TableColumnRelation> useRelationMap = QueryUtil.isEmpty(relationMap) ? tableRelationMap.get(tn) : relationMap;
         if (QueryUtil.isEmpty(useRelationMap)) {
             return null;
         }
 
-        String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + childTableOrColumn);
+        String cn = childTableOrColumn.trim();
+        String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + cn);
         TableColumnRelation relation = useRelationMap.get(columnAlias);
-        return QueryUtil.isNull(relation) ? useRelationMap.get(childTableOrColumn) : relation;
+        return QueryUtil.isNull(relation) ? useRelationMap.get(cn) : relation;
     }
 
     public TableColumnRelation findRelationByChild(String childTable, String childColumn) {

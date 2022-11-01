@@ -60,7 +60,7 @@ public class TableColumnTemplate implements InitializingBean {
     private final List<TableColumnRelation> relationList;
     public TableColumnTemplate(JdbcTemplate jdbcTemplate, List<TableColumnRelation> relationList) {
         this.jdbcTemplate = jdbcTemplate;
-        this.relationList = relationList;
+        this.relationList = QueryUtil.isEmpty(relationList) ? new ArrayList<>() : new ArrayList<>(relationList);
     }
 
     @Override
