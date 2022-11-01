@@ -424,7 +424,7 @@ public class QueryInfoUtil {
 
                 StringBuilder fieldSbd = new StringBuilder();
                 fieldSbd.append(space(4)).append(String.format("/** %s --> %s */\n", columnDesc, columnName));
-                importSet.add("import com.github.liuanxin.query.annotation.ColumnInfo;");
+                importSet.add("import " + ColumnInfo.class.getName() + ";");
 
                 fieldSbd.append(space(4));
                 fieldSbd.append(String.format("@ColumnInfo(value = \"%s\"", columnName));
@@ -445,10 +445,10 @@ public class QueryInfoUtil {
                 }
                 TableColumnRelation relation = relationMap.get(tableName + "<->" + columnName);
                 if (QueryUtil.isNotNull(relation)) {
-                    importSet.add("import com.github.liuanxin.query.enums.TableRelationType;");
+                    importSet.add("import " + TableRelationType.class.getName() + ";");
                     fieldSbd.append(",\n").append(space(12)).append("relationType = ");
                     TableRelationType relationType = relation.getType();
-                    fieldSbd.append(relationType.getClass().getName()).append(".").append(relationType.name());
+                    fieldSbd.append(relationType.getClass().getSimpleName()).append(".").append(relationType.name());
                     fieldSbd.append(", relationTable = \"").append(relation.getOneTable()).append("\"");
                     fieldSbd.append(", relationColumn = \"").append(relation.getOneColumn()).append("\"");
                 }
@@ -462,7 +462,7 @@ public class QueryInfoUtil {
                 fieldList.add(fieldSbd.toString());
             }
             importSet.add("import lombok.Data;");
-            importSet.add("import com.github.liuanxin.query.annotation.TableInfo;");
+            importSet.add("import " + TableInfo.class.getName() + ";");
             sbd.append("@Data\n");
             sbd.append(String.format("@TableInfo(value = \"%s\", desc = \"%s\")\n", tableName, tableDesc));
             sbd.append("public class ").append(className).append(" {\n\n");
@@ -475,11 +475,14 @@ public class QueryInfoUtil {
             if (!packageDir.exists()) {
                 packageDir.mkdirs();
             }
-            String fileName = className + ".java";
+            File file = new File(packageDir, className + ".java");
             try {
-                Files.write(new File(packageDir, fileName).toPath(), sbd.toString().getBytes(StandardCharsets.UTF_8));
+                Files.write(file.toPath(), sbd.toString().getBytes(StandardCharsets.UTF_8));
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("file({}) write success", file);
+                }
             } catch (IOException e) {
-                throw new RuntimeException(String.format("generate file(%s) on path(%s) exception", fileName, packageDir), e);
+                throw new RuntimeException(String.format("generate file(%s) exception", file), e);
             }
         }
     }
@@ -500,11 +503,21 @@ public class QueryInfoUtil {
                         deleteDirectory(file);
                     }
                 }
-                if (!f.delete()) {
-                    System.out.printf("directory(%s) delete fail\n", f);
+                boolean flag = f.delete();
+                if (flag) {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("directory({}) delete success", f);
+                    }
+                } else {
+                    throw new RuntimeException(String.format("directory(%s) delete fail", f));
                 }
             } else {
-                if (!f.delete()) {
+                boolean flag = f.delete();
+                if (flag) {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("file({}) delete success", f);
+                    }
+                } else {
                     throw new RuntimeException(String.format("file(%s) delete fail", f));
                 }
             }
