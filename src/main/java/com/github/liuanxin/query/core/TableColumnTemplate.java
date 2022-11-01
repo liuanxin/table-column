@@ -99,7 +99,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isNotEmpty(tables)) {
             for (String te : tables.split(",")) {
                 String trim = te.trim();
-                if (!trim.isEmpty()) {
+                if (QueryUtil.isNotEmpty(trim)) {
                     tableSet.add(trim.toLowerCase());
                 }
             }
@@ -117,7 +117,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isNotEmpty(tables)) {
             for (String te : tables.split(",")) {
                 String trim = te.trim();
-                if (!trim.isEmpty()) {
+                if (QueryUtil.isNotEmpty(trim)) {
                     tableSet.add(trim.toLowerCase());
                 }
             }
@@ -125,7 +125,7 @@ public class TableColumnTemplate implements InitializingBean {
         List<QueryInfo> queryList = new ArrayList<>();
         for (Table table : tcInfo.allTable()) {
             String tableAlias = table.getAlias();
-            if (tableSet.isEmpty() || tableSet.contains(tableAlias.toLowerCase())) {
+            if (QueryUtil.isEmpty(tableSet) || tableSet.contains(tableAlias.toLowerCase())) {
                 List<QueryInfo.QueryColumn> columnList = new ArrayList<>();
                 for (TableColumn tc : table.getColumnMap().values()) {
                     String type = tc.getFieldType().getSimpleName();
@@ -983,19 +983,19 @@ public class TableColumnTemplate implements InitializingBean {
                 boolean queryHasMany = calcQueryHasMany(paramRelationList);
 
                 String firstFromSql = QuerySqlUtil.toFromSql(tcInfo, mainTable, paramRelationList);
-                String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, !queryTableSet.isEmpty(), param, params, printSql);
+                String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, QueryUtil.isNotEmpty(queryTableSet), param, params, printSql);
                 return queryPage(firstFromSql, allFromSql, whereSql, printSql.toString(),
                         mainTable, param, result, queryHasMany, queryTableSet, allTableSet, params);
             } else {
                 StringBuilder wherePrint = new StringBuilder();
-                String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, !allTableSet.isEmpty(), param, params, wherePrint);
+                String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, QueryUtil.isNotEmpty(allTableSet), param, params, wherePrint);
                 String fromAndWhere = allFromSql + whereSql;
                 String fromAndWherePrint = allFromSql + wherePrint;
                 return queryList(fromAndWhere, fromAndWherePrint, mainTable, param, result, allTableSet, params, printSql);
             }
         } else {
             StringBuilder wherePrint = new StringBuilder();
-            String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, !allTableSet.isEmpty(), param, params, wherePrint);
+            String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, QueryUtil.isNotEmpty(allTableSet), param, params, wherePrint);
             String fromAndWhere = allFromSql + whereSql;
             String fromAndWherePrint = allFromSql + wherePrint;
             if (req.getType() == ResultType.OBJ) {
@@ -1048,12 +1048,12 @@ public class TableColumnTemplate implements InitializingBean {
                 // SELECT ... FROM ... WHERE .?. GROUP BY ... HAVING ... LIMIT ...    (all where's table)
                 String selectListGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhereColumn, fromAndWhereColumnPrint,
                         mainTable, result, allTableSet, params, printSql);
-                pageList = queryPageListWithGroup(selectListGroupSql, mainTable, !allTableSet.isEmpty(), param, result, params, printSql);
+                pageList = queryPageListWithGroup(selectListGroupSql, mainTable, QueryUtil.isNotEmpty(allTableSet), param, result, params, printSql);
             } else {
                 pageList = Collections.emptyList();
             }
         } else {
-            boolean needAlias = !queryTableSet.isEmpty();
+            boolean needAlias = QueryUtil.isNotEmpty(queryTableSet);
             // SELECT COUNT(DISTINCT id) FROM ... WHERE .?..   (only where's table)
             String countSql = QuerySqlUtil.toCountWithoutGroupSql(tcInfo, mainTable, needAlias, queryHasMany,
                     fromAndWhere, fromAndWherePrint, printSql);
@@ -1122,7 +1122,7 @@ public class TableColumnTemplate implements InitializingBean {
                                                 List<Object> params, StringBuilder printSql) {
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
                 mainTable, result, allTableSet, params, printSql);
-        boolean needAlias = !allTableSet.isEmpty();
+        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql + param.generatePageSql(params, printSql);
         return assemblyResult(sql, needAlias, params, printSql, mainTable, result);
@@ -1133,7 +1133,7 @@ public class TableColumnTemplate implements InitializingBean {
                                                        List<Object> params, StringBuilder printSql) {
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
                 mainTable, result, allTableSet, params, printSql);
-        boolean needAlias = !allTableSet.isEmpty();
+        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql;
         return assemblyResult(sql, needAlias, params, printSql, mainTable, result);
@@ -1144,7 +1144,7 @@ public class TableColumnTemplate implements InitializingBean {
                                          List<Object> params, StringBuilder printSql) {
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
                 mainTable, result, allTableSet, params, printSql);
-        boolean needAlias = !allTableSet.isEmpty();
+        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql + param.generateArrToObjSql(params, printSql);
         Map<String, Object> obj = QueryUtil.first(assemblyResult(sql, needAlias, params, printSql, mainTable, result));

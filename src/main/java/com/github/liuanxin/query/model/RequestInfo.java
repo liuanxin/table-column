@@ -119,7 +119,7 @@ public class RequestInfo {
         paramTableSet.remove(table);
         resultTableSet.remove(table);
         if (QueryUtil.isEmpty(relation)) {
-            if (!paramTableSet.isEmpty() || !resultTableSet.isEmpty()) {
+            if (QueryUtil.isNotEmpty(paramTableSet) || QueryUtil.isNotEmpty(resultTableSet)) {
                 throw new RuntimeException("request need relation");
             }
         }

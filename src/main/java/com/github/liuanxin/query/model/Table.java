@@ -47,7 +47,7 @@ public class Table {
         this.columnMap = columnMap;
 
         List<String> idKey = new ArrayList<>();
-        if (!columnMap.isEmpty()) {
+        if (QueryUtil.isNotEmpty(columnMap)) {
             for (TableColumn tableColumn : columnMap.values()) {
                 if (tableColumn.isPrimary()) {
                     idKey.add(tableColumn.getName());
@@ -224,6 +224,10 @@ public class Table {
     public String generateBatchInsertMap(List<Map<String, Object>> list, boolean generateNullField,
                                          List<Object> params, StringBuilder printSql) {
         Map<String, Object> first = QueryUtil.first(list);
+        if (QueryUtil.isEmpty(first)) {
+            return "";
+        }
+
         List<String> placeholderList = new ArrayList<>();
         String sql = firstInsertMap(first, generateNullField, placeholderList, params, printSql);
         if (QueryUtil.isEmpty(sql)) {
@@ -261,7 +265,7 @@ public class Table {
                 if (vs != ps) {
                     errorList.add(index + " : " + vs);
                 }
-                if (!values.isEmpty()) {
+                if (QueryUtil.isNotEmpty(values)) {
                     sj.add("(" + String.join(", ", values) + ")");
                     print.add("(" + String.join(", ", printList) + ")");
                 }
@@ -269,7 +273,7 @@ public class Table {
             if (QueryUtil.isNotEmpty(dataLengthMap)) {
                 throw new RuntimeException(String.format("table(%s) data length error -> %s", alias, QueryUtil.toStr(dataLengthMap)));
             }
-            if (!errorList.isEmpty()) {
+            if (QueryUtil.isNotEmpty(errorList)) {
                 throw new RuntimeException("field number error. 1 : " + ps + " but " + QueryUtil.toStr(errorList));
             }
         }
@@ -328,6 +332,9 @@ public class Table {
     }
     public <T> String generateBatchInsert(List<T> list, boolean generateNullField, List<Object> params, StringBuilder printSql) {
         T first = QueryUtil.first(list);
+        if (QueryUtil.isNull(first)) {
+            return "";
+        }
         Class<?> clazz = first.getClass();
         List<String> placeholderList = new ArrayList<>();
         String sql = firstInsert(first, clazz, generateNullField, placeholderList, params, printSql);
@@ -369,7 +376,7 @@ public class Table {
                 if (vs != ps) {
                     countErrorList.add(index + " : " + vs);
                 }
-                if (!values.isEmpty()) {
+                if (QueryUtil.isNotEmpty(values)) {
                     sj.add("(" + String.join(", ", values) + ")");
                 }
             }
@@ -379,7 +386,7 @@ public class Table {
             if (QueryUtil.isNotEmpty(dataLengthMap)) {
                 throw new RuntimeException(String.format("table(%s) data length error -> %s", alias, QueryUtil.toStr(dataLengthMap)));
             }
-            if (!countErrorList.isEmpty()) {
+            if (QueryUtil.isNotEmpty(countErrorList)) {
                 throw new RuntimeException("field number error. 1 : " + ps + " but " + QueryUtil.toStr(countErrorList));
             }
         }
@@ -528,7 +535,7 @@ public class Table {
     private String update(SingleTableWhere query, TableColumnInfo tcInfo,
                           List<Object> params, StringBuilder printSql,
                           List<String> setList, List<String> setPrintList) {
-        if (setList.isEmpty()) {
+        if (QueryUtil.isEmpty(setList)) {
             return "";
         }
 

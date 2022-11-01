@@ -218,7 +218,7 @@ public enum ConditionType {
             return "";
         }
         Collection<?> c = (Collection<?>) value;
-        if (c.isEmpty()) {
+        if (QueryUtil.isEmpty(c)) {
             return "";
         }
 

@@ -75,7 +75,7 @@ public class QueryInfoUtil {
                                                  String globalLogicColumn, String globalLogicValue,
                                                  String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                                  String globalLogicDeleteLongValue) {
-        if (classes.isEmpty()) {
+        if (QueryUtil.isEmpty(classes)) {
             return null;
         }
 
@@ -327,7 +327,7 @@ public class QueryInfoUtil {
 
     private static void tableColumnListToMap(List<Map<String, Object>> tableColumnList,
                                              Map<String, List<Map<String, Object>>> tableColumnMap) {
-        if (!tableColumnList.isEmpty()) {
+        if (QueryUtil.isNotEmpty(tableColumnList)) {
             for (Map<String, Object> tableColumn : tableColumnList) {
                 String key = QueryUtil.toStr(tableColumn.get("tn"));
                 tableColumnMap.computeIfAbsent(key, (k) -> new ArrayList<>()).add(tableColumn);

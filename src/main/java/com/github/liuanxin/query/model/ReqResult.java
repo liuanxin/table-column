@@ -140,7 +140,7 @@ public class ReqResult {
                     hasColumnOrFunction = true;
                 } else if (obj instanceof List<?>) {
                     List<?> groups = (List<?>) obj;
-                    if (groups.isEmpty()) {
+                    if (QueryUtil.isEmpty(groups)) {
                         throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") error");
                     }
                     int size = groups.size();
@@ -152,7 +152,7 @@ public class ReqResult {
                         throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") type error");
                     }
                     String column = QueryUtil.toStr(groups.get(2));
-                    if (column.isEmpty()) {
+                    if (QueryUtil.isEmpty(column)) {
                         throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") column error");
                     }
 
@@ -286,13 +286,13 @@ public class ReqResult {
     public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, Set<String> tableSet) {
         Set<String> columnNameSet = new LinkedHashSet<>();
         columnNameSet.addAll(selectColumn(mainTable, tcInfo, tableSet));
-        columnNameSet.addAll(innerColumn(mainTable, tcInfo, !tableSet.isEmpty()));
+        columnNameSet.addAll(innerColumn(mainTable, tcInfo, QueryUtil.isNotEmpty(tableSet)));
         return String.join(", ", columnNameSet);
     }
 
     public Set<String> selectColumn(String mainTable, TableColumnInfo tcInfo, Set<String> tableSet) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        boolean needAlias = !tableSet.isEmpty();
+        boolean needAlias = QueryUtil.isNotEmpty(tableSet);
         String currentTableName = QueryUtil.isEmpty(table) ? mainTable : table;
         for (Object obj : columns) {
             if (obj instanceof String) {
@@ -376,11 +376,11 @@ public class ReqResult {
         for (Object obj : columns) {
             if (obj instanceof String) {
                 String column = (String) obj;
-                if (!column.isEmpty()) {
+                if (QueryUtil.isNotEmpty(column)) {
                     hasColumn = true;
                 }
             } else if (obj instanceof List<?>) {
-                if (!((List<?>) obj).isEmpty()) {
+                if (QueryUtil.isNotEmpty((List<?>) obj)) {
                     hasGroup = true;
                 }
             }
@@ -393,11 +393,11 @@ public class ReqResult {
         for (Object obj : columns) {
             if (obj instanceof String) {
                 String column = (String) obj;
-                if (!column.isEmpty()) {
+                if (QueryUtil.isNotEmpty(column)) {
                     sj.add(QueryUtil.getColumnAlias(needAlias, column, mainTable, tcInfo));
                 }
             } else if (obj instanceof List<?>) {
-                if (!((List<?>) obj).isEmpty()) {
+                if (QueryUtil.isNotEmpty((List<?>) obj)) {
                     hasGroup = true;
                 }
             }
@@ -428,7 +428,7 @@ public class ReqResult {
                         Object value = groups.get(i + 1);
 
                         String sql = conditionType.generateSql(groupAlias, fieldType, value, params, printSql);
-                        if (!sql.isEmpty()) {
+                        if (QueryUtil.isNotEmpty(sql)) {
                             groupSj.add(sql);
                         }
                     }

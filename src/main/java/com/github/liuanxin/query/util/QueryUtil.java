@@ -122,7 +122,7 @@ public class QueryUtil {
         Class<?> superclass = clazz.getSuperclass();
         if (superclass != Object.class && depth <= 10) {
             Map<String, Field> fieldMap = getFields(superclass, depth + 1);
-            if (!fieldMap.isEmpty()) {
+            if (isNotEmpty(fieldMap)) {
                 returnMap.putAll(fieldMap);
             }
         }
@@ -386,12 +386,12 @@ public class QueryUtil {
         return !isDouble(obj);
     }
 
-    public static String defaultIfBlank(String str1, String defaultStr) {
-        return (str1 == null || str1.trim().isEmpty()) ? defaultStr : str1;
+    public static String defaultIfBlank(String str, String defaultStr) {
+        return isEmpty(str) ? defaultStr : str;
     }
 
     public static <T> T first(Collection<T> list) {
-        return (list == null || list.isEmpty()) ? null : list.iterator().next();
+        return isEmpty(list) ? null : list.iterator().next();
     }
 
     public static <T> List<List<T>> split(List<T> list, int singleSize) {

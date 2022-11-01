@@ -154,7 +154,7 @@ public class ReqParamOperate {
             if (condition != null) {
                 if (condition instanceof List<?>) {
                     List<?> list = (List<?>) condition;
-                    if (list.isEmpty()) {
+                    if (QueryUtil.isEmpty(list)) {
                         throw new RuntimeException("param condition(" + condition + ") can't be blank");
                     }
                     int size = list.size();
@@ -162,7 +162,7 @@ public class ReqParamOperate {
                         throw new RuntimeException("param condition(" + condition + ") error");
                     }
                     String column = QueryUtil.toStr(list.get(0));
-                    if (column.isEmpty()) {
+                    if (QueryUtil.isEmpty(column)) {
                         throw new RuntimeException("param condition(" + condition + ") column can't be blank");
                     }
 
@@ -209,7 +209,7 @@ public class ReqParamOperate {
             if (condition != null) {
                 if (condition instanceof List<?>) {
                     List<?> list = (List<?>) condition;
-                    if (!list.isEmpty()) {
+                    if (QueryUtil.isNotEmpty(list)) {
                         int size = list.size();
                         String column = QueryUtil.toStr(list.get(0));
 
@@ -223,7 +223,7 @@ public class ReqParamOperate {
                         String useColumn = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
                         StringBuilder print = new StringBuilder();
                         String sql = type.generateSql(useColumn, columnType, value, params, print);
-                        if (!sql.isEmpty()) {
+                        if (QueryUtil.isNotEmpty(sql)) {
                             sj.add(sql);
                             printSj.add(print);
                         }
@@ -233,7 +233,7 @@ public class ReqParamOperate {
                     if (compose != null) {
                         StringBuilder print = new StringBuilder();
                         String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params, print);
-                        if (!innerWhereSql.isEmpty()) {
+                        if (QueryUtil.isNotEmpty(innerWhereSql)) {
                             sj.add("( " + innerWhereSql + " )");
                             printSj.add("( " + print + " )");
                         }

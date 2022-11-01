@@ -142,7 +142,7 @@ public class ReqParam {
         } else {
             StringBuilder print = new StringBuilder();
             String where = query.generateSql(mainTable, tcInfo, needAlias, params, print);
-            if (where.isEmpty()) {
+            if (QueryUtil.isEmpty(where)) {
                 return "";
             } else {
                 printSql.append(" WHERE ").append(print);
@@ -160,7 +160,7 @@ public class ReqParam {
                 orderSj.add(QueryUtil.getColumnAlias(needAlias, entry.getKey(), mainTable, tcInfo) + desc);
             }
             String orderBy = orderSj.toString();
-            if (!orderBy.isEmpty()) {
+            if (QueryUtil.isNotEmpty(orderBy)) {
                 return " ORDER BY " + orderBy;
             }
         }

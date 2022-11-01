@@ -47,7 +47,7 @@ public class QuerySqlUtil {
         Table table = tcInfo.findTable(mainTable);
         String mainTableName = table.getName();
         sbd.append(toSqlField(mainTableName));
-        if (!relationList.isEmpty()) {
+        if (QueryUtil.isNotEmpty(relationList)) {
             sbd.append(" AS ").append(table.getAlias());
             for (TableJoinRelation joinRelation : relationList) {
                 sbd.append(joinRelation.generateJoin(tcInfo));
@@ -68,9 +68,9 @@ public class QuerySqlUtil {
     public static String toSelectGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                           String mainTable, ReqResult result, Set<String> tableSet,
                                           List<Object> params, StringBuilder printSql) {
-        boolean needAlias = !tableSet.isEmpty();
+        boolean needAlias = QueryUtil.isNotEmpty(tableSet);
         String selectField = result.generateAllSelectSql(mainTable, tcInfo, tableSet);
-        boolean emptySelect = selectField.isEmpty();
+        boolean emptySelect = QueryUtil.isEmpty(selectField);
 
         // SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ...
         StringBuilder sbd = new StringBuilder("SELECT ");
@@ -81,7 +81,7 @@ public class QuerySqlUtil {
         }
 
         String functionSql = result.generateFunctionSql(mainTable, needAlias, tcInfo);
-        if (!functionSql.isEmpty()) {
+        if (QueryUtil.isNotEmpty(functionSql)) {
             if (!emptySelect) {
                 sbd.append(", ");
                 printSql.append(", ");
@@ -122,7 +122,7 @@ public class QuerySqlUtil {
                                                List<Object> params, StringBuilder printSql) {
         String selectField = result.generateAllSelectSql(mainTable, tcInfo, allTableSet);
         // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
-        String orderSql = param.generateOrderSql(mainTable, !allTableSet.isEmpty(), tcInfo);
+        String orderSql = param.generateOrderSql(mainTable, QueryUtil.isNotEmpty(allTableSet), tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
         printSql.append("SELECT ").append(selectField).append(" ").append(fromAndWherePrint).append(orderSql).append(pagePrint);
@@ -146,7 +146,7 @@ public class QuerySqlUtil {
         String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, allTableSet);
 
         Table table = tcInfo.findTable(mainTable);
-        String idColumn = table.idWhere(!allTableSet.isEmpty());
+        String idColumn = table.idWhere(QueryUtil.isNotEmpty(allTableSet));
         List<String> idKey = table.getIdKey();
         StringJoiner sj = new StringJoiner(", ");
         StringJoiner print = new StringJoiner(", ");
