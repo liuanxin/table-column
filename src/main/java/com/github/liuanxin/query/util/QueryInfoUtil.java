@@ -332,28 +332,6 @@ public class QueryInfoUtil {
             }
         }
     }
-    private static void relationColumnListToMap(List<Map<String, Object>> relationColumnList,
-                                                Map<String, Map<String, Map<String, Object>>> relationColumnMap) {
-        if (!relationColumnList.isEmpty()) {
-            for (Map<String, Object> relationColumn : relationColumnList) {
-                String tableName = QueryUtil.toStr(relationColumn.get("tn"));
-                Map<String, Map<String, Object>> columnMap = relationColumnMap.getOrDefault(tableName, new HashMap<>());
-                columnMap.put(QueryUtil.toStr(relationColumn.get("cn")), relationColumn);
-                relationColumnMap.put(tableName, columnMap);
-            }
-        }
-    }
-    private static void columnUniqueListToMap(List<Map<String, Object>> indexList,
-                                              Map<String, Set<String>> columnUniqueMap) {
-        if (!indexList.isEmpty()) {
-            for (Map<String, Object> index : indexList) {
-                String tableName = QueryUtil.toStr(index.get("tn"));
-                Set<String> uniqueColumnSet = columnUniqueMap.getOrDefault(tableName, new HashSet<>());
-                uniqueColumnSet.add(QueryUtil.toStr(index.get("cn")));
-                columnUniqueMap.put(tableName, uniqueColumnSet);
-            }
-        }
-    }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath, String tablePrefix,
