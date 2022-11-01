@@ -120,11 +120,16 @@ public final class QueryLambdaUtil {
     }
     private static String toColumnName(Field field) {
         ColumnInfo columnInfo = field.getAnnotation(ColumnInfo.class);
-        if (QueryUtil.isNull(columnInfo)) {
-            return QueryUtil.fieldToColumnName(field.getName());
-        } else {
-            return columnInfo.ignore() ? "" : columnInfo.value();
+        if (QueryUtil.isNotNull(columnInfo)) {
+            if (columnInfo.ignore()) {
+                return "";
+            }
+            String columnName = columnInfo.value();
+            if (QueryUtil.isNotEmpty(columnName)) {
+                return columnName;
+            }
         }
+        return QueryUtil.fieldToColumnName(field.getName());
     }
     public static <T> String toColumnName(FunctionSerialize<T, ?> function) {
         return toColumnName(toField(function));

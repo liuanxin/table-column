@@ -130,18 +130,19 @@ public class QueryInfoUtil {
                         continue;
                     }
 
+                    columnName = QueryUtil.defaultIfBlank(columnInfo.value(), QueryUtil.fieldToColumnName(fieldName));
+
                     String columnLogicValue = columnInfo.logicValue();
                     String columnLogicDeleteValue = columnInfo.logicDeleteValue();
                     if (QueryUtil.isNotEmpty(columnLogicValue) && QueryUtil.isNotEmpty(columnLogicDeleteValue)) {
                         if (QueryUtil.isNotEmpty(logicColumn)) {
                             throw new RuntimeException("table(" + tableAlias + ") can only has one column with logic delete");
                         }
-                        logicColumn = columnInfo.value();
+                        logicColumn = columnName;
                         logicValue = columnLogicValue;
                         logicDeleteValue = columnLogicDeleteValue;
                     }
 
-                    columnName = columnInfo.value();
                     columnDesc = columnInfo.desc();
                     // 1. alias, 2. column-name, 3. field-name
                     columnAlias = QueryUtil.defaultIfBlank(QueryUtil.defaultIfBlank(columnInfo.alias(), columnName), fieldName);
