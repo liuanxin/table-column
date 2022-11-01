@@ -80,8 +80,8 @@ public class QueryInfo {
         /** 列类型 */
         private String type;
 
-        /** 新增时需要值 */
-        private boolean needValue;
+        /** 写入时需要有值 */
+        private boolean writeNeedValue;
 
         /** 列类型是字符串时的长度 */
         private Integer length;
@@ -93,12 +93,12 @@ public class QueryInfo {
         private String relationColumn;
 
         public QueryColumn() {}
-        public QueryColumn(String name, String desc, String type, boolean needValue,
+        public QueryColumn(String name, String desc, String type, boolean writeNeedValue,
                            Integer length, String relationTable, String relationColumn) {
             this.name = name;
             this.desc = desc;
             this.type = type;
-            this.needValue = needValue;
+            this.writeNeedValue = writeNeedValue;
             this.length = length;
             this.relationTable = relationTable;
             this.relationColumn = relationColumn;
@@ -125,11 +125,11 @@ public class QueryInfo {
             this.type = type;
         }
 
-        public boolean isNeedValue() {
-            return needValue;
+        public boolean isWriteNeedValue() {
+            return writeNeedValue;
         }
-        public void setNeedValue(boolean needValue) {
-            this.needValue = needValue;
+        public void setWriteNeedValue(boolean writeNeedValue) {
+            this.writeNeedValue = writeNeedValue;
         }
 
         public Integer getLength() {
@@ -159,14 +159,14 @@ public class QueryInfo {
             if (!(o instanceof QueryColumn)) return false;
             QueryColumn that = (QueryColumn) o;
             return Objects.equals(name, that.name) && Objects.equals(desc, that.desc)
-                    && Objects.equals(type, that.type) && Objects.equals(needValue, that.needValue)
+                    && Objects.equals(type, that.type) && Objects.equals(writeNeedValue, that.writeNeedValue)
                     && Objects.equals(length, that.length) && Objects.equals(relationTable, that.relationTable)
                     && Objects.equals(relationColumn, that.relationColumn);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, desc, type, needValue, length, relationTable, relationColumn);
+            return Objects.hash(name, desc, type, writeNeedValue, length, relationTable, relationColumn);
         }
 
         @Override
@@ -175,7 +175,7 @@ public class QueryInfo {
                     "name='" + name + '\'' +
                     ", desc='" + desc + '\'' +
                     ", type='" + type + '\'' +
-                    ", needValue='" + needValue + '\'' +
+                    ", needValue='" + writeNeedValue + '\'' +
                     ", length=" + length +
                     ", relationTable='" + relationTable + '\'' +
                     ", relationColumn='" + relationColumn + '\'' +
