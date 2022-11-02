@@ -491,12 +491,16 @@ public class ReqResult {
     }
 
     private String calcRemoveColumn(String columnAndAlias) {
-        if (columnAndAlias.contains(" AS ")) {
-            return columnAndAlias.substring(columnAndAlias.indexOf(" AS ") + 4);
-        } else if (columnAndAlias.contains(".")) {
-            return columnAndAlias.substring(columnAndAlias.indexOf(".") + 1);
+        String as = " AS ";
+        if (columnAndAlias.contains(as)) {
+            return columnAndAlias.substring(columnAndAlias.indexOf(as) + as.length());
         } else {
-            return columnAndAlias;
+            String point = ".";
+            if (columnAndAlias.contains(point)) {
+                return columnAndAlias.substring(columnAndAlias.indexOf(point) + point.length());
+            } else {
+                return columnAndAlias;
+            }
         }
     }
 
