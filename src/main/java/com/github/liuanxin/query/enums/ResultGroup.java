@@ -7,13 +7,13 @@ import com.github.liuanxin.query.util.QueryUtil;
 
 public enum ResultGroup {
 
-    COUNT("COUNT(%s)", "CNT%s", "总条数"),
-    COUNT_DISTINCT("COUNT(DISTINCT %s)", "CNT_DIS_%s", "去重后的总条数"),
-    SUM("SUM(%s)", "SUM_%S", "总和"),
-    MIN("MIN(%s)", "MIN_%s", "最小"),
-    MAX("MAX(%s)", "MAX_%s", "最大"),
-    AVG("AVG(%s)", "AVG_%s", "平均"),
-    GROUP_CONCAT("GROUP_CONCAT(%s)", "GPCT_%s", "组拼接");
+    COUNT("COUNT(%s)", "_cnt_%s", "总条数"),
+    COUNT_DISTINCT("COUNT(DISTINCT %s)", "_cnt_dis_%s", "去重后的总条数"),
+    SUM("SUM(%s)", "_sum_%s", "总和"),
+    MIN("MIN(%s)", "_min_%s", "最小"),
+    MAX("MAX(%s)", "_max_%s", "最大"),
+    AVG("AVG(%s)", "_avg_%s", "平均"),
+    GROUP_CONCAT("GROUP_CONCAT(%s)", "_gpct_%s", "组拼接");
 
     private final String value;
     private final String alias;
@@ -59,12 +59,13 @@ public enum ResultGroup {
         return String.format(value, column) + " AS " + generateAlias(column);
     }
     public String generateAlias(String column) {
+        String args;
         if (needCheckColumn(column)) {
-            String c = (this == COUNT) ? ("_" + column) : column;
-            return String.format(alias, c.replace(" ", "_S_").replace(".", "_R_").replace(",", "_"));
+            args = column.replace(" ", "_s_").replace(".", "_r_").replace(",", "_");
         } else {
-            return String.format(alias, "");
+            args = "";
         }
+        return String.format(alias, args);
     }
 
     public boolean needCheckColumn(String column) {
