@@ -141,11 +141,11 @@ public class RequestInfo {
             Set<String> tableRelation = new HashSet<>();
             for (List<String> values : relation) {
                 if (values.size() < 3) {
-                    throw new RuntimeException("relation error");
+                    throw new RuntimeException("relation error. for example: [ table1, left, table2 ]");
                 }
                 JoinType joinType = JoinType.deserializer(values.get(1));
                 if (joinType == null) {
-                    throw new RuntimeException("relation join type error");
+                    throw new RuntimeException("relation join type error, support: inner left right");
                 }
                 String masterTable = values.get(0);
                 String childTable = values.get(2);
@@ -176,6 +176,9 @@ public class RequestInfo {
         Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(relation)) {
             for (List<String> values : relation) {
+                if (values.size() < 3) {
+                    throw new RuntimeException("relation error. for example: [ table1, left, table2 ]");
+                }
                 Table masterTable = tcInfo.findTable(values.get(0));
                 Table childTable = tcInfo.findTable(values.get(2));
                 JoinType joinType = JoinType.deserializer(values.get(1));
