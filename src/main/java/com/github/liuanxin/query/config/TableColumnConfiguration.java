@@ -1,4 +1,4 @@
-package com.github.liuanxin.query;
+package com.github.liuanxin.query.config;
 
 import com.github.liuanxin.query.core.TableColumnTemplate;
 import com.github.liuanxin.query.model.TableColumnRelation;

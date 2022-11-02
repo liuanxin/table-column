@@ -1,1 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration = com.github.liuanxin.query.TableColumnConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration = com.github.liuanxin.query.config.TableColumnConfiguration
