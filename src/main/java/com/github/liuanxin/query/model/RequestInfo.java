@@ -184,9 +184,7 @@ public class RequestInfo {
                 Table childTable = tcInfo.findTable(values.get(2));
                 JoinType joinType = JoinType.deserializer(values.get(1));
                 TableJoinRelation joinRelation = new TableJoinRelation(masterTable, joinType, childTable);
-                Set<TableJoinRelation> relationSet = relationMap.getOrDefault(masterTable.getName(), new LinkedHashSet<>());
-                relationSet.add(joinRelation);
-                relationMap.put(masterTable.getName(), relationSet);
+                relationMap.computeIfAbsent(masterTable.getAlias(), k -> new LinkedHashSet<>()).add(joinRelation);
             }
         }
         return handleRelation(table, relationMap);

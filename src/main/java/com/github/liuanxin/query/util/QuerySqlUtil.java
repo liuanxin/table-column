@@ -48,7 +48,7 @@ public class QuerySqlUtil {
         String mainTableName = table.getName();
         sbd.append(toSqlField(mainTableName));
         if (QueryUtil.isNotEmpty(relationList)) {
-            sbd.append(" AS ").append(table.getAlias());
+            sbd.append(" AS ").append(toSqlField(table.getAlias()));
             for (TableJoinRelation joinRelation : relationList) {
                 sbd.append(joinRelation.generateJoin(tcInfo));
             }
@@ -91,7 +91,7 @@ public class QuerySqlUtil {
         }
 
         sbd.append(" ").append(fromAndWhere);
-        printSql.append(fromAndWherePrint);
+        printSql.append(" ").append(fromAndWherePrint);
 
         String group = result.generateGroupSql(mainTable, needAlias, tcInfo);
         sbd.append(group);

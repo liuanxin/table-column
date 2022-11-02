@@ -93,7 +93,7 @@ public class ReqParam {
 
     public Set<String> checkParam(String mainTable, TableColumnInfo tcInfo, int maxListCount) {
         Set<String> paramTableSet = new LinkedHashSet<>();
-        if (query != null) {
+        if (QueryUtil.isNotNull(query)) {
             paramTableSet.addAll(query.checkCondition(mainTable, tcInfo, maxListCount));
         }
 
@@ -103,13 +103,14 @@ public class ReqParam {
             for (String column : sort.keySet()) {
                 String tableName = QueryUtil.getTableName(column, mainTable);
                 Table table = tcInfo.findTable(tableName);
-                if (table == null) {
+                if (QueryUtil.isNull(table)) {
                     noTableList.add(column);
+                } else {
+                    if (QueryUtil.isNull(tcInfo.findTableColumn(table, QueryUtil.getColumnName(column)))) {
+                        noColumnList.add(column);
+                    }
+                    paramTableSet.add(table.getName());
                 }
-                if (tcInfo.findTableColumn(table, QueryUtil.getColumnName(column)) == null) {
-                    noColumnList.add(column);
-                }
-                paramTableSet.add(table.getAlias());
             }
             if (QueryUtil.isNotEmpty(noTableList)) {
                 throw new RuntimeException("param sort: table " + noTableList + " has no defined");
@@ -137,7 +138,7 @@ public class ReqParam {
 
     public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias,
                                    List<Object> params, StringBuilder printSql) {
-        if (query == null) {
+        if (QueryUtil.isNull(query)) {
             return "";
         } else {
             StringBuilder print = new StringBuilder();

@@ -170,7 +170,7 @@ public class ReqParamOperate {
                     if (sa == null) {
                         throw new RuntimeException("param condition(" + condition + ") column has no table info");
                     }
-                    queryTableSet.add(sa.getAlias());
+                    queryTableSet.add(sa.getName());
 
                     boolean standardSize = (size == 2);
                     ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
