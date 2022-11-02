@@ -963,7 +963,7 @@ public class TableColumnTemplate implements InitializingBean {
 
 
     public Object forceDynamicQuery(RequestInfo req) {
-        return dynamicQueryInfo(req, false);
+        return dynamicQueryInfo(req, true);
     }
 
     public Object dynamicQuery(RequestInfo req) {
