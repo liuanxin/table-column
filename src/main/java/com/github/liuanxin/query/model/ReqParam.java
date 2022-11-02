@@ -137,7 +137,7 @@ public class ReqParam {
     }
 
     public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias,
-                                   List<Object> params, StringBuilder printSql) {
+                                   List<Object> params, boolean force, StringBuilder printSql) {
         if (QueryUtil.isNull(query)) {
             return "";
         } else {
@@ -146,6 +146,7 @@ public class ReqParam {
             if (QueryUtil.isEmpty(where)) {
                 return "";
             } else {
+                // todo
                 printSql.append(" WHERE ").append(print);
                 return " WHERE " + where;
             }

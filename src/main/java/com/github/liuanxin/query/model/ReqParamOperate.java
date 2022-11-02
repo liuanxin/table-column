@@ -196,7 +196,8 @@ public class ReqParamOperate {
         return queryTableSet;
     }
 
-    public String generateSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params, StringBuilder printSql) {
+    public String generateSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias,
+                              List<Object> params, StringBuilder printSql) {
         // noinspection DuplicatedCode
         if (QueryUtil.isEmpty(conditions)) {
             return "";

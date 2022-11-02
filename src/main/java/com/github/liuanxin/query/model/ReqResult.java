@@ -113,7 +113,7 @@ public class ReqResult {
     }
 
 
-    public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo, Set<String> allTableSet) {
+    public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo) {
         String currentTable;
         if (QueryUtil.isNotEmpty(table)) {
             currentTable = table;
@@ -128,7 +128,7 @@ public class ReqResult {
             throw new RuntimeException("result table(" + currentTable + ") need columns");
         }
 
-        Set<String> resultFunctionTableSet = new LinkedHashSet<>();
+        Set<String> allTableSet = new LinkedHashSet<>();
         Set<String> columnCheckRepeatedSet = new HashSet<>();
         List<Object> innerList = new ArrayList<>();
         boolean hasColumnOrFunction = false;
@@ -158,11 +158,11 @@ public class ReqResult {
 
                     if (group == ResultGroup.COUNT_DISTINCT) {
                         for (String col : column.split(",")) {
-                            checkFunctionColumn(tcInfo, col, currentTable, groups, resultFunctionTableSet, allTableSet);
+                            checkFunctionColumn(tcInfo, col, currentTable, groups, allTableSet);
                         }
                     } else {
                         if (group.needCheckColumn(column)) {
-                            checkFunctionColumn(tcInfo, column, currentTable, groups, resultFunctionTableSet, allTableSet);
+                            checkFunctionColumn(tcInfo, column, currentTable, groups, allTableSet);
                         }
                     }
 
@@ -239,19 +239,17 @@ public class ReqResult {
                 if (QueryUtil.isNull(relation)) {
                     throw new RuntimeException("result " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
                 }
-                Set<String> innerTableSet = new HashSet<>();
-                innerResult.checkResult(innerTable, tcInfo, innerTableSet);
+                Set<String> innerTableSet = innerResult.checkResult(innerTable, tcInfo);
                 if (innerTableSet.size() > 1) {
                     throw new RuntimeException("result " + mainTable + " - " + innerColumn + "(" + innerTable + ") just has one Table to Query");
                 }
             }
         }
-        return resultFunctionTableSet;
+        return allTableSet;
     }
 
-    private static void checkFunctionColumn(TableColumnInfo tcInfo, String column,
-                                            String currentTable, List<?> groups,
-                                            Set<String> resultFunctionTableSet, Set<String> allTableSet) {
+    private static void checkFunctionColumn(TableColumnInfo tcInfo, String column, String currentTable,
+                                            List<?> groups, Set<String> allTableSet) {
         Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
         if (sa == null) {
             throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined table");
@@ -259,7 +257,6 @@ public class ReqResult {
         if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column)) == null) {
             throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined column");
         }
-        resultFunctionTableSet.add(sa.getAlias());
         allTableSet.add(sa.getName());
     }
 

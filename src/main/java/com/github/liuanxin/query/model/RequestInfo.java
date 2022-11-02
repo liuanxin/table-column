@@ -107,11 +107,11 @@ public class RequestInfo {
         return param.checkParam(table, tcInfo, maxListCount);
     }
 
-    public Set<String> checkResult(TableColumnInfo tcInfo, Set<String> allResultTable) {
+    public Set<String> checkResult(TableColumnInfo tcInfo) {
         if (result == null) {
             throw new RuntimeException("request need result");
         }
-        return result.checkResult(table, tcInfo, allResultTable);
+        return result.checkResult(table, tcInfo);
     }
 
     public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet,
@@ -151,12 +151,12 @@ public class RequestInfo {
                 String masterTable = values.get(0);
                 String childTable = values.get(2);
                 if (tcInfo.findRelationByMasterChild(masterTable, childTable) == null) {
-                    throw new RuntimeException("relation: " + masterTable + " and " + childTable + " has no relation");
+                    throw new RuntimeException("relation: " + masterTable + " - " + childTable + " has no relation");
                 }
 
                 String key = masterTable + append + childTable;
                 if (tableRelation.contains(key)) {
-                    throw new RuntimeException("relation: " + masterTable + " and " + childTable + " can only has one relation");
+                    throw new RuntimeException("relation: " + masterTable + " - " + childTable + " only can be one relation");
                 }
                 tableRelation.add(key);
             }
@@ -173,22 +173,6 @@ public class RequestInfo {
         }
     }
 
-    public List<TableJoinRelation> allRelationList(TableColumnInfo tcInfo) {
-        Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
-        if (QueryUtil.isNotEmpty(relation)) {
-            for (List<String> values : relation) {
-                if (values.size() < 3) {
-                    throw new RuntimeException("relation error. for example: [ table1, left, table2 ]");
-                }
-                Table masterTable = tcInfo.findTable(values.get(0));
-                Table childTable = tcInfo.findTable(values.get(2));
-                JoinType joinType = JoinType.deserializer(values.get(1));
-                TableJoinRelation joinRelation = new TableJoinRelation(masterTable, joinType, childTable);
-                relationMap.computeIfAbsent(masterTable.getAlias(), k -> new LinkedHashSet<>()).add(joinRelation);
-            }
-        }
-        return handleRelation(table, relationMap);
-    }
     private List<TableJoinRelation> handleRelation(String mainTable, Map<String, Set<TableJoinRelation>> relationMap) {
         Set<TableJoinRelation> relationSet = new LinkedHashSet<>();
         Set<String> tableSet = new HashSet<>();
@@ -213,22 +197,22 @@ public class RequestInfo {
         }
         return new ArrayList<>(relationSet);
     }
-    public List<TableJoinRelation> paramRelationList(TableColumnInfo tcInfo, Set<String> paramTableSet,
-                                                     Set<String> resultFunctionTableSet) {
+    public List<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet, Set<String> resultTableSet) {
         Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(relation)) {
             for (List<String> values : relation) {
+                if (values.size() < 3) {
+                    throw new RuntimeException("relation error. for example: [ table1, left, table2 ]");
+                }
                 Table masterTable = tcInfo.findTable(values.get(0));
                 Table childTable = tcInfo.findTable(values.get(2));
                 String mn = masterTable.getAlias();
                 String cn = childTable.getAlias();
                 if ((paramTableSet.contains(mn) && paramTableSet.contains(cn))
-                        || (resultFunctionTableSet.contains(mn) && resultFunctionTableSet.contains(cn))) {
-                    Set<TableJoinRelation> relationSet = relationMap.getOrDefault(masterTable.getName(), new LinkedHashSet<>());
+                        || (resultTableSet.contains(mn) && resultTableSet.contains(cn))) {
                     JoinType joinType = JoinType.deserializer(values.get(1));
                     TableJoinRelation joinRelation = new TableJoinRelation(masterTable, joinType, childTable);
-                    relationSet.add(joinRelation);
-                    relationMap.put(masterTable.getName(), relationSet);
+                    relationMap.computeIfAbsent(masterTable.getName(), k -> new LinkedHashSet<>()).add(joinRelation);
                 }
             }
         }

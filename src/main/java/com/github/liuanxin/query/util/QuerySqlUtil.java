@@ -3,7 +3,10 @@ package com.github.liuanxin.query.util;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.model.*;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 
 public class QuerySqlUtil {
 
@@ -43,7 +46,7 @@ public class QuerySqlUtil {
     }
 
     public static String toFromSql(TableColumnInfo tcInfo, String mainTable, List<TableJoinRelation> relationList) {
-        StringBuilder sbd = new StringBuilder("FROM ");
+        StringBuilder sbd = new StringBuilder(" FROM ");
         Table table = tcInfo.findTable(mainTable);
         String mainTableName = table.getName();
         sbd.append(toSqlField(mainTableName));
@@ -56,12 +59,8 @@ public class QuerySqlUtil {
         return sbd.toString();
     }
 
-    public static String toWhereSql(TableColumnInfo tcInfo, String mainTable, boolean needAlias,
-                                    ReqParam param, List<Object> params, StringBuilder printSql) {
-        return param.generateWhereSql(mainTable, tcInfo, needAlias, params, printSql);
-    }
-
-    public static String toCountGroupSql(String selectSql) {
+    public static String toCountGroupSql(String selectSql, String selectPrint, StringBuilder printSql) {
+        printSql.append("SELECT COUNT(*) FROM ( ").append(selectPrint).append(" ) TMP");
         return "SELECT COUNT(*) FROM ( " + selectSql + " ) TMP";
     }
 
@@ -90,8 +89,8 @@ public class QuerySqlUtil {
             printSql.append(functionSql);
         }
 
-        sbd.append(" ").append(fromAndWhere);
-        printSql.append(" ").append(fromAndWherePrint);
+        sbd.append(fromAndWhere);
+        printSql.append(fromAndWherePrint);
 
         String group = result.generateGroupSql(mainTable, needAlias, tcInfo);
         sbd.append(group);
@@ -104,46 +103,47 @@ public class QuerySqlUtil {
         return sbd.toString();
     }
 
-    public static String toCountWithoutGroupSql(TableColumnInfo tcInfo, String mainTable, boolean needAlias,
-                                                boolean queryHasMany, String fromAndWhere, String fromAndWherePrint,
-                                                StringBuilder printSql) {
+    public static String toCountWithoutGroupSql(TableColumnInfo tcInfo, String fromAndWhere,
+                                                String fromAndWherePrint, String mainTable, boolean needAlias,
+                                                boolean queryHasMany, StringBuilder printSql) {
         if (queryHasMany) {
             // SELECT COUNT(DISTINCT xx.id) FROM ...
-            printSql.append(String.format("SELECT COUNT(DISTINCT %s) %s", tcInfo.findTable(mainTable).idSelect(needAlias), fromAndWherePrint));
-            return String.format("SELECT COUNT(DISTINCT %s) %s", tcInfo.findTable(mainTable).idSelect(needAlias), fromAndWhere);
+            String select = tcInfo.findTable(mainTable).idSelect(needAlias);
+            printSql.append(String.format("SELECT COUNT(DISTINCT %s)%s", select, fromAndWherePrint));
+            return String.format("SELECT COUNT(DISTINCT %s)%s", select, fromAndWhere);
         } else {
-            printSql.append("SELECT COUNT(*) ").append(fromAndWherePrint);
-            return "SELECT COUNT(*) " + fromAndWhere;
+            printSql.append("SELECT COUNT(*)").append(fromAndWherePrint);
+            return "SELECT COUNT(*)" + fromAndWhere;
         }
     }
 
-    public static String toPageWithoutGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
-                                               String mainTable, ReqParam param, ReqResult result, Set<String> allTableSet,
-                                               List<Object> params, StringBuilder printSql) {
-        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
-        String selectField = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
+    public static String toPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
+                                   String mainTable, ReqParam param, ReqResult result, boolean needAlias,
+                                   List<Object> params, StringBuilder printSql) {
+        String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
         // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
+        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, selectColumn, params, printSql);
+    }
+
+    private static String toAppendSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
+                                      String mainTable, ReqParam param, boolean needAlias, String selectColumn,
+                                      List<Object> params, StringBuilder printSql) {
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
-        printSql.append("SELECT ").append(selectField).append(" ").append(fromAndWherePrint).append(orderSql).append(pagePrint);
-        return "SELECT " + selectField + " " + fromAndWhere + orderSql + pageSql;
+        printSql.append("SELECT ").append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
+        return "SELECT " + selectColumn + fromAndWhere + orderSql + pageSql;
     }
 
     public static String toIdPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint, String mainTable,
                                      boolean needAlias, ReqParam param, List<Object> params, StringBuilder printSql) {
         String idSelect = tcInfo.findTable(mainTable).idSelect(needAlias);
         // SELECT id FROM ... WHERE ... ORDER BY ... LIMIT ...
-        String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
-        StringBuilder pagePrint = new StringBuilder();
-        String pageSql = param.generatePageSql(params, pagePrint);
-        printSql.append("SELECT ").append(idSelect).append(fromAndWherePrint).append(orderSql).append(pagePrint);
-        return "SELECT " + idSelect + fromAndWhere + orderSql + pageSql;
+        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, idSelect, params, printSql);
     }
     public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String tables,
                                            ReqResult result, List<Map<String, Object>> idList,
-                                           Set<String> allTableSet, List<Object> params, StringBuilder printSql) {
-        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
+                                           boolean needAlias, List<Object> params, StringBuilder printSql) {
         // SELECT ... FROM ... WHERE id IN (x, y, z)
         String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
         Table table = tcInfo.findTable(mainTable);
