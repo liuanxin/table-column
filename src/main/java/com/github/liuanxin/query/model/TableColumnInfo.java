@@ -28,17 +28,12 @@ public class TableColumnInfo {
         Map<String, Map<String, TableColumnRelation>> masterChildTableMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(relationList)) {
             for (TableColumnRelation relation : relationList) {
-                String masterTable = relation.getOneTable();
                 String childTable = relation.getOneOrManyTable();
                 String childColumn = relation.getOneOrManyColumn();
+                String masterTable = relation.getOneTable();
 
-                Map<String, TableColumnRelation> childRelation = childRelationMap.getOrDefault(childTable, new HashMap<>());
-                childRelation.put(childColumn, relation);
-                childRelationMap.put(childTable, childRelation);
-
-                Map<String, TableColumnRelation> masterChildRelation = masterChildTableMap.getOrDefault(masterTable, new HashMap<>());
-                masterChildRelation.put(childTable, relation);
-                masterChildTableMap.put(masterTable, masterChildRelation);
+                childRelationMap.computeIfAbsent(childTable, k -> new HashMap<>()).put(childColumn, relation);
+                masterChildTableMap.computeIfAbsent(masterTable, k -> new HashMap<>()).put(childTable, relation);
             }
         }
         this.childRelationMap = childRelationMap;
@@ -56,6 +51,9 @@ public class TableColumnInfo {
     }
 
     public Table findTable(String tableName) {
+        if (QueryUtil.isNotEmpty(tableName)) {
+            return null;
+        }
         String tn = tableName.trim();
         String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + tn);
         Table table = tableMap.get(tableAlias);
@@ -63,6 +61,9 @@ public class TableColumnInfo {
     }
 
     public TableColumn findTableColumn(Table table, String columnName) {
+        if (QueryUtil.isNull(table) || QueryUtil.isEmpty(columnName)) {
+            return null;
+        }
         Map<String, TableColumn> columnMap = table.getColumnMap();
         String cn = columnName.trim();
         String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + cn);
@@ -76,30 +77,32 @@ public class TableColumnInfo {
     }
 
     public TableColumnRelation findRelationByMasterChild(String masterTable, String childTable) {
-        return findRelation(masterChildTableMap, masterTable, childTable);
-    }
-
-    private TableColumnRelation findRelation(Map<String, Map<String, TableColumnRelation>> tableRelationMap,
-                                             String table, String childTableOrColumn) {
-        if (QueryUtil.isEmpty(tableRelationMap) || QueryUtil.isEmpty(table) || QueryUtil.isEmpty(childTableOrColumn)) {
+        Table table = findTable(masterTable);
+        if (QueryUtil.isNull(table)) {
             return null;
         }
 
-        String tn = table.trim();
-        String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + tn);
-        Map<String, TableColumnRelation> relationMap = tableRelationMap.get(tableAlias);
-        Map<String, TableColumnRelation> useRelationMap = QueryUtil.isEmpty(relationMap) ? tableRelationMap.get(tn) : relationMap;
-        if (QueryUtil.isEmpty(useRelationMap)) {
+        Map<String, TableColumnRelation> relationMap = masterChildTableMap.get(table.getName());
+        if (QueryUtil.isEmpty(relationMap)) {
             return null;
         }
 
-        String cn = childTableOrColumn.trim();
-        String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + cn);
-        TableColumnRelation relation = useRelationMap.get(columnAlias);
-        return QueryUtil.isNull(relation) ? useRelationMap.get(cn) : relation;
+        Table child = findTable(childTable);
+        return QueryUtil.isNull(child) ? null : relationMap.get(child.getName());
     }
 
     public TableColumnRelation findRelationByChild(String childTable, String childColumn) {
-        return findRelation(childRelationMap, childTable, childColumn);
+        Table table = findTable(childTable);
+        if (QueryUtil.isNull(table)) {
+            return null;
+        }
+
+        Map<String, TableColumnRelation> relationMap = childRelationMap.get(table.getName());
+        if (QueryUtil.isEmpty(relationMap)) {
+            return null;
+        }
+
+        TableColumn column = findTableColumn(table, childColumn);
+        return QueryUtil.isNull(column) ? null : relationMap.get(column.getName());
     }
 }

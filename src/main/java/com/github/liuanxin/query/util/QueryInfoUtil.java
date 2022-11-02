@@ -253,6 +253,11 @@ public class QueryInfoUtil {
                     String om = omTable + "." + omColumn + "(" + omType.getSimpleName() + (omLen > 0 ? (":" + omLen) : "") + ")";
                     typeErrorList.add(one + " : " + om);
                 }
+
+                relation.setOneTable(table.getName());
+                relation.setOneColumn(tableColumn.getName());
+                relation.setOneOrManyTable(oneOrManyTable.getName());
+                relation.setOneOrManyColumn(oneOrManyColumn.getName());
             }
             if (QueryUtil.isNotEmpty(noTableList)) {
                 throw new RuntimeException("check relation: table(" + String.join(", ", noTableList) + ") has no defined");
