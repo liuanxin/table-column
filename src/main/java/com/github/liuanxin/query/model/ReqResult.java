@@ -332,7 +332,7 @@ public class ReqResult {
         Set<String> removeColumnSet = new HashSet<>();
         for (String ic : innerColumn(mainTable, tcInfo, needAlias)) {
             if (!selectColumnSet.contains(ic)) {
-                removeColumnSet.add(ic);
+                removeColumnSet.add(calcRemoveColumn(ic));
             }
         }
         return removeColumnSet;
@@ -442,22 +442,22 @@ public class ReqResult {
         return (groupSj.length() == 0) ? "" : (" HAVING " + groupSj);
     }
 
-    public String generateInnerSelect(String relationColumn, TableColumnInfo tcInfo) {
-        StringJoiner selectColumns = new StringJoiner(", ");
+    public String generateInnerSelect(String relationColumn, TableColumnInfo tcInfo, Set<String> removeColumn) {
         String innerTableName = table;
-        selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, relationColumn, innerTableName, tcInfo));
+
+        Set<String> columnSet = new LinkedHashSet<>();
         for (Object obj : columns) {
             if (obj instanceof String) {
-                selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, (String) obj, innerTableName, tcInfo));
+                columnSet.add(QueryUtil.getQueryColumnAndAlias(false, (String) obj, innerTableName, tcInfo));
             } else if (obj instanceof List<?>) {
-                selectColumns.add(generateFunctionColumn((List<?>) obj, innerTableName, false, tcInfo));
+                columnSet.add(generateFunctionColumn((List<?>) obj, innerTableName, false, tcInfo));
             } else {
                 Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
                 if (dateColumn != null) {
                     for (String column : dateColumn.keySet()) {
                         String tableName = QueryUtil.getTableName(column, innerTableName);
                         if (tableName.equals(innerTableName)) {
-                            selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, column, innerTableName, tcInfo));
+                            columnSet.add(QueryUtil.getQueryColumnAndAlias(false, column, innerTableName, tcInfo));
                         }
                     }
                 } else {
@@ -471,14 +471,33 @@ public class ReqResult {
                             }
                             if (relation != null) {
                                 String column = relation.getOneColumn();
-                                selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, column, innerTableName, tcInfo));
+                                columnSet.add(QueryUtil.getQueryColumnAndAlias(false, column, innerTableName, tcInfo));
                             }
                         }
                     }
                 }
             }
         }
-        return selectColumns.toString();
+
+        String relationId = QueryUtil.getQueryColumnAndAlias(false, relationColumn, innerTableName, tcInfo);
+        if (!columnSet.contains(relationId)) {
+            removeColumn.add(calcRemoveColumn(relationId));
+        }
+
+        List<String> columnList = new ArrayList<>();
+        columnList.add(relationId);
+        columnList.addAll(columnSet);
+        return String.join(", ", columnList);
+    }
+
+    private String calcRemoveColumn(String columnAndAlias) {
+        if (columnAndAlias.contains(" AS ")) {
+            return columnAndAlias.substring(columnAndAlias.indexOf(" AS ") + 4);
+        } else if (columnAndAlias.contains(".")) {
+            return columnAndAlias.substring(columnAndAlias.indexOf(".") + 1);
+        } else {
+            return columnAndAlias;
+        }
     }
 
 

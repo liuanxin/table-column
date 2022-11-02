@@ -1250,7 +1250,8 @@ public class TableColumnTemplate implements InitializingBean {
 
         List<Map<String, Object>> mapList = new ArrayList<>();
         String relationColumn = QuerySqlUtil.toSqlField(tableColumn.getName());
-        String selectColumn = result.generateInnerSelect(relationColumn, tcInfo);
+        Set<String> removeColumn = new HashSet<>();
+        String selectColumn = result.generateInnerSelect(relationColumn, tcInfo, removeColumn);
         String table = QuerySqlUtil.toSqlField(tcInfo.findTable(innerTable).getName());
         for (List<Object> ids : QueryUtil.split(relationIds, maxListCount)) {
             StringBuilder printSql = new StringBuilder();
@@ -1268,8 +1269,7 @@ public class TableColumnTemplate implements InitializingBean {
             return Collections.emptyMap();
         }
 
-        handleData(mapList, false, tableName, result);
-        Set<String> removeColumn = result.needRemoveColumn(tableName, tcInfo, false);
+        handleData(mapList, false, innerTable, result);
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
         boolean hasMany = masterChild && relation.getType().hasMany();
