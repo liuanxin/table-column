@@ -19,7 +19,7 @@
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "关联表的类上没有标注解时, 将类名转换成表名时, 表的前缀."
+      "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀."
     },
     {
       "name": "query.deep-max-page-size",
@@ -33,49 +33,49 @@
       "type": "java.lang.Integer",
       "defaultValue": "1000",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "单次查询的条件是列表时的最大个数."
+      "description": "查询条件是集合时的最大个数."
     },
     {
-      "name": "query.one-to-one-has-many-exception",
-      "type": "java.lang.Boolean",
-      "defaultValue": "false",
+      "name": "query.one-to-one-has-many",
+      "type": "java.lang.Integer",
+      "defaultValue": "0",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "当表与表之间是一对一关联, 但数据却出现了一对多的情况时, true 表示抛出异常, false 会用 id 小的那条进行处理."
+      "description": "当表与表之间是一对一关联, 但查询时数据却出现了多条, 1:以前面的为准, 2:后面覆盖前面, 否则抛出异常."
     },
     {
       "name": "query.logic-delete-column",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "表用来做逻辑删除的字段, 标了 @LogicInfo 注解则以注解所在字段为主."
+      "description": "用来做逻辑删除的字段名, 标了 @LogicInfo 注解则以注解所在字段为主."
     },
     {
       "name": "query.logic-value",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "表用来做逻辑删除的字段, 比如设置成 0, 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "用来做逻辑删除的默认值, 比如设置成 0, 表中有字段标了 @LogicDelete 则以注解为主."
     },
     {
       "name": "query.logic-delete-boolean-value",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "表用来做逻辑删除的字段, 比如设置成 1, 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "用来做逻辑删除的字段是 tinyint(1) 时的删除值, 比如设置成 1, 表中有字段标了 @LogicDelete 则以注解为主."
     },
     {
       "name": "query.logic-delete-int-value",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "表用来做逻辑删除的字段, 比如设置成 UNIX_TIMESTAMP(), 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "用来做逻辑删除的字段是 int 时的删除值, 比如设置成 UNIX_TIMESTAMP(), 表中有字段标了 @LogicDelete 则以注解为主."
     },
     {
       "name": "query.logic-delete-long-value",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "表用来做逻辑删除的备用字段, 比如设置成 id, 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "用来做逻辑删除的字段是 bigint 时的值, 比如设置成 id, 表中有字段标了 @LogicDelete 则以注解为主."
     }
   ]
 }

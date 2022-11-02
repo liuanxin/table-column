@@ -36,8 +36,8 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.max-list-count:1000}")
     private int maxListCount;
 
-    @Value("${query.one-to-one-has-many-exception:false}")
-    private boolean oneToOneHasManyException;
+    @Value("${query.one-to-one-has-many:0}")
+    private int oneToOneHasMany;
 
     @Value("${query.logic-delete-column:}")
     private String logicDeleteColumn;
@@ -1274,15 +1274,23 @@ public class TableColumnTemplate implements InitializingBean {
                         innerDataMap.put(key, list);
                     } else {
                         if (QueryUtil.isNotNull(obj)) {
-                            if (oneToOneHasManyException) {
-                                throw new RuntimeException(String.format("%s, but multiple data(%s.%s - %s.%s : %s)",
-                                        (masterChild ? "one-to-one" : "child to master"),
-                                        relation.getOneTable(), relation.getOneColumn(),
-                                        relation.getOneOrManyTable(), relation.getOneOrManyColumn(),
-                                        key));
+                            switch (oneToOneHasMany) {
+                                case 1: { break; }
+                                case 2: {
+                                    innerDataMap.put(key, data);
+                                    break;
+                                }
+                                default: {
+                                    throw new RuntimeException(String.format("%s, but multiple data(%s.%s - %s.%s : %s)",
+                                            (masterChild ? "one-to-one" : "child-to-master"),
+                                            relation.getOneTable(), relation.getOneColumn(),
+                                            relation.getOneOrManyTable(), relation.getOneOrManyColumn(),
+                                            key));
+                                }
                             }
+                        } else {
+                            innerDataMap.put(key, data);
                         }
-                        innerDataMap.put(key, data);
                     }
                 }
             }
