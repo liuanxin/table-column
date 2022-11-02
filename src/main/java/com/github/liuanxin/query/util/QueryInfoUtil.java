@@ -336,7 +336,7 @@ public class QueryInfoUtil {
     }
 
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath,
-                                     String modelSuffix, String tablePrefix,
+                                     String modelSuffix, String tablePrefix, boolean generateComment,
                                      List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
         File packageDir = new File(targetPath.replace(".", "/"), packagePath.replace(".", "/"));
         if (!packageDir.exists()) {
@@ -380,7 +380,7 @@ public class QueryInfoUtil {
                 boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
 
                 StringBuilder fieldSbd = new StringBuilder();
-                if (QueryUtil.isNotEmpty(columnDesc)) {
+                if (generateComment && QueryUtil.isNotEmpty(columnDesc)) {
                     fieldSbd.append("    ").append(String.format("/** %s --> %s */\n", columnDesc, columnName));
                 }
 
@@ -432,6 +432,9 @@ public class QueryInfoUtil {
             sbd.append("package ").append(packagePath.replace("/", ".")).append(";\n\n");
             sbd.append(String.join("\n", importSet)).append("\n\n");
             sbd.append(String.join("\n", javaImportSet)).append("\n\n");
+            if (generateComment && QueryUtil.isNotEmpty(tableDesc)) {
+                sbd.append(String.format("/** %s --> %s */\n", tableDesc, tableName));
+            }
             sbd.append("@Data\n");
             if (QueryUtil.isNotEmpty(tableInfoList)) {
                 sbd.append("@TableInfo(").append(String.join(" ,", tableInfoList)).append(")\n");
