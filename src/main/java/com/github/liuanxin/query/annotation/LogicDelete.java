@@ -8,8 +8,8 @@ import java.lang.annotation.*;
 public @interface LogicDelete {
 
     /** logic delete: default value. for example: 0 */
-    String value() default "";
+    String value();
 
     /** logic delete: delete value. for example: 1, id, UNIX_TIMESTAMP() */
-    String deleteValue() default "";
+    String deleteValue();
 }
