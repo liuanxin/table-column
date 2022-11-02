@@ -55,9 +55,8 @@ public class TableColumnInfo {
             return null;
         }
         String tn = tableName.trim();
-        String tableAlias = aliasMap.get(QueryConst.TABLE_PREFIX + tn);
-        Table table = tableMap.get(tableAlias);
-        return QueryUtil.isNull(table) ? tableMap.get(tn) : table;
+        String ta = aliasMap.get(QueryConst.TABLE_PREFIX + tn);
+        return tableMap.get(QueryUtil.defaultIfBlank(ta, tn));
     }
 
     public TableColumn findTableColumn(Table table, String columnName) {
@@ -65,10 +64,12 @@ public class TableColumnInfo {
             return null;
         }
         Map<String, TableColumn> columnMap = table.getColumnMap();
+        if (QueryUtil.isEmpty(columnMap)) {
+            return null;
+        }
         String cn = columnName.trim();
-        String columnAlias = aliasMap.get(QueryConst.COLUMN_PREFIX + cn);
-        TableColumn tableColumn = columnMap.get(columnAlias);
-        return QueryUtil.isNull(tableColumn) ? columnMap.get(cn) : tableColumn;
+        String ca = aliasMap.get(QueryConst.COLUMN_PREFIX + cn);
+        return columnMap.get(QueryUtil.defaultIfBlank(ca, cn));
     }
 
     public TableColumn findTableColumn(String tableName, String columnName) {
