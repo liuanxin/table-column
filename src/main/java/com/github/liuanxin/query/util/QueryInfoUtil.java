@@ -444,21 +444,13 @@ public class QueryInfoUtil {
             sbd.append("}\n");
 
             File file = new File(packageDir, className + ".java");
-            if (file.exists()) {
-                boolean flag = file.delete();
-                if (!flag) {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("file({}) delete fail", file);
-                    }
-                }
-            }
             try {
                 Files.write(file.toPath(), sbd.toString().getBytes(StandardCharsets.UTF_8));
                 if (LOG.isInfoEnabled()) {
-                    LOG.info("file({}) write success", file);
+                    LOG.info("file({}) write(cover if exists) success", file);
                 }
             } catch (IOException e) {
-                throw new RuntimeException(String.format("generate file(%s) exception", file), e);
+                throw new RuntimeException(String.format("file(%s) write(cover if exists) exception", file), e);
             }
         }
     }
