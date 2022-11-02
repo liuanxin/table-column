@@ -1179,7 +1179,7 @@ public class TableColumnTemplate implements InitializingBean {
         Map<String, ReqResult> innerResultMap = result.innerResult();
         if (QueryUtil.isNotEmpty(innerResultMap)) {
             // { address : id, items : code }
-            Map<String, String> innerColumnMap = new HashMap<>();
+            Map<String, String> innerColumnMap = new LinkedHashMap<>();
             //  { address : { id1 : { ... },  id2 : { ... } }, items : { code1 : [ ... ], code2 : [ ... ] } }
             Map<String, Map<String, Object>> innerDataMap = new HashMap<>();
             for (Map.Entry<String, ReqResult> entry : innerResultMap.entrySet()) {
@@ -1194,18 +1194,18 @@ public class TableColumnTemplate implements InitializingBean {
                 }
             }
             for (Map<String, Object> data : dataList) {
-                for (Map.Entry<String, Map<String, Object>> entry : innerDataMap.entrySet()) {
+                for (Map.Entry<String, String> entry : innerColumnMap.entrySet()) {
                     // address    or    items
                     String fieldName = entry.getKey();
                     // id    or    code
-                    String columnName = innerColumnMap.get(fieldName);
+                    String columnName = entry.getValue();
                     // id1, id2    or    code1, code2
                     Object relationValue = data.get(columnName);
                     if (QueryUtil.isNotNull(relationValue)) {
                         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
-                        Map<String, Object> innerData = entry.getValue();
+                        Map<String, Object> innerData = innerDataMap.get(fieldName);
                         // put --> address : { ... }    or    items : [ ... ]
-                        data.put(columnName, innerData.get(QueryUtil.toStr(relationValue)));
+                        data.put(fieldName, innerData.get(QueryUtil.toStr(relationValue)));
                     }
                 }
             }
@@ -1227,8 +1227,8 @@ public class TableColumnTemplate implements InitializingBean {
             return Collections.emptyMap();
         }
 
-        String columnName = relation.getOneColumn();
-        String tableColumnAlias = tcInfo.findTableColumn(relation.getOneTable(), columnName).getAlias();
+        TableColumn tableColumn = tcInfo.findTableColumn(relation.getOneTable(), relation.getOneColumn());
+        String tableColumnAlias = tableColumn.getAlias();
         List<Object> relationIds = new ArrayList<>();
         for (Map<String, Object> data : dataList) {
             relationIds.add(data.get(tableColumnAlias));
@@ -1241,8 +1241,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         List<Map<String, Object>> mapList = new ArrayList<>();
-
-        String relationColumn = QuerySqlUtil.toSqlField(columnName);
+        String relationColumn = QuerySqlUtil.toSqlField(tableColumn.getName());
         String selectColumn = result.generateInnerSelect(relationColumn, tcInfo);
         String table = QuerySqlUtil.toSqlField(tcInfo.findTable(innerTable).getName());
         for (List<Object> ids : QueryUtil.split(relationIds, maxListCount)) {
@@ -1267,7 +1266,7 @@ public class TableColumnTemplate implements InitializingBean {
         boolean hasMany = masterChild && relation.getType().hasMany();
         for (Map<String, Object> data : mapList) {
             if (QueryUtil.isNotNull(data)) {
-                String key = QueryUtil.toStr(data.get(columnName));
+                String key = QueryUtil.toStr(data.get(tableColumn.getAlias()));
                 if (QueryUtil.isNotEmpty(key)) {
                     Object obj = innerDataMap.get(key);
                     if (hasMany) {
@@ -1309,7 +1308,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         // { id : { id1 : { ... },  id2 : { ... } } }    or    { code : { code1 : [ ... ], code2 : [ ... ] } }
         Map<String, Map<String, Object>> returnMap = new HashMap<>();
-        returnMap.put(columnName, innerDataMap);
+        returnMap.put(tableColumn.getAlias(), innerDataMap);
         return returnMap;
     }
 }

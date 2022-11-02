@@ -440,8 +440,8 @@ public class ReqResult {
 
     public String generateInnerSelect(String relationColumn, TableColumnInfo tcInfo) {
         StringJoiner selectColumns = new StringJoiner(", ");
-        selectColumns.add(relationColumn);
         String innerTableName = table;
+        selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, relationColumn, innerTableName, tcInfo));
         for (Object obj : columns) {
             if (obj instanceof String) {
                 selectColumns.add(QueryUtil.getQueryColumnAndAlias(false, (String) obj, innerTableName, tcInfo));
