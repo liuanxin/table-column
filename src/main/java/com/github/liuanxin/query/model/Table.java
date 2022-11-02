@@ -280,7 +280,7 @@ public class Table {
         if (sj.length() == 0) {
             return sql;
         } else {
-            printSql.append(sql).append(", ").append(print);
+            printSql.append(", ").append(print);
             return sql + ", " + sj;
         }
     }
@@ -393,6 +393,7 @@ public class Table {
         if (sj.length() == 0) {
             return sql;
         } else {
+            printSql.append(", ").append(sj);
             return sql + ", " + sj;
         }
     }
@@ -471,14 +472,10 @@ public class Table {
         // 5. ORDER BY: arranges the remaining rows/groups
         // 6. LIMIT: filters on the remaining rows/groups
         String table = QuerySqlUtil.toSqlField(name);
-        printSql.append("SELECT ").append(column)
-                .append(" FROM ").append(table)
-                .append(" WHERE ").append(wherePrint)
-                .append(logicDeleteCondition)
-                .append(QueryUtil.toStr(groupBy))
-                .append(QueryUtil.toStr(havingPrint))
-                .append(QueryUtil.toStr(orderBy))
-                .append(limitPrint);
+        printSql.append("SELECT ").append(column).append(" FROM ").append(table)
+                .append(" WHERE ").append(wherePrint).append(logicDeleteCondition)
+                .append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
+                .append(QueryUtil.toStr(orderBy)).append(limitPrint);
         return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDeleteCondition
                 + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
     }
