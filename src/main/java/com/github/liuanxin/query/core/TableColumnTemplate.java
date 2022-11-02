@@ -995,21 +995,23 @@ public class TableColumnTemplate implements InitializingBean {
                 return queryPage(firstFromSql, allFromSql, whereSql, printSql.toString(),
                         mainTable, param, result, queryHasMany, queryTableSet, allTableSet, params);
             } else {
+                boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
                 StringBuilder wherePrint = new StringBuilder();
-                String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, QueryUtil.isNotEmpty(allTableSet), param, params, wherePrint);
+                String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, needAlias, param, params, wherePrint);
                 String fromAndWhere = allFromSql + whereSql;
                 String fromAndWherePrint = allFromSql + wherePrint;
-                return queryList(fromAndWhere, fromAndWherePrint, mainTable, param, result, allTableSet, params, printSql);
+                return queryList(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, printSql);
             }
         } else {
+            boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
             StringBuilder wherePrint = new StringBuilder();
-            String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, QueryUtil.isNotEmpty(allTableSet), param, params, wherePrint);
+            String whereSql = QuerySqlUtil.toWhereSql(tcInfo, mainTable, needAlias, param, params, wherePrint);
             String fromAndWhere = allFromSql + whereSql;
             String fromAndWherePrint = allFromSql + wherePrint;
             if (req.getType() == ResultType.OBJ) {
-                return queryObj(fromAndWhere, fromAndWherePrint, mainTable, param, result, allTableSet, params, printSql);
+                return queryObj(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, printSql);
             } else {
-                return queryListNoLimit(fromAndWhere, fromAndWherePrint, mainTable, param, result, allTableSet, params, printSql);
+                return queryListNoLimit(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, printSql);
             }
         }
     }
@@ -1043,9 +1045,10 @@ public class TableColumnTemplate implements InitializingBean {
         List<Map<String, Object>> pageList;
         StringBuilder printSql = new StringBuilder();
         if (result.needGroup()) {
+            boolean firstQueryNeedAlias = QueryUtil.isNotEmpty(queryTableSet);
             // SELECT ... FROM ... WHERE .?. GROUP BY ... HAVING ..    (only where's table)
-            String selectCountGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
-                    mainTable, result, queryTableSet, params, printSql);
+            String selectCountGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
+                    fromAndWherePrint, mainTable, result, firstQueryNeedAlias, params, printSql);
             // SELECT COUNT(*) FROM ( ... ) tmp
             String countSql = QuerySqlUtil.toCountGroupSql(selectCountGroupSql);
             count = queryCount(countSql, params, printSql);
@@ -1053,10 +1056,12 @@ public class TableColumnTemplate implements InitializingBean {
                 String fromAndWhereColumn = allFromSql + whereSql;
                 String fromAndWhereColumnPrint = allFromSql + wherePrint;
                 printSql.setLength(0);
+                boolean secondQueryNeedAlias = QueryUtil.isNotEmpty(allTableSet);
                 // SELECT ... FROM ... WHERE .?. GROUP BY ... HAVING ... LIMIT ...    (all where's table)
-                String selectListGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhereColumn, fromAndWhereColumnPrint,
-                        mainTable, result, allTableSet, params, printSql);
-                pageList = queryPageListWithGroup(selectListGroupSql, mainTable, QueryUtil.isNotEmpty(allTableSet), param, result, params, printSql);
+                String selectListGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhereColumn,
+                        fromAndWhereColumnPrint, mainTable, result, secondQueryNeedAlias, params, printSql);
+                pageList = queryPageListWithGroup(selectListGroupSql, mainTable,
+                        QueryUtil.isNotEmpty(allTableSet), param, result, params, printSql);
             } else {
                 pageList = Collections.emptyList();
             }
@@ -1126,33 +1131,30 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private List<Map<String, Object>> queryList(String fromAndWhere, String fromAndWherePrint, String mainTable,
-                                                ReqParam param, ReqResult result, Set<String> allTableSet,
+                                                ReqParam param, ReqResult result, boolean needAlias,
                                                 List<Object> params, StringBuilder printSql) {
-        String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
-                mainTable, result, allTableSet, params, printSql);
-        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
+        String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
+                fromAndWherePrint, mainTable, result, needAlias, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql + param.generatePageSql(params, printSql);
         return assemblyResult(sql, needAlias, params, printSql, mainTable, result);
     }
 
     private List<Map<String, Object>> queryListNoLimit(String fromAndWhere, String fromAndWherePrint, String mainTable,
-                                                       ReqParam param, ReqResult result, Set<String> allTableSet,
+                                                       ReqParam param, ReqResult result, boolean needAlias,
                                                        List<Object> params, StringBuilder printSql) {
-        String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
-                mainTable, result, allTableSet, params, printSql);
-        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
+        String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
+                fromAndWherePrint, mainTable, result, needAlias, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql;
         return assemblyResult(sql, needAlias, params, printSql, mainTable, result);
     }
 
     private Map<String, Object> queryObj(String fromAndWhere, String fromAndWherePrint, String mainTable,
-                                         ReqParam param, ReqResult result, Set<String> allTableSet,
+                                         ReqParam param, ReqResult result, boolean needAlias,
                                          List<Object> params, StringBuilder printSql) {
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
-                mainTable, result, allTableSet, params, printSql);
-        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
+                mainTable, result, needAlias, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql + param.generateArrToObjSql(params, printSql);
         Map<String, Object> obj = QueryUtil.first(assemblyResult(sql, needAlias, params, printSql, mainTable, result));
@@ -1166,7 +1168,13 @@ public class TableColumnTemplate implements InitializingBean {
         }
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
         if (QueryUtil.isNotEmpty(dataList)) {
-            handleData(dataList, needAlias, tcInfo.findTable(mainTable).getName(), result);
+            String mainTableName = tcInfo.findTable(mainTable).getName();
+            handleData(dataList, needAlias, mainTableName, result);
+
+            Set<String> removeColumn = result.needRemoveColumn(mainTableName, tcInfo, needAlias);
+            for (Map<String, Object> data : dataList) {
+                removeColumn.forEach(data::remove);
+            }
         }
         return dataList;
     }
@@ -1261,6 +1269,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         handleData(mapList, false, tableName, result);
+        Set<String> removeColumn = result.needRemoveColumn(tableName, tcInfo, false);
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
         boolean hasMany = masterChild && relation.getType().hasMany();
@@ -1269,6 +1278,7 @@ public class TableColumnTemplate implements InitializingBean {
                 String key = QueryUtil.toStr(data.get(tableColumn.getAlias()));
                 if (QueryUtil.isNotEmpty(key)) {
                     Object obj = innerDataMap.get(key);
+                    removeColumn.forEach(data::remove);
                     if (hasMany) {
                         List<Object> list;
                         if (QueryUtil.isNotNull(obj) && (obj instanceof List<?>)) {

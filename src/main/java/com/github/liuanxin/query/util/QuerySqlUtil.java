@@ -66,14 +66,14 @@ public class QuerySqlUtil {
     }
 
     public static String toSelectGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
-                                          String mainTable, ReqResult result, Set<String> tableSet,
+                                          String mainTable, ReqResult result, boolean needAlias,
                                           List<Object> params, StringBuilder printSql) {
-        boolean needAlias = QueryUtil.isNotEmpty(tableSet);
-        String selectField = result.generateAllSelectSql(mainTable, tcInfo, tableSet);
+        String selectField = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
         boolean emptySelect = QueryUtil.isEmpty(selectField);
 
         // SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ...
-        StringBuilder sbd = new StringBuilder("SELECT ");
+        StringBuilder sbd = new StringBuilder();
+        sbd.append("SELECT ");
         printSql.append("SELECT ");
         if (!emptySelect) {
             sbd.append(selectField);
@@ -120,9 +120,10 @@ public class QuerySqlUtil {
     public static String toPageWithoutGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                                String mainTable, ReqParam param, ReqResult result, Set<String> allTableSet,
                                                List<Object> params, StringBuilder printSql) {
-        String selectField = result.generateAllSelectSql(mainTable, tcInfo, allTableSet);
+        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
+        String selectField = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
         // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
-        String orderSql = param.generateOrderSql(mainTable, QueryUtil.isNotEmpty(allTableSet), tcInfo);
+        String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
         printSql.append("SELECT ").append(selectField).append(" ").append(fromAndWherePrint).append(orderSql).append(pagePrint);
@@ -142,11 +143,11 @@ public class QuerySqlUtil {
     public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String tables,
                                            ReqResult result, List<Map<String, Object>> idList,
                                            Set<String> allTableSet, List<Object> params, StringBuilder printSql) {
+        boolean needAlias = QueryUtil.isNotEmpty(allTableSet);
         // SELECT ... FROM ... WHERE id IN (x, y, z)
-        String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, allTableSet);
-
+        String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
         Table table = tcInfo.findTable(mainTable);
-        String idColumn = table.idWhere(QueryUtil.isNotEmpty(allTableSet));
+        String idColumn = table.idWhere(needAlias);
         List<String> idKey = table.getIdKey();
         StringJoiner sj = new StringJoiner(", ");
         StringJoiner print = new StringJoiner(", ");

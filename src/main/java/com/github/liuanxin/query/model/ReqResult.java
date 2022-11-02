@@ -283,32 +283,25 @@ public class ReqResult {
         return sa;
     }
 
-    public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, Set<String> tableSet) {
+    public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        columnNameSet.addAll(selectColumn(mainTable, tcInfo, tableSet));
-        columnNameSet.addAll(innerColumn(mainTable, tcInfo, QueryUtil.isNotEmpty(tableSet)));
+        columnNameSet.addAll(selectColumn(mainTable, tcInfo, needAlias));
+        columnNameSet.addAll(innerColumn(mainTable, tcInfo, needAlias));
         return String.join(", ", columnNameSet);
     }
 
-    public Set<String> selectColumn(String mainTable, TableColumnInfo tcInfo, Set<String> tableSet) {
+    private Set<String> selectColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        boolean needAlias = QueryUtil.isNotEmpty(tableSet);
         String currentTableName = QueryUtil.isEmpty(table) ? mainTable : table;
         for (Object obj : columns) {
             if (obj instanceof String) {
                 String col = (String) obj;
-                String tableName = QueryUtil.getTableName(col, currentTableName);
-                if (tableName.equals(currentTableName) || tableSet.contains(tableName)) {
-                    columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, col, currentTableName, tcInfo));
-                }
+                columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, col, currentTableName, tcInfo));
             } else {
                 Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
                 if (dateColumn != null) {
                     for (String column : dateColumn.keySet()) {
-                        String tableName = QueryUtil.getTableName(column, currentTableName);
-                        if (tableName.equals(currentTableName) || tableSet.contains(tableName)) {
-                            columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTableName, tcInfo));
-                        }
+                        columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTableName, tcInfo));
                     }
                 }
             }
@@ -316,7 +309,7 @@ public class ReqResult {
         return columnNameSet;
     }
 
-    public Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
+    private Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
         Set<String> columnNameSet = new LinkedHashSet<>();
         String currentTable = QueryUtil.isEmpty(table) ? mainTable : table;
         for (ReqResult innerResult : innerResult().values()) {
@@ -332,6 +325,17 @@ public class ReqResult {
             }
         }
         return columnNameSet;
+    }
+
+    public Set<String> needRemoveColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
+        Set<String> selectColumnSet = selectColumn(mainTable, tcInfo, needAlias);
+        Set<String> removeColumnSet = new HashSet<>();
+        for (String ic : innerColumn(mainTable, tcInfo, needAlias)) {
+            if (!selectColumnSet.contains(ic)) {
+                removeColumnSet.add(ic);
+            }
+        }
+        return removeColumnSet;
     }
 
     public Map<String, ReqResult> innerResult() {
