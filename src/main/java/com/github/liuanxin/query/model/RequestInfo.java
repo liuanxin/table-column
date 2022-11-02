@@ -138,6 +138,7 @@ public class RequestInfo {
     }
     private void checkRelation(TableColumnInfo tcInfo) {
         if (QueryUtil.isNotEmpty(relation)) {
+            String append = "<->";
             Set<String> tableRelation = new HashSet<>();
             for (List<String> values : relation) {
                 if (values.size() < 3) {
@@ -150,24 +151,24 @@ public class RequestInfo {
                 String masterTable = values.get(0);
                 String childTable = values.get(2);
                 if (tcInfo.findRelationByMasterChild(masterTable, childTable) == null) {
-                    throw new RuntimeException("relation " + masterTable + " and " + childTable + " has no relation");
+                    throw new RuntimeException("relation: " + masterTable + " and " + childTable + " has no relation");
                 }
 
-                String key = masterTable + "<->" + childTable;
+                String key = masterTable + append + childTable;
                 if (tableRelation.contains(key)) {
-                    throw new RuntimeException("relation " + masterTable + " and " + childTable + " can only has one relation");
+                    throw new RuntimeException("relation: " + masterTable + " and " + childTable + " can only has one relation");
                 }
                 tableRelation.add(key);
             }
             boolean hasMain = false;
-            for (String table : tableRelation) {
-                if (table.startsWith(table + ".")) {
+            for (String tr : tableRelation) {
+                if (tr.startsWith(table + append)) {
                     hasMain = true;
                     break;
                 }
             }
             if (!hasMain) {
-                throw new RuntimeException("relation has no " + table + "'s info");
+                throw new RuntimeException("relation: has no " + table + "'s info");
             }
         }
     }
