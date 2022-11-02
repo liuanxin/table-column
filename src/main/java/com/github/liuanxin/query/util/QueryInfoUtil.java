@@ -208,9 +208,9 @@ public class QueryInfoUtil {
 
     public static void checkAndSetRelation(List<TableColumnRelation> relationList, TableColumnInfo tcInfo) {
         if (QueryUtil.isNotEmpty(relationList)) {
-            List<String> noTableList = new ArrayList<>();
-            List<String> noColumnList = new ArrayList<>();
-            List<String> typeErrorList = new ArrayList<>();
+            Set<String> noTableSet = new LinkedHashSet<>();
+            Set<String> noColumnSet = new LinkedHashSet<>();
+            Set<String> typeErrorSet = new LinkedHashSet<>();
 
             Set<TableColumnRelation> set = new LinkedHashSet<>(relationList);
             for (TableColumnRelation relation : set) {
@@ -221,10 +221,10 @@ public class QueryInfoUtil {
                 Table oneOrManyTable = tcInfo.findTable(omTable);
                 if (QueryUtil.isNull(table) || QueryUtil.isNull(oneOrManyTable)) {
                     if (QueryUtil.isNull(table)) {
-                        noTableList.add(oneTable);
+                        noTableSet.add(oneTable);
                     }
                     if (QueryUtil.isNull(oneOrManyTable)) {
-                        noTableList.add(omTable);
+                        noTableSet.add(omTable);
                     }
                     continue;
                 }
@@ -236,10 +236,10 @@ public class QueryInfoUtil {
                 TableColumn oneOrManyColumn = tcInfo.findTableColumn(oneOrManyTable, omColumn);
                 if (QueryUtil.isNull(tableColumn) || QueryUtil.isNull(oneOrManyColumn)) {
                     if (QueryUtil.isNull(tableColumn)) {
-                        noColumnList.add(oneColumn);
+                        noColumnSet.add(oneColumn);
                     }
                     if (QueryUtil.isNull(oneOrManyColumn)) {
-                        noColumnList.add(omColumn);
+                        noColumnSet.add(omColumn);
                     }
                     continue;
                 }
@@ -251,7 +251,7 @@ public class QueryInfoUtil {
                 if (oneType != omType || !Objects.equals(oneLen, omLen)) {
                     String one = oneTable + "." + oneColumn + "(" + oneType.getSimpleName() + (oneLen > 0 ? (":" + oneLen) : "") + ")";
                     String om = omTable + "." + omColumn + "(" + omType.getSimpleName() + (omLen > 0 ? (":" + omLen) : "") + ")";
-                    typeErrorList.add(one + " : " + om);
+                    typeErrorSet.add(one + " : " + om);
                 }
 
                 relation.setOneTable(table.getName());
@@ -259,14 +259,14 @@ public class QueryInfoUtil {
                 relation.setOneOrManyTable(oneOrManyTable.getName());
                 relation.setOneOrManyColumn(oneOrManyColumn.getName());
             }
-            if (QueryUtil.isNotEmpty(noTableList)) {
-                throw new RuntimeException("check relation: table(" + String.join(", ", noTableList) + ") has no defined");
+            if (QueryUtil.isNotEmpty(noTableSet)) {
+                throw new RuntimeException("check relation: table(" + String.join(", ", noTableSet) + ") has no defined");
             }
-            if (QueryUtil.isNotEmpty(noColumnList)) {
-                throw new RuntimeException("check relation: column(" + String.join(", ", noColumnList) + ") has no defined");
+            if (QueryUtil.isNotEmpty(noColumnSet)) {
+                throw new RuntimeException("check relation: column(" + String.join(", ", noColumnSet) + ") has no defined");
             }
-            if (QueryUtil.isNotEmpty(typeErrorList)) {
-                throw new RuntimeException("check relation: column data type or length { " + String.join(", ", typeErrorList) + " } error");
+            if (QueryUtil.isNotEmpty(typeErrorSet)) {
+                throw new RuntimeException("check relation: column data type or length { " + String.join(", ", typeErrorSet) + " } error");
             }
             tcInfo.handleRelation(new ArrayList<>(set));
         }

@@ -51,7 +51,7 @@ public class TableColumnInfo {
     }
 
     public Table findTable(String tableName) {
-        if (QueryUtil.isNotEmpty(tableName)) {
+        if (QueryUtil.isEmpty(tableName)) {
             return null;
         }
         String tn = tableName.trim();
