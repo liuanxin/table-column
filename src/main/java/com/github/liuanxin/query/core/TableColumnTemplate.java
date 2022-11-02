@@ -68,8 +68,10 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isNotEmpty(scanPackages)) {
             tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages, relationList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
-        }
-        if (QueryUtil.isNull(tcInfo)) {
+            if (QueryUtil.isNull(tcInfo)) {
+                throw new RuntimeException(String.format("class not found in(%s)", scanPackages));
+            }
+        } else {
             String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
             // table_name, table_comment
             List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
