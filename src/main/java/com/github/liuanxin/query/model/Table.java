@@ -401,15 +401,6 @@ public class Table {
 
     public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo,
                                  List<Object> params, StringBuilder printSql, boolean force) {
-        StringBuilder logicDelete = new StringBuilder();
-        StringBuilder logicDeletePrint = new StringBuilder();
-        if (!force) {
-            if (QueryUtil.isNotEmpty(logicColumn)) {
-                params.add(logicDeleteValue);
-                logicDelete.append(logicColumn).append(" = ?");
-                logicDeletePrint.append(logicColumn).append(" = ").append(logicDeleteValue);
-            }
-        }
         StringBuilder wherePrint = new StringBuilder();
         String where = query.generateSql(name, tcInfo, params, wherePrint);
         if (QueryUtil.isEmpty(where)) {
@@ -417,9 +408,11 @@ public class Table {
         }
 
         String table = QuerySqlUtil.toSqlField(name);
-        if (logicDelete.length() > 0) {
-            printSql.append("UPDATE ").append(table).append(" SET ").append(logicDeletePrint).append(" WHERE ").append(wherePrint);
-            return "UPDATE " + table + " SET " + logicDelete + " WHERE " + where;
+        if (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue)) {
+            String logicDelete = logicColumn + " = " + logicDeleteValue;
+            String update = "UPDATE " + table + " SET " + logicDelete + " WHERE ";
+            printSql.append(update).append(wherePrint);
+            return update + where;
         } else {
             printSql.append("DELETE FROM ").append(table).append(" WHERE ").append(wherePrint);
             return "DELETE FROM " + table + " WHERE " + where;
@@ -448,7 +441,7 @@ public class Table {
         }
 
         StringBuilder logicDeletePrint = new StringBuilder();
-        String logicDeleteCondition = logicDeleteCondition(force, false, params, logicDeletePrint);
+        String logicDeleteCondition = logicDeleteCondition(force, false, logicDeletePrint);
 
         String limit = "";
         StringBuilder limitPrint = new StringBuilder();
@@ -484,13 +477,13 @@ public class Table {
         return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDeleteCondition
                 + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
     }
-    public String logicDeleteCondition(boolean force, boolean needAlias, List<Object> params, StringBuilder printSql) {
-        if (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue)) {
+    public String logicDeleteCondition(boolean force, boolean needAlias, StringBuilder printSql) {
+        if (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicValue)) {
             String tableAlias = needAlias ? (QuerySqlUtil.toSqlField(alias) + ".") : "";
-            params.add(logicDeleteValue);
             String column = QuerySqlUtil.toSqlField(logicColumn);
-            printSql.append(" AND ").append(tableAlias).append(column).append(" = ").append(logicDeleteValue);
-            return " AND " + tableAlias + column + " = ?";
+            String logicDelete = " AND " + tableAlias + column + " = " + logicValue;
+            printSql.append(logicDelete);
+            return logicDelete;
         } else {
             return "";
         }
