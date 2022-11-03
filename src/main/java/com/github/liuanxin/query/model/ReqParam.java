@@ -136,21 +136,26 @@ public class ReqParam {
         return paramTableSet;
     }
 
-    public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias,
-                                   List<Object> params, boolean force, StringBuilder printSql) {
+    public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params,
+                                   Set<String> useTableSet, boolean force, StringBuilder printSql) {
         if (QueryUtil.isNull(query)) {
             return "";
-        } else {
-            StringBuilder print = new StringBuilder();
-            String where = query.generateSql(mainTable, tcInfo, needAlias, params, print);
-            if (QueryUtil.isEmpty(where)) {
-                return "";
-            } else {
-                // todo
-                printSql.append(" WHERE ").append(print);
-                return " WHERE " + where;
-            }
         }
+
+        StringBuilder print = new StringBuilder();
+        String where = query.generateSql(mainTable, tcInfo, needAlias, params, print);
+        if (QueryUtil.isEmpty(where)) {
+            return "";
+        }
+
+        printSql.append(" WHERE ").append(print);
+        StringBuilder logicDelete = new StringBuilder();
+        for (String t : useTableSet) {
+            StringBuilder logicDeletePrint = new StringBuilder();
+            logicDelete.append(tcInfo.findTable(t).logicDeleteCondition(force, needAlias, params, logicDeletePrint));
+            printSql.append(logicDeletePrint);
+        }
+        return " WHERE " + where + logicDelete;
     }
 
     public String generateOrderSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {

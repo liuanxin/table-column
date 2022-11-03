@@ -401,25 +401,29 @@ public class Table {
 
     public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo,
                                  List<Object> params, StringBuilder printSql, boolean force) {
-        StringBuilder print = new StringBuilder();
-        String where = query.generateSql(name, tcInfo, params, print);
+        StringBuilder logicDelete = new StringBuilder();
+        StringBuilder logicDeletePrint = new StringBuilder();
+        if (!force) {
+            if (QueryUtil.isNotEmpty(logicColumn)) {
+                params.add(logicDeleteValue);
+                logicDelete.append(logicColumn).append(" = ?");
+                logicDeletePrint.append(logicColumn).append(" = ").append(logicDeleteValue);
+            }
+        }
+        StringBuilder wherePrint = new StringBuilder();
+        String where = query.generateSql(name, tcInfo, params, wherePrint);
         if (QueryUtil.isEmpty(where)) {
             return "";
         }
 
         String table = QuerySqlUtil.toSqlField(name);
-        if (!force) {
-            String set = "";
-            if (QueryUtil.isNotEmpty(logicColumn)) {
-                set = logicColumn + " = " + logicDeleteValue;
-            }
-            if (QueryUtil.isNotEmpty(set)) {
-                printSql.append("UPDATE ").append(table).append(" SET ").append(set).append(" WHERE ").append(print);
-                return "UPDATE " + table + " SET " + set + " WHERE " + where;
-            }
+        if (logicDelete.length() > 0) {
+            printSql.append("UPDATE ").append(table).append(" SET ").append(logicDeletePrint).append(" WHERE ").append(wherePrint);
+            return "UPDATE " + table + " SET " + logicDelete + " WHERE " + where;
+        } else {
+            printSql.append("DELETE FROM ").append(table).append(" WHERE ").append(wherePrint);
+            return "DELETE FROM " + table + " WHERE " + where;
         }
-        printSql.append("DELETE FROM ").append(table).append(" WHERE ").append(print);
-        return "DELETE FROM " + table + " WHERE " + where;
     }
 
 
@@ -443,6 +447,9 @@ public class Table {
             return "";
         }
 
+        StringBuilder logicDeletePrint = new StringBuilder();
+        String logicDeleteCondition = logicDeleteCondition(force, false, params, logicDeletePrint);
+
         String limit = "";
         StringBuilder limitPrint = new StringBuilder();
         if (QueryUtil.isNotEmpty(pageList)) {
@@ -463,8 +470,6 @@ public class Table {
             }
         }
 
-        String logicDeleteCondition = (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue))
-                ? (" AND " + logicColumn + " = " + logicDeleteValue) : "";
         // 1. FROM: determine
         // 2. WHERE: filters on the rows
         // 3. GROUP BY: combines those rows into groups
@@ -473,11 +478,22 @@ public class Table {
         // 6. LIMIT: filters on the remaining rows/groups
         String table = QuerySqlUtil.toSqlField(name);
         printSql.append("SELECT ").append(column).append(" FROM ").append(table)
-                .append(" WHERE ").append(wherePrint).append(logicDeleteCondition)
+                .append(" WHERE ").append(wherePrint).append(logicDeletePrint)
                 .append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
                 .append(QueryUtil.toStr(orderBy)).append(limitPrint);
         return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDeleteCondition
                 + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
+    }
+    public String logicDeleteCondition(boolean force, boolean needAlias, List<Object> params, StringBuilder printSql) {
+        if (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicDeleteValue)) {
+            String tableAlias = needAlias ? (QuerySqlUtil.toSqlField(alias) + ".") : "";
+            params.add(logicDeleteValue);
+            String column = QuerySqlUtil.toSqlField(logicColumn);
+            printSql.append(" AND ").append(tableAlias).append(column).append(" = ").append(logicDeleteValue);
+            return " AND " + tableAlias + column + " = ?";
+        } else {
+            return "";
+        }
     }
 
 

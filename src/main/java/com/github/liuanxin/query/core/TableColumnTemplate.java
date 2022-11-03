@@ -993,7 +993,7 @@ public class TableColumnTemplate implements InitializingBean {
         String fromSql = QuerySqlUtil.toFromSql(tcInfo, mainTable, useRelationList);
         List<Object> params = new ArrayList<>();
         StringBuilder wherePrint = new StringBuilder();
-        String whereSql = param.generateWhereSql(mainTable, tcInfo, needAlias, params, force, wherePrint);
+        String whereSql = param.generateWhereSql(mainTable, tcInfo, needAlias, params, useTableSet, force, wherePrint);
         String fromAndWhere = fromSql + whereSql;
         String fromAndWherePrint = fromSql + wherePrint;
 
