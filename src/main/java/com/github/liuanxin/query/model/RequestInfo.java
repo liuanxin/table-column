@@ -116,8 +116,9 @@ public class RequestInfo {
 
     public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet,
                               Set<String> paramTableSet, Set<String> resultTableSet) {
-        paramTableSet.remove(table);
-        resultTableSet.remove(table);
+        Table tableInfo = tcInfo.findTable(table);
+        paramTableSet.remove(tableInfo.getName());
+        resultTableSet.remove(tableInfo.getName());
         if (QueryUtil.isEmpty(relation)) {
             if (QueryUtil.isNotEmpty(paramTableSet) || QueryUtil.isNotEmpty(resultTableSet)) {
                 throw new RuntimeException("request need relation");
