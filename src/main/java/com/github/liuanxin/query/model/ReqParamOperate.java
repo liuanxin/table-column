@@ -175,7 +175,7 @@ public class ReqParamOperate {
                     boolean standardSize = (size == 2);
                     ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
                     if (type == null) {
-                        throw new RuntimeException(String.format("param condition column(%s) need type", column));
+                        throw new RuntimeException(String.format("param condition column(%s) type(%s) error", column, list.get(1)));
                     }
 
                     TableColumn tableColumn = tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column));
