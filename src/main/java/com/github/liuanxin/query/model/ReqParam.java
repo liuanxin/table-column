@@ -142,23 +142,23 @@ public class ReqParam {
             return "";
         }
 
-        StringBuilder print = new StringBuilder();
-        String where = query.generateSql(mainTable, tcInfo, needAlias, params, print);
+        StringBuilder wherePrint = new StringBuilder();
+        String where = query.generateSql(mainTable, tcInfo, needAlias, params, wherePrint);
         if (QueryUtil.isEmpty(where)) {
             return "";
         }
 
-        printSql.append(" WHERE ").append(print);
-        StringBuilder logicDelete = new StringBuilder();
+        printSql.append(" WHERE ").append(wherePrint);
         Set<String> tableSet = new LinkedHashSet<>();
         tableSet.add(mainTable);
         if (QueryUtil.isNotEmpty(useTableSet)) {
             tableSet.addAll(useTableSet);
         }
+        StringBuilder logicDelete = new StringBuilder();
         for (String t : tableSet) {
-            StringBuilder logicDeletePrint = new StringBuilder();
-            logicDelete.append(tcInfo.findTable(t).logicDeleteCondition(force, needAlias, logicDeletePrint));
-            printSql.append(logicDeletePrint);
+            String ld = tcInfo.findTable(t).logicDeleteCondition(force, needAlias);
+            printSql.append(ld);
+            logicDelete.append(ld);
         }
         return " WHERE " + where + logicDelete;
     }

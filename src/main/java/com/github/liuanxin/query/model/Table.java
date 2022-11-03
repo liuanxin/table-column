@@ -440,10 +440,7 @@ public class Table {
             return "";
         }
 
-        StringBuilder logicDeletePrint = new StringBuilder();
-        String logicDeleteCondition = logicDeleteCondition(force, false, logicDeletePrint);
-
-        String limit = "";
+        StringBuilder limit = new StringBuilder();
         StringBuilder limitPrint = new StringBuilder();
         if (QueryUtil.isNotEmpty(pageList)) {
             Integer page = pageList.get(0);
@@ -453,15 +450,16 @@ public class Table {
             int size = QueryConst.LIMIT_SET.contains(limitSize) ? limitSize : QueryConst.DEFAULT_LIMIT;
             if (index == 1) {
                 params.add(size);
-                limit = " LIMIT ?";
+                limit.append(" LIMIT ?");
                 limitPrint.append(" LIMIT ").append(size);
             } else {
                 params.add((index - 1) * size);
                 params.add(size);
-                limit = " LIMIT ?, ?";
+                limit.append(" LIMIT ?, ?");
                 limitPrint.append(" LIMIT ").append((index - 1) * size).append(", ").append(size);
             }
         }
+        String logicDelete = logicDeleteCondition(force, false);
 
         // 1. FROM: determine
         // 2. WHERE: filters on the rows
@@ -471,19 +469,17 @@ public class Table {
         // 6. LIMIT: filters on the remaining rows/groups
         String table = QuerySqlUtil.toSqlField(name);
         printSql.append("SELECT ").append(column).append(" FROM ").append(table)
-                .append(" WHERE ").append(wherePrint).append(logicDeletePrint)
+                .append(" WHERE ").append(wherePrint).append(logicDelete)
                 .append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
                 .append(QueryUtil.toStr(orderBy)).append(limitPrint);
-        return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDeleteCondition
+        return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDelete
                 + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
     }
-    public String logicDeleteCondition(boolean force, boolean needAlias, StringBuilder printSql) {
+    public String logicDeleteCondition(boolean force, boolean needAlias) {
         if (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicValue)) {
             String tableAlias = needAlias ? (QuerySqlUtil.toSqlField(alias) + ".") : "";
             String column = QuerySqlUtil.toSqlField(logicColumn);
-            String logicDelete = " AND " + tableAlias + column + " = " + logicValue;
-            printSql.append(logicDelete);
-            return logicDelete;
+            return " AND " + tableAlias + column + " = " + logicValue;
         } else {
             return "";
         }
