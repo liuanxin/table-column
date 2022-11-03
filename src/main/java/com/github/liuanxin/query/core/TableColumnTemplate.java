@@ -997,33 +997,35 @@ public class TableColumnTemplate implements InitializingBean {
         String fromAndWhere = fromSql + whereSql;
         String fromAndWherePrint = fromSql + wherePrint;
 
-        // + query page (include count)
-        //   + group by
-        //     1. query count
-        //       > SELECT COUNT(*) FROM ( SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ) TMP
-        //     2. query list
-        //       > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT ...
-        //   + no group by
-        //     1. query count
-        //       > multiple table: SELECT COUNT(DISTINCT id) FROM ..
-        //       > single table:   SELECT COUNT(*) FROM ...
-        //     2. query list
-        //       + query deep page
-        //         2.1. SELECT id FROM ... WHERE ... ORDER BY ... LIMIT x, x
-        //         2.2. SELECT ... FROM ... WHERE id IN (...)
-        //       + query no deep page
-        //         > SELECT ... FROM ... WHERE ... LIMIT x, x
-        //
-        // + query page (exclusive count)
-        //   > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT x, x
-        //
-        // + query one (no page)
-        //   > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT 1
-        //
-        // + query list (no page)
-        //   > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ...
-        //
-        // return data after assembly
+        /*
+        + query page (include count)
+          + group by
+            1. query count
+              1.1. SELECT COUNT(*) FROM ( SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ) TMP
+            2. query list
+              2.1. SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT ...
+          + no group by
+            1. query count
+              - multiple table: SELECT COUNT(DISTINCT id) FROM ..
+              - single table:   SELECT COUNT(*) FROM ...
+            2. query list
+              + query deep page
+                2.1. SELECT id FROM ... WHERE ... ORDER BY ... LIMIT x, x
+                2.2. SELECT ... FROM ... WHERE id IN (...)
+              + query no deep page
+                > SELECT ... FROM ... WHERE ... LIMIT x, x
+
+        + query page (exclusive count)
+          > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT x, x
+
+        + query one (no page)
+          > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT 1
+
+        + query list (no page)
+          > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ...
+
+        return data after assembly
+        */
 
         if (param.needQueryPage()) {
             if (param.needQueryCount()) {
