@@ -150,7 +150,12 @@ public class ReqParam {
 
         printSql.append(" WHERE ").append(print);
         StringBuilder logicDelete = new StringBuilder();
-        for (String t : useTableSet) {
+        Set<String> tableSet = new LinkedHashSet<>();
+        tableSet.add(mainTable);
+        if (QueryUtil.isNotEmpty(useTableSet)) {
+            tableSet.addAll(useTableSet);
+        }
+        for (String t : tableSet) {
             StringBuilder logicDeletePrint = new StringBuilder();
             logicDelete.append(tcInfo.findTable(t).logicDeleteCondition(force, needAlias, params, logicDeletePrint));
             printSql.append(logicDeletePrint);
