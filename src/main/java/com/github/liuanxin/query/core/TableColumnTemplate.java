@@ -1013,7 +1013,7 @@ public class TableColumnTemplate implements InitializingBean {
                 2.1. SELECT id FROM ... WHERE ... ORDER BY ... LIMIT x, x
                 2.2. SELECT ... FROM ... WHERE id IN (...)
               + query no deep page
-                > SELECT ... FROM ... WHERE ... LIMIT x, x
+                > SELECT ... FROM ... WHERE ... ORDER BY ... LIMIT x, x
 
         + query page (exclusive count)
           > SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT x, x
@@ -1133,7 +1133,8 @@ public class TableColumnTemplate implements InitializingBean {
             sql = QuerySqlUtil.toSelectWithIdSql(tcInfo, mainTable, fromSql, result, idList, needAlias, params, printSql);
         } else {
             // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
-            sql = QuerySqlUtil.toPageSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, printSql);
+            sql = QuerySqlUtil.toPageSql(tcInfo, fromAndWhere,
+                    fromAndWherePrint, mainTable, param, result, needAlias, params, printSql);
         }
         return assemblyResult(sql, needAlias, params, mainTable, result, printSql);
     }
