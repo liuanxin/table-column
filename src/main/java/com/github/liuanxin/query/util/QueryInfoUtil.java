@@ -132,8 +132,8 @@ public class QueryInfoUtil {
                     columnName = QueryUtil.defaultIfBlank(columnInfo.value(), QueryUtil.fieldToColumnName(fieldName));
 
                     columnDesc = columnInfo.desc();
-                    // 1. alias, 2. column-name, 3. field-name
-                    columnAlias = QueryUtil.defaultIfBlank(QueryUtil.defaultIfBlank(columnInfo.alias(), columnName), fieldName);
+                    // 1. alias, 2. field-name
+                    columnAlias = QueryUtil.defaultIfBlank(columnInfo.alias(), fieldName);
                     primary = columnInfo.primary();
                     strLen = columnInfo.strLen();
                     notNull = columnInfo.notNull();
