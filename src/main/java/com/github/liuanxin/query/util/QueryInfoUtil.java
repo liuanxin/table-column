@@ -360,6 +360,7 @@ public class QueryInfoUtil {
         StringBuilder sbd = new StringBuilder();
         Set<String> importSet = new TreeSet<>();
         Set<String> javaImportSet = new TreeSet<>();
+        int success = 0;
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             if (QueryUtil.isNotEmpty(tableSet) && !tableSet.contains(tableName.toLowerCase())) {
@@ -454,9 +455,13 @@ public class QueryInfoUtil {
                 if (LOG.isInfoEnabled()) {
                     LOG.info("file({}) write(cover if exists) success", file);
                 }
+                success++;
             } catch (IOException e) {
                 throw new RuntimeException(String.format("file(%s) write(cover if exists) exception", file), e);
             }
+        }
+        if (LOG.isInfoEnabled()) {
+            LOG.info("write {} file success", success);
         }
     }
 }
