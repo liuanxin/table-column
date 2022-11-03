@@ -2,7 +2,9 @@ package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.ConditionType;
 import com.github.liuanxin.query.enums.OperateType;
+import com.github.liuanxin.query.function.FunctionSerialize;
 import com.github.liuanxin.query.util.QueryJsonUtil;
+import com.github.liuanxin.query.util.QueryLambdaUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
 import java.io.Serializable;
@@ -134,6 +136,28 @@ public class SingleTableWhere {
                 "operate=" + operate +
                 ", conditions=" + conditions +
                 '}';
+    }
+
+    public void clear() {
+        if (QueryUtil.isNotNull(operate)) {
+            operate = null;
+        }
+        if (QueryUtil.isNotEmpty(conditions)) {
+            conditions.clear();
+        }
+    }
+
+    public <T> void addCondition(FunctionSerialize<T,?> column, ConditionType type, Object value) {
+        if (QueryUtil.isNotEmpty(conditions)) {
+            conditions.add(Arrays.asList(
+                    QueryLambdaUtil.toColumnName(column), type.name().toLowerCase(), value
+            ));
+        }
+    }
+    public <T> void addComposeCondition(SingleTableWhere composeCondition) {
+        if (QueryUtil.isNotEmpty(conditions)) {
+            conditions.add(composeCondition);
+        }
     }
 
 

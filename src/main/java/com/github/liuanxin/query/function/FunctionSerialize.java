@@ -16,7 +16,7 @@ import java.util.function.Function;
  * }
  *
  * public void main(String[] args) {
- *     Example example = new Example();
+ *     // Example example = new Example();
  *     // func(example::getId); <span style="color:red">// compile error : Cannot resolve method 'getId'</span>
  *     func(Example::getId);
  * }

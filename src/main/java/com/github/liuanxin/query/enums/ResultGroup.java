@@ -58,6 +58,10 @@ public enum ResultGroup {
     public String generateColumn(String column) {
         return String.format(value, column) + " AS " + generateAlias(column);
     }
+    /** alias 不能用在占位, 否则会导致 sql 注入 */
+    public String generateColumn(String column, String alias) {
+        return String.format(value, column) + " AS " + alias;
+    }
     public String generateAlias(String column) {
         String args;
         if (needCheckColumn(column)) {
