@@ -22,11 +22,18 @@
       "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀."
     },
     {
+      "name": "query.alias-generate-rule",
+      "type": "java.lang.Integer",
+      "defaultValue": "0",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
+      "description": "表名是 user_info 或 USER_INFO, 字段名是 user_name 或 USER_NAME 时, 别名生成的规则: 0(表别名 UserInfo, 字段别名 userName), 1(表别名 UI, 字段别名 un), 2(保持一致)."
+    },
+    {
       "name": "query.deep-max-page-size",
       "type": "java.lang.Integer",
       "defaultValue": "10000",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "当要请求的数据页(page * limit)大于当前值时, sql 会先查出 id 再查具体的数据."
+      "description": "当要请求的数据页(page * limit)大于当前值时, sql 查询将会拆分成 2 条, 先只查 id 再用 id 查具体的数据."
     },
     {
       "name": "query.max-list-count",
@@ -41,13 +48,6 @@
       "defaultValue": "0",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "当表与表之间是一对一关联, 但查询时数据却出现了多条, 1:以前面的为准, 2:后面覆盖前面, 否则抛出异常."
-    },
-    {
-      "name": "query.alias-mode",
-      "type": "java.lang.Integer",
-      "defaultValue": "0",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "0(表 user_info | USER_INFO -> UserInfo, 字段 user_name | USER_NAME -> userName), 1(表 UI, 字段 un), 2(保持一致)."
     },
     {
       "name": "query.logic-delete-column",

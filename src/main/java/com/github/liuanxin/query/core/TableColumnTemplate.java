@@ -30,6 +30,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
+    @Value("${query.alias-generate-rule:0}") // todo
+    private int aliasGenerateRule;
+
     @Value("${query.deep-max-page-size:10000}")
     private int deepMaxPageSize;
 
@@ -38,9 +41,6 @@ public class TableColumnTemplate implements InitializingBean {
 
     @Value("${query.one-to-one-has-many:0}")
     private int oneToOneHasMany;
-
-    @Value("${query.alias-mode:0}") // todo
-    private int aliasMode;
 
     @Value("${query.logic-delete-column:}")
     private String logicDeleteColumn;
