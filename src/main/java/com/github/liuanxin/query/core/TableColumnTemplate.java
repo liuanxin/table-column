@@ -39,6 +39,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.one-to-one-has-many:0}")
     private int oneToOneHasMany;
 
+    @Value("${query.alias-mode:0}") // todo
+    private int aliasMode;
+
     @Value("${query.logic-delete-column:}")
     private String logicDeleteColumn;
 
