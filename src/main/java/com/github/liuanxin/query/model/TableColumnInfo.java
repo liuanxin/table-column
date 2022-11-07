@@ -68,7 +68,7 @@ public class TableColumnInfo {
             return null;
         }
         String cn = columnName.trim();
-        String ca = aliasMap.get(QueryConst.COLUMN_PREFIX + cn);
+        String ca = aliasMap.get(QueryConst.COLUMN_PREFIX  + table.getAlias() + "-" + cn);
         return columnMap.get(QueryUtil.defaultIfBlank(ca, cn));
     }
 

@@ -176,7 +176,7 @@ public class QueryInfoUtil {
                 }
                 columnAliasSet.add(columnAlias);
 
-                aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
+                aliasMap.put(QueryConst.COLUMN_PREFIX + tableAlias + "-" + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
                         ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
             }
@@ -324,7 +324,7 @@ public class QueryInfoUtil {
                 }
                 columnAliasSet.add(columnAlias);
 
-                aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
+                aliasMap.put(QueryConst.COLUMN_PREFIX + tableAlias + "-" + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
                         ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
             }
