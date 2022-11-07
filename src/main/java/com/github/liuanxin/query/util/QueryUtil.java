@@ -55,37 +55,26 @@ public class QueryUtil {
         return tableNameToClassAlias(tablePrefix, tableName, 0);
     }
 
-    /** 表名是 user_info 或 USER_INFO, 别名生成的规则: 0 -> UserInfo, 1 -> UI, 2 -> 保持一致 */
+    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1, 小写, 2 -> 保持一致 */
     public static String tableNameToClassAlias(String tablePrefix, String tableName, int aliasRule) {
         if (isEmpty(tableName)) {
             return "";
         }
         String tn;
         if (isNotEmpty(tablePrefix) && tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
-            tn = tableName.substring(tablePrefix.length()).toLowerCase();
+            tn = tableName.substring(tablePrefix.length());
         } else {
-            tn = tableName.toLowerCase();
+            tn = tableName;
         }
-        if (aliasRule == 2) {
-            return tn;
-        }
-        if (!tn.contains("_")) {
-            return tn.substring(0, 1).toUpperCase() + tn.substring(1);
-        }
-
-        StringBuilder sbd = new StringBuilder();
-        char[] chars = tn.toCharArray();
-        int len = chars.length;
-        sbd.append(Character.toUpperCase(chars[0]));
         if (aliasRule == 1) {
-            for (int i = 1; i < len; i++) {
-                char c = chars[i];
-                if (c == '_') {
-                    i++;
-                    sbd.append(Character.toUpperCase(chars[i]));
-                }
-            }
+            return tn.toLowerCase();
+        } else if (aliasRule == 2) {
+            return tn;
         } else {
+            StringBuilder sbd = new StringBuilder();
+            char[] chars = tn.toCharArray();
+            int len = chars.length;
+            sbd.append(Character.toUpperCase(chars[0]));
             for (int i = 1; i < len; i++) {
                 char c = chars[i];
                 if (c == '_') {
@@ -95,8 +84,8 @@ public class QueryUtil {
                     sbd.append(Character.toLowerCase(c));
                 }
             }
+            return sbd.toString();
         }
-        return sbd.toString();
     }
 
     /** user_name | USER_NAME --> userName */
@@ -104,27 +93,16 @@ public class QueryUtil {
         return columnNameToFieldAlias(columnName, 0);
     }
 
-    /** 字段名是 user_name 或 USER_NAME 时, 别名生成的规则: 0 -> userName, 1 -> un, 2 -> 保持一致 */
+    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 小写, 2 -> 保持一致 */
     public static String columnNameToFieldAlias(String columnName, int aliasRule) {
-        if (aliasRule == 2) {
-            return columnName;
-        }
-        if (!columnName.contains("_")) {
-            return columnName.toLowerCase();
-        }
-
-        StringBuilder sbd = new StringBuilder();
-        char[] chars = columnName.toCharArray();
-        int len = chars.length;
         if (aliasRule == 1) {
-            sbd.append(Character.toLowerCase(chars[0]));
-            for (int i = 1; i < len; i++) {
-                if (chars[i] == '_') {
-                    i++;
-                    sbd.append(Character.toLowerCase(chars[i]));
-                }
-            }
+            return columnName.toLowerCase();
+        } else if (aliasRule == 2) {
+            return columnName;
         } else {
+            StringBuilder sbd = new StringBuilder();
+            char[] chars = columnName.toCharArray();
+            int len = chars.length;
             for (int i = 0; i < len; i++) {
                 char c = chars[i];
                 if (c == '_') {
@@ -134,8 +112,8 @@ public class QueryUtil {
                     sbd.append(Character.toLowerCase(c));
                 }
             }
+            return sbd.toString();
         }
-        return sbd.toString();
     }
 
 
