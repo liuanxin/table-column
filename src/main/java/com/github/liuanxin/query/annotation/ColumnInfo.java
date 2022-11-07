@@ -10,7 +10,7 @@ public @interface ColumnInfo {
     /** table column name */
     String value() default "";
 
-    /** table column alias, use column name if empty */
+    /** table column alias, use class - field name if empty */
     String alias() default "";
 
     /** table column comment */
