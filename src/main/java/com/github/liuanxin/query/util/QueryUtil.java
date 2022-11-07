@@ -62,41 +62,41 @@ public class QueryUtil {
         }
         String tn;
         if (isNotEmpty(tablePrefix) && tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
-            tn = tableName.substring(tablePrefix.length());
+            tn = tableName.substring(tablePrefix.length()).toLowerCase();
         } else {
-            tn = tableName;
+            tn = tableName.toLowerCase();
         }
         if (aliasRule == 2) {
             return tn;
-        } else {
-            if (!tn.contains("_")) {
-                return tn;
-            }
-            StringBuilder sbd = new StringBuilder();
-            char[] chars = tn.toCharArray();
-            int len = chars.length;
-            sbd.append(Character.toUpperCase(chars[0]));
-            if (aliasRule == 1) {
-                for (int i = 1; i < len; i++) {
-                    char c = chars[i];
-                    if (c == '_') {
-                        i++;
-                        sbd.append(Character.toUpperCase(chars[i]));
-                    }
-                }
-            } else {
-                for (int i = 1; i < len; i++) {
-                    char c = chars[i];
-                    if (c == '_') {
-                        i++;
-                        sbd.append(Character.toUpperCase(chars[i]));
-                    } else {
-                        sbd.append(Character.toLowerCase(c));
-                    }
-                }
-            }
-            return sbd.toString();
         }
+        if (!tn.contains("_")) {
+            return tn.substring(0, 1).toUpperCase() + tn.substring(1);
+        }
+
+        StringBuilder sbd = new StringBuilder();
+        char[] chars = tn.toCharArray();
+        int len = chars.length;
+        sbd.append(Character.toUpperCase(chars[0]));
+        if (aliasRule == 1) {
+            for (int i = 1; i < len; i++) {
+                char c = chars[i];
+                if (c == '_') {
+                    i++;
+                    sbd.append(Character.toUpperCase(chars[i]));
+                }
+            }
+        } else {
+            for (int i = 1; i < len; i++) {
+                char c = chars[i];
+                if (c == '_') {
+                    i++;
+                    sbd.append(Character.toUpperCase(chars[i]));
+                } else {
+                    sbd.append(Character.toLowerCase(c));
+                }
+            }
+        }
+        return sbd.toString();
     }
 
     /** user_name | USER_NAME --> userName */
@@ -109,9 +109,8 @@ public class QueryUtil {
         if (aliasRule == 2) {
             return columnName;
         }
-
         if (!columnName.contains("_")) {
-            return columnName;
+            return columnName.toLowerCase();
         }
 
         StringBuilder sbd = new StringBuilder();

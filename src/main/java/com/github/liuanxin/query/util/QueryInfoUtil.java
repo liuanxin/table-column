@@ -416,11 +416,11 @@ public class QueryInfoUtil {
                 if (!columnName.equals(fieldName)) {
                     columnInfoList.add(String.format("value = \"%s\"", columnName));
                 }
-                if (QueryUtil.isNotEmpty(columnDesc)) {
-                    columnInfoList.add(String.format("desc = \"%s\"", columnDesc));
-                }
                 if (!columnAlias.equals(fieldName)) {
                     columnInfoList.add(String.format("alias = \"%s\"", columnAlias));
+                }
+                if (QueryUtil.isNotEmpty(columnDesc)) {
+                    columnInfoList.add(String.format("desc = \"%s\"", columnDesc));
                 }
                 if (primary) {
                     columnInfoList.add("primary = true");
@@ -451,11 +451,11 @@ public class QueryInfoUtil {
             if (!tableName.equals(className)) {
                 tableInfoList.add(String.format("value = \"%s\"", tableName));
             }
-            if (QueryUtil.isNotEmpty(tableDesc)) {
-                tableInfoList.add(String.format("desc = \"%s\"", tableDesc));
-            }
             if (!tableAlias.equals(className)) {
                 tableInfoList.add(String.format("alias = \"%s\"", tableAlias));
+            }
+            if (QueryUtil.isNotEmpty(tableDesc)) {
+                tableInfoList.add(String.format("desc = \"%s\"", tableDesc));
             }
 
             importSet.add("import lombok.Data;");
@@ -471,7 +471,7 @@ public class QueryInfoUtil {
             }
             sbd.append("@Data\n");
             if (QueryUtil.isNotEmpty(tableInfoList)) {
-                sbd.append("@TableInfo(").append(String.join(" ,", tableInfoList)).append(")\n");
+                sbd.append("@TableInfo(").append(String.join(", ", tableInfoList)).append(")\n");
             }
             sbd.append("public class ").append(className).append(" {\n\n");
             sbd.append(String.join("\n", fieldList));
