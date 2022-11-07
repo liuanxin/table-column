@@ -69,6 +69,9 @@ public class QueryUtil {
         if (aliasRule == 2) {
             return tn;
         } else {
+            if (!tn.contains("_")) {
+                return tn;
+            }
             StringBuilder sbd = new StringBuilder();
             char[] chars = tn.toCharArray();
             int len = chars.length;
@@ -105,31 +108,35 @@ public class QueryUtil {
     public static String columnNameToFieldAlias(String columnName, int aliasRule) {
         if (aliasRule == 2) {
             return columnName;
-        } else {
-            StringBuilder sbd = new StringBuilder();
-            char[] chars = columnName.toCharArray();
-            int len = chars.length;
-            if (aliasRule == 1) {
-                sbd.append(Character.toLowerCase(chars[0]));
-                for (int i = 1; i < len; i++) {
-                    if (chars[i] == '_') {
-                        i++;
-                        sbd.append(Character.toLowerCase(chars[i]));
-                    }
-                }
-            } else {
-                for (int i = 0; i < len; i++) {
-                    char c = chars[i];
-                    if (c == '_') {
-                        i++;
-                        sbd.append(Character.toUpperCase(chars[i]));
-                    } else {
-                        sbd.append(Character.toLowerCase(c));
-                    }
+        }
+
+        if (!columnName.contains("_")) {
+            return columnName;
+        }
+
+        StringBuilder sbd = new StringBuilder();
+        char[] chars = columnName.toCharArray();
+        int len = chars.length;
+        if (aliasRule == 1) {
+            sbd.append(Character.toLowerCase(chars[0]));
+            for (int i = 1; i < len; i++) {
+                if (chars[i] == '_') {
+                    i++;
+                    sbd.append(Character.toLowerCase(chars[i]));
                 }
             }
-            return sbd.toString();
+        } else {
+            for (int i = 0; i < len; i++) {
+                char c = chars[i];
+                if (c == '_') {
+                    i++;
+                    sbd.append(Character.toUpperCase(chars[i]));
+                } else {
+                    sbd.append(Character.toLowerCase(c));
+                }
+            }
         }
+        return sbd.toString();
     }
 
 
