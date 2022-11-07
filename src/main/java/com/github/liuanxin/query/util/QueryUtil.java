@@ -12,10 +12,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class QueryUtil {
 
     private static final Map<String, Map<String, Field>> FIELDS_CACHE = new ConcurrentHashMap<>();
+    private static final AtomicInteger TABLE_ALIAS = new AtomicInteger();
+    private static final Map<String, AtomicInteger> COLUMN_ALIAS = new ConcurrentHashMap<>();
 
 
     /** UserInfo --> user_info */
@@ -55,10 +58,13 @@ public class QueryUtil {
         return tableNameToClassAlias(tablePrefix, tableName, 0);
     }
 
-    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1 -> 小写, 2 -> 大写, 3 -> 保持一致 */
+    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1 -> 小写, 2 -> 大写, 3 -> 保持一致, 10 -> A~B...Z~AA...ZZ */
     public static String tableNameToClassAlias(String tablePrefix, String tableName, int aliasRule) {
         if (isEmpty(tableName)) {
             return "";
+        }
+        if (aliasRule == 10) {
+            return numTo26Radix(TABLE_ALIAS.incrementAndGet());
         }
         String tn;
         if (isNotEmpty(tablePrefix) && tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
@@ -92,11 +98,17 @@ public class QueryUtil {
 
     /** user_name | USER_NAME --> userName */
     public static String columnNameToField(String columnName) {
-        return columnNameToFieldAlias(columnName, 0);
+        return columnNameToFieldAlias(columnName, "", 0);
     }
 
-    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 小写, 2 -> 大写, 3 -> 保持一致 */
-    public static String columnNameToFieldAlias(String columnName, int aliasRule) {
+    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 小写, 2 -> 大写, 3 -> 保持一致, 10 -> a~b...z~aa...zz */
+    public static String columnNameToFieldAlias(String columnName, String tableName, int aliasRule) {
+        if (isEmpty(columnName)) {
+            return "";
+        }
+        if (aliasRule == 10) {
+            return numTo26Radix(COLUMN_ALIAS.computeIfAbsent(tableName, k -> new AtomicInteger()).incrementAndGet()).toLowerCase();
+        }
         if (aliasRule == 1) {
             return columnName.toLowerCase();
         } else if (aliasRule == 2) {
@@ -118,6 +130,20 @@ public class QueryUtil {
             }
             return sbd.toString();
         }
+    }
+
+    /** 1 -> A, 26 -> Z, 27 -> AA, 702 : ZZ, 703 -> AAA ... */
+    public static String numTo26Radix(int n) {
+        StringBuilder s = new StringBuilder();
+        while (n > 0) {
+            int m = n % 26;
+            if (m == 0) {
+                m = 26;
+            }
+            s.insert(0, (char) (m + 64));
+            n = (n - m) / 26;
+        }
+        return s.toString();
     }
 
 

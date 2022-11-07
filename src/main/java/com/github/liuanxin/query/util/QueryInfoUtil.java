@@ -145,7 +145,7 @@ public class QueryInfoUtil {
                 } else {
                     columnName = QueryUtil.fieldToColumnName(fieldName);
                     columnDesc = "";
-                    columnAlias = QueryUtil.columnNameToFieldAlias(fieldName, aliasRule);
+                    columnAlias = QueryUtil.columnNameToFieldAlias(fieldName, tableName, aliasRule);
                     primary = "id".equalsIgnoreCase(fieldName);
                     strLen = null;
                     notNull = false;
@@ -306,7 +306,7 @@ public class QueryInfoUtil {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
                 String fieldName = QueryUtil.columnNameToField(columnName);
-                String columnAlias = QueryUtil.columnNameToFieldAlias(columnName, aliasRule);
+                String columnAlias = QueryUtil.columnNameToFieldAlias(columnName, tableName, aliasRule);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
@@ -397,7 +397,7 @@ public class QueryInfoUtil {
             for (Map<String, Object> columnInfo : tableColumnMap.get(tableName)) {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
-                String columnAlias = QueryUtil.columnNameToFieldAlias(columnName, aliasRule);
+                String columnAlias = QueryUtil.columnNameToFieldAlias(columnName, tableName, aliasRule);
                 String fieldName = QueryUtil.columnNameToField(columnName);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
