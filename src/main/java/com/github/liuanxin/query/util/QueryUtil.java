@@ -55,7 +55,7 @@ public class QueryUtil {
         return tableNameToClassAlias(tablePrefix, tableName, 0);
     }
 
-    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1, 小写, 2 -> 保持一致 */
+    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1 -> 小写, 2 -> 大写, 3 -> 保持一致 */
     public static String tableNameToClassAlias(String tablePrefix, String tableName, int aliasRule) {
         if (isEmpty(tableName)) {
             return "";
@@ -69,6 +69,8 @@ public class QueryUtil {
         if (aliasRule == 1) {
             return tn.toLowerCase();
         } else if (aliasRule == 2) {
+            return tn.toUpperCase();
+        } else if (aliasRule == 3) {
             return tn;
         } else {
             StringBuilder sbd = new StringBuilder();
@@ -93,11 +95,13 @@ public class QueryUtil {
         return columnNameToFieldAlias(columnName, 0);
     }
 
-    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 小写, 2 -> 保持一致 */
+    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 小写, 2 -> 大写, 3 -> 保持一致 */
     public static String columnNameToFieldAlias(String columnName, int aliasRule) {
         if (aliasRule == 1) {
             return columnName.toLowerCase();
         } else if (aliasRule == 2) {
+            return columnName.toUpperCase();
+        } else if (aliasRule == 3) {
             return columnName;
         } else {
             StringBuilder sbd = new StringBuilder();
