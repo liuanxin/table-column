@@ -53,6 +53,13 @@ public class QueryUtil {
         return sbd.toString();
     }
 
+    public static void resetCache(int aliasRule) {
+        if (aliasRule == 10) {
+            TABLE_ALIAS.set(0);
+            COLUMN_ALIAS.clear();
+        }
+    }
+
     /** user_info | USER_INFO --> UserInfo */
     public static String tableNameToClass(String tablePrefix, String tableName) {
         return tableNameToClassAlias(tablePrefix, tableName, 0);

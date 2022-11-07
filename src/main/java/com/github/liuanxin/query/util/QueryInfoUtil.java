@@ -381,6 +381,7 @@ public class QueryInfoUtil {
         Set<String> importSet = new TreeSet<>();
         Set<String> javaImportSet = new TreeSet<>();
         int success = 0;
+        QueryUtil.resetCache(aliasRule);
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             if (QueryUtil.isNotEmpty(tableSet) && !tableSet.contains(tableName.toLowerCase())) {
