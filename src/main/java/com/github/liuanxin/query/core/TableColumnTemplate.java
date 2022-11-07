@@ -92,6 +92,9 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public void generateModel(String targetPath, String packagePath) {
+        generateModel("", targetPath, packagePath, false, "");
+    }
     public void generateModel(String tables, String targetPath, String packagePath) {
         generateModel(tables, targetPath, packagePath, false, "");
     }
