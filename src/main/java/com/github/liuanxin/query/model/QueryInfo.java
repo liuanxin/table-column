@@ -81,7 +81,7 @@ public class QueryInfo {
         private String type;
 
         /** 写入时需要有值 */
-        private boolean writeNeedValue;
+        private Boolean writeNeedValue;
 
         /** 列类型是字符串时的长度 */
         private Integer length;
@@ -93,7 +93,7 @@ public class QueryInfo {
         private String relationColumn;
 
         public QueryColumn() {}
-        public QueryColumn(String name, String desc, String type, boolean writeNeedValue,
+        public QueryColumn(String name, String desc, String type, Boolean writeNeedValue,
                            Integer length, String relationTable, String relationColumn) {
             this.name = name;
             this.desc = desc;
@@ -125,10 +125,10 @@ public class QueryInfo {
             this.type = type;
         }
 
-        public boolean isWriteNeedValue() {
+        public Boolean isWriteNeedValue() {
             return writeNeedValue;
         }
-        public void setWriteNeedValue(boolean writeNeedValue) {
+        public void setWriteNeedValue(Boolean writeNeedValue) {
             this.writeNeedValue = writeNeedValue;
         }
 

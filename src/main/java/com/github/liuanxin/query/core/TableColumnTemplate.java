@@ -159,7 +159,7 @@ public class TableColumnTemplate implements InitializingBean {
                     }
                     boolean needValue = tc.isNotNull() && !tc.isHasDefault();
                     columnList.add(new QueryInfo.QueryColumn(tc.getAlias(), tc.getDesc(), type,
-                            needValue, length, relationTable, relationColumn));
+                            (needValue ? null : false), length, relationTable, relationColumn));
                 }
                 queryList.add(new QueryInfo(tableAlias, table.getDesc(), columnList));
             }
