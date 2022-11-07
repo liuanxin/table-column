@@ -64,7 +64,8 @@ public class QueryUtil {
             return "";
         }
         if (aliasRule == 10) {
-            return numTo26Radix(TABLE_ALIAS.incrementAndGet());
+            int increment = TABLE_ALIAS.incrementAndGet();
+            return numTo26Radix(increment);
         }
         String tn;
         if (isNotEmpty(tablePrefix) && tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
@@ -107,7 +108,8 @@ public class QueryUtil {
             return "";
         }
         if (aliasRule == 10) {
-            return numTo26Radix(COLUMN_ALIAS.computeIfAbsent(tableName, k -> new AtomicInteger()).incrementAndGet()).toLowerCase();
+            int increment = COLUMN_ALIAS.computeIfAbsent(tableName, k -> new AtomicInteger()).incrementAndGet();
+            return numTo26Radix(increment).toLowerCase();
         }
         if (aliasRule == 1) {
             return columnName.toLowerCase();
