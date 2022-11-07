@@ -36,7 +36,8 @@ public class QueryInfoUtil {
                                                String globalLogicColumn, String globalLogicValue,
                                                String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                                String globalLogicDeleteLongValue) {
-        return infoWithClass(tablePrefix, aliasRule, scanPackage(classPackages), relationList,
+        Set<Class<?>> classes = scanPackage(classPackages);
+        return infoWithClass(tablePrefix, aliasRule, classes, relationList,
                 globalLogicColumn, globalLogicValue, globalLogicDeleteBooleanValue,
                 globalLogicDeleteIntValue, globalLogicDeleteLongValue);
     }
@@ -85,6 +86,7 @@ public class QueryInfoUtil {
 
         Set<String> tableNameSet = new HashSet<>();
         Set<String> tableAliasSet = new HashSet<>();
+        QueryUtil.resetCache(aliasRule);
         for (Class<?> clazz : classes) {
             TableIgnore tableIgnore = clazz.getAnnotation(TableIgnore.class);
             if (QueryUtil.isNotNull(tableIgnore) && tableIgnore.value()) {
@@ -285,6 +287,7 @@ public class QueryInfoUtil {
 
         Set<String> tableNameSet = new HashSet<>();
         Set<String> tableAliasSet = new HashSet<>();
+        QueryUtil.resetCache(aliasRule);
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             String tableAlias = QueryUtil.tableNameToClassAlias(tablePrefix, tableName, aliasRule);
