@@ -30,7 +30,7 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
-    @Value("${query.alias-generate-rule:0}") // todo
+    @Value("${query.alias-generate-rule:0}")
     private int aliasGenerateRule;
 
     @Value("${query.deep-max-page-size:10000}")
@@ -69,7 +69,7 @@ public class TableColumnTemplate implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         if (QueryUtil.isNotEmpty(scanPackages)) {
-            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, scanPackages, relationList,
+            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, aliasGenerateRule, scanPackages, relationList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
             if (QueryUtil.isNull(tcInfo)) {
                 throw new RuntimeException(String.format("class not found in(%s)", scanPackages));
@@ -80,7 +80,7 @@ public class TableColumnTemplate implements InitializingBean {
             List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
             // table_name, column_name, column_type, column_comment, has_pri, varchar_length
             List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
-            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, tableList, tableColumnList,
+            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, aliasGenerateRule, tableList, tableColumnList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
         }
         QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
@@ -117,7 +117,7 @@ public class TableColumnTemplate implements InitializingBean {
                 }
             }
         }
-        QueryInfoUtil.generateModel(tableSet, targetPath, packagePath, modelSuffix,
+        QueryInfoUtil.generateModel(tableSet, targetPath, packagePath, modelSuffix, aliasGenerateRule,
                 tablePrefix, generateComment, tableList, tableColumnList);
     }
 
@@ -932,6 +932,10 @@ public class TableColumnTemplate implements InitializingBean {
     }
     public <T> T queryOne(Class<T> clazz, SingleTableWhere query) {
         return QueryUtil.first(query(clazz, query, null, null, null, null, QueryConst.LIMIT_ONE, false));
+    }
+
+    public <T> List<T> query(QueryData<T> req) {
+        return Collections.emptyList();
     }
 
     public <T> long forceQueryCount(Class<T> clazz, SingleTableWhere query) {

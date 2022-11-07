@@ -31,12 +31,12 @@ public class QueryInfoUtil {
     private static final MetadataReaderFactory READER = new CachingMetadataReaderFactory(RESOLVER);
 
 
-    public static TableColumnInfo infoWithScan(String tablePrefix, String classPackages,
+    public static TableColumnInfo infoWithScan(String tablePrefix, int aliasRule, String classPackages,
                                                List<TableColumnRelation> relationList,
                                                String globalLogicColumn, String globalLogicValue,
                                                String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                                String globalLogicDeleteLongValue) {
-        return infoWithClass(tablePrefix, scanPackage(classPackages), relationList,
+        return infoWithClass(tablePrefix, aliasRule, scanPackage(classPackages), relationList,
                 globalLogicColumn, globalLogicValue, globalLogicDeleteBooleanValue,
                 globalLogicDeleteIntValue, globalLogicDeleteLongValue);
     }
@@ -70,7 +70,7 @@ public class QueryInfoUtil {
         return set;
     }
 
-    private static TableColumnInfo infoWithClass(String tablePrefix, Set<Class<?>> classes,
+    private static TableColumnInfo infoWithClass(String tablePrefix, int aliasRule, Set<Class<?>> classes,
                                                  List<TableColumnRelation> relationList,
                                                  String globalLogicColumn, String globalLogicValue,
                                                  String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
@@ -98,17 +98,17 @@ public class QueryInfoUtil {
                 tableName = tableInfo.value();
                 tableDesc = tableInfo.desc();
             } else {
-                tableAlias = clazz.getSimpleName();
-                tableName = QueryUtil.classToTableName(tablePrefix, tableAlias);
+                tableName = QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
+                tableAlias = QueryUtil.tableNameToClassAlias(tablePrefix, tableName, aliasRule);
                 tableDesc = "";
             }
 
             if (tableNameSet.contains(tableName)) {
-                throw new RuntimeException("table(" + tableName + ") has renamed");
+                throw new RuntimeException(String.format("table(%s) has repeated", tableName));
             }
             tableNameSet.add(tableName);
             if (tableAliasSet.contains(tableAlias)) {
-                throw new RuntimeException("table alias(" + tableName + ") has renamed");
+                throw new RuntimeException(String.format("table alias(%s) has repeated", tableAlias));
             }
             tableAliasSet.add(tableAlias);
 
@@ -130,7 +130,6 @@ public class QueryInfoUtil {
                 boolean notNull, hasDefault;
                 if (QueryUtil.isNotNull(columnInfo)) {
                     columnName = QueryUtil.defaultIfBlank(columnInfo.value(), QueryUtil.fieldToColumnName(fieldName));
-
                     columnDesc = columnInfo.desc();
                     // 1. alias, 2. field-name
                     columnAlias = QueryUtil.defaultIfBlank(columnInfo.alias(), fieldName);
@@ -144,10 +143,10 @@ public class QueryInfoUtil {
                         relationList.add(new TableColumnRelation(ri.masterTable(), ri.masterColumn(), ri.type(), tableName, columnName));
                     }
                 } else {
+                    columnName = QueryUtil.fieldToColumnName(fieldName);
                     columnDesc = "";
-                    columnAlias = field.getName();
-                    columnName = QueryUtil.fieldToColumnName(columnAlias);
-                    primary = "id".equalsIgnoreCase(columnAlias);
+                    columnAlias = QueryUtil.columnNameToFieldAlias(fieldName, aliasRule);
+                    primary = "id".equalsIgnoreCase(fieldName);
                     strLen = null;
                     notNull = false;
                     hasDefault = false;
@@ -168,11 +167,11 @@ public class QueryInfoUtil {
                 }
 
                 if (columnNameSet.contains(columnName)) {
-                    throw new RuntimeException("table(" + tableAlias + ") has same column(" + columnName + ")");
+                    throw new RuntimeException(String.format("table(%s) - column name(%s) has repeated", tableName, columnName));
                 }
                 columnNameSet.add(columnName);
                 if (columnAliasSet.contains(columnAlias)) {
-                    throw new RuntimeException("table(" + tableAlias + ") has same column(" + columnAlias + ")");
+                    throw new RuntimeException(String.format("table(%s) - column alias(%s) has repeated", tableName, columnAlias));
                 }
                 columnAliasSet.add(columnAlias);
 
@@ -181,7 +180,6 @@ public class QueryInfoUtil {
                         ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
             }
             if (QueryUtil.isEmpty(logicColumn)) {
-                // noinspection DuplicatedCode
                 TableColumn tableColumn = columnMap.get(globalLogicColumn);
                 if (QueryUtil.isNotNull(tableColumn)) {
                     Class<?> fieldType = tableColumn.getFieldType();
@@ -273,7 +271,7 @@ public class QueryInfoUtil {
     }
 
 
-    public static TableColumnInfo infoWithDb(String tablePrefix,
+    public static TableColumnInfo infoWithDb(String tablePrefix, int aliasRule,
                                              List<Map<String, Object>> tableList,
                                              List<Map<String, Object>> tableColumnList,
                                              String globalLogicColumn, String globalLogicValue,
@@ -285,16 +283,30 @@ public class QueryInfoUtil {
         Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
         tableColumnListToMap(tableColumnList, tableColumnMap);
 
+        Set<String> tableNameSet = new HashSet<>();
+        Set<String> tableAliasSet = new HashSet<>();
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
-            String tableAlias = QueryUtil.tableNameToClass(tablePrefix, tableName);
+            String tableAlias = QueryUtil.tableNameToClassAlias(tablePrefix, tableName, aliasRule);
+            if (tableNameSet.contains(tableName)) {
+                throw new RuntimeException(String.format("table(%s) has repeated", tableName));
+            }
+            tableNameSet.add(tableName);
+            if (tableAliasSet.contains(tableAlias)) {
+                throw new RuntimeException(String.format("table alias(%s) has repeated", tableAlias));
+            }
+            tableAliasSet.add(tableAlias);
+
+            Set<String> columnNameSet = new HashSet<>();
+            Set<String> columnAliasSet = new HashSet<>();
+
             String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
             Map<String, TableColumn> columnMap = new LinkedHashMap<>();
             for (Map<String, Object> columnInfo : tableColumnMap.get(tableName)) {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
                 String fieldName = QueryUtil.columnNameToField(columnName);
-                String columnAlias = QueryUtil.defaultIfBlank(fieldName, columnName);
+                String columnAlias = QueryUtil.columnNameToFieldAlias(columnName, aliasRule);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
@@ -302,12 +314,20 @@ public class QueryInfoUtil {
                 boolean primaryIncrement = primary && "auto_increment".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ex")));
                 boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
 
+                if (columnNameSet.contains(columnName)) {
+                    throw new RuntimeException(String.format("table(%s) - column name(%s) has repeated", tableName, columnName));
+                }
+                columnNameSet.add(columnName);
+                if (columnAliasSet.contains(columnAlias)) {
+                    throw new RuntimeException(String.format("table(%s) - column alias(%s) has repeated", tableName, columnAlias));
+                }
+                columnAliasSet.add(columnAlias);
+
                 aliasMap.put(QueryConst.COLUMN_PREFIX + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
                         ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
             }
             String logicColumn = null, logicValue = null, logicDeleteValue = null;
-            // noinspection DuplicatedCode
             TableColumn tableColumn = columnMap.get(globalLogicColumn);
             if (QueryUtil.isNotNull(tableColumn)) {
                 Class<?> fieldType = tableColumn.getFieldType();
@@ -341,7 +361,7 @@ public class QueryInfoUtil {
     }
 
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath,
-                                     String modelSuffix, String tablePrefix, boolean generateComment,
+                                     String modelSuffix, int aliasRule, String tablePrefix, boolean generateComment,
                                      List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
         File packageDir = new File(targetPath.replace(".", "/"), packagePath.replace(".", "/"));
         if (!packageDir.exists()) {
@@ -371,11 +391,13 @@ public class QueryInfoUtil {
             javaImportSet.clear();
             String className = QueryUtil.tableNameToClass(tablePrefix, tableName) + QueryUtil.toStr(modelSuffix);
             String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
+            String tableAlias = QueryUtil.tableNameToClassAlias(tablePrefix, tableName, aliasRule);
 
             List<String> fieldList = new ArrayList<>();
             for (Map<String, Object> columnInfo : tableColumnMap.get(tableName)) {
                 Class<?> fieldType = QueryUtil.mappingClass(QueryUtil.toStr(columnInfo.get("ct")));
                 String columnName = QueryUtil.toStr(columnInfo.get("cn"));
+                String columnAlias = QueryUtil.columnNameToFieldAlias(columnName, aliasRule);
                 String fieldName = QueryUtil.columnNameToField(columnName);
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
@@ -396,6 +418,9 @@ public class QueryInfoUtil {
                 }
                 if (QueryUtil.isNotEmpty(columnDesc)) {
                     columnInfoList.add(String.format("desc = \"%s\"", columnDesc));
+                }
+                if (!columnAlias.equals(fieldName)) {
+                    columnInfoList.add(String.format("alias = \"%s\"", columnAlias));
                 }
                 if (primary) {
                     columnInfoList.add("primary = true");
@@ -428,6 +453,9 @@ public class QueryInfoUtil {
             }
             if (QueryUtil.isNotEmpty(tableDesc)) {
                 tableInfoList.add(String.format("desc = \"%s\"", tableDesc));
+            }
+            if (!tableAlias.equals(className)) {
+                tableInfoList.add(String.format("alias = \"%s\"", tableAlias));
             }
 
             importSet.add("import lombok.Data;");

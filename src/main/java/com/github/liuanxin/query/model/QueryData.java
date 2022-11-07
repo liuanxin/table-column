@@ -19,6 +19,7 @@ public class QueryData<T> {
     private final Set<String> havingSet;
     private final Map<FunctionSerialize<T,?>, QueryOrder> orderMap;
     private final List<Integer> pageList;
+    private final StringBuilder printSql;
 
     private QueryData(Class<T> clazz) {
         this.clazz = clazz;
@@ -29,6 +30,7 @@ public class QueryData<T> {
         havingSet = new LinkedHashSet<>();
         orderMap = new LinkedHashMap<>();
         pageList = new ArrayList<>();
+        printSql = new StringBuilder();
     }
 
     public void clear() {
@@ -39,35 +41,53 @@ public class QueryData<T> {
         havingSet.clear();
         orderMap.clear();
         pageList.clear();
+        printSql.setLength(0);
     }
 
-    public QueryData<T> addSelect(FunctionSerialize<T,?> select) {
-        selectList.add(select);
-        return this;
+    public QueryData<T> addSelect(FunctionSerialize<T,?> selectColumn) {
+        return QueryUtil.isNull(selectColumn) ? this : addSelect(Collections.singletonList(selectColumn));
     }
-
-    public QueryData<T> addFunction(String alias, ResultGroup func, FunctionSerialize<T,?>... functions) {
-        if (QueryUtil.isNotNull(func) && QueryUtil.isNotNull(functions) && functions.length > 0) {
-            List<String> funList = new ArrayList<>();
-            for (FunctionSerialize<T, ?> fun : functions) {
-                funList.add(QueryLambdaUtil.toColumnName(fun));
-            }
-            functionSet.add(func.generateColumn(alias));
+    public QueryData<T> addSelect(List<FunctionSerialize<T,?>> selectColumns) {
+        if (QueryUtil.isNotEmpty(selectColumns)) {
+            selectList.addAll(selectColumns);
         }
         return this;
     }
 
-    public QueryData<T> addWhere(FunctionSerialize<T,?> column, ConditionType type, Object value) {
-        where.addCondition(column, type, value);
+    public QueryData<T> addFunction(String alias, ResultGroup func, FunctionSerialize<T,?> functionColumn) {
+        return QueryUtil.isNull(functionColumn) ? this : addFunction(alias, func, Collections.singletonList(functionColumn));
+    }
+    public QueryData<T> addFunction(String alias, ResultGroup func, List<FunctionSerialize<T,?>> functionColumns) {
+        if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotNull(func) && QueryUtil.isNotEmpty(functionColumns)) {
+            List<String> funList = new ArrayList<>();
+            for (FunctionSerialize<T, ?> column : functionColumns) {
+                funList.add(QueryLambdaUtil.toColumnName(column));
+            }
+            functionSet.add(func.generateColumn(String.join(", ", funList), alias));
+        }
         return this;
     }
-    public QueryData<T> addComposeWhere(SingleTableWhere composeCondition) {
-        where.addComposeCondition(composeCondition);
+
+    public QueryData<T> addCondition(FunctionSerialize<T,?> column, ConditionType type, Object value) {
+        if (QueryUtil.isNotNull(column) && QueryUtil.isNotNull(type)) {
+            where.addCondition(column, type, value);
+        }
+        return this;
+    }
+    public QueryData<T> addComposeCondition(SingleTableWhere composeCondition) {
+        if (QueryUtil.isNotNull(composeCondition)) {
+            where.addComposeCondition(composeCondition);
+        }
         return this;
     }
 
     public QueryData<T> addGroupBy(FunctionSerialize<T,?> groupBy) {
-        groupByList.add(groupBy);
+        return QueryUtil.isNull(groupBy) ? this : addGroupBy(Collections.singletonList(groupBy));
+    }
+    public QueryData<T> addGroupBy(List<FunctionSerialize<T,?>> groupBys) {
+        if (QueryUtil.isNotEmpty(groupBys)) {
+            groupByList.addAll(groupBys);
+        }
         return this;
     }
 
@@ -77,16 +97,48 @@ public class QueryData<T> {
     }
 
     public QueryData<T> addOrder(FunctionSerialize<T,?> column, QueryOrder order) {
-        orderMap.put(column, order);
+        if (QueryUtil.isNotNull(column) && QueryUtil.isNotNull(order)) {
+            orderMap.put(column, order);
+        }
+        return this;
+    }
+    public QueryData<T> addOrder(List<FunctionSerialize<T,?>> columns, QueryOrder order) {
+        if (QueryUtil.isNotEmpty(columns) && QueryUtil.isNotNull(order)) {
+            for (FunctionSerialize<T, ?> column : columns) {
+                if (QueryUtil.isNotNull(column)) {
+                    orderMap.put(column, order);
+                }
+            }
+        }
         return this;
     }
 
-    public String generateSql(TableColumnInfo tcInfo) {
+    public QueryData<T> withOne(int limit) {
+        return withPage(1, 1);
+    }
+    public QueryData<T> withLimit(int limit) {
+        return withPage(1, limit);
+    }
+    public QueryData<T> withPage(int page, int limit) {
+        if (page > 0 && limit > 0) {
+            pageList.clear();
+            pageList.add(page);
+            pageList.add(limit);
+        }
+        return this;
+    }
+
+    public String toSql(TableColumnInfo tcInfo, List<Object> params) {
         Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
             throw new RuntimeException("no ({" + clazz + "}) table has defined");
         }
         return null;
+    }
+
+    /** 请在 toSql 之后执行 */
+    public String toPrintSql() {
+        return printSql.toString();
     }
 
     public static <T> QueryData<T> create(Class<T> clazz) {
