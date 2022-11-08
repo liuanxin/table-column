@@ -991,8 +991,8 @@ public class TableColumnTemplate implements InitializingBean {
         req.checkTable(tcInfo);
         Set<String> paramTableSet = req.checkParam(tcInfo, maxListCount);
         Set<String> resultTableSet = req.checkResult(tcInfo);
-        List<TableJoinRelation> useRelationList = req.checkRelation(tcInfo, paramTableSet, resultTableSet);
-        Set<String> useTableSet = calcTableSet(useRelationList);
+        Set<TableJoinRelation> useRelationSet = req.checkRelation(tcInfo, paramTableSet, resultTableSet);
+        Set<String> useTableSet = calcTableSet(useRelationSet);
         req.checkAllTable(tcInfo, useTableSet, paramTableSet, resultTableSet);
 
         String mainTable = req.getTable();
@@ -1000,7 +1000,7 @@ public class TableColumnTemplate implements InitializingBean {
         ReqResult result = req.getResult();
         boolean needAlias = QueryUtil.isNotEmpty(useTableSet);
 
-        String fromSql = QuerySqlUtil.toFromSql(tcInfo, mainTable, useRelationList);
+        String fromSql = QuerySqlUtil.toFromSql(tcInfo, mainTable, useRelationSet);
         List<Object> params = new ArrayList<>();
         StringBuilder wp = new StringBuilder();
         String whereSql = param.generateWhereSql(mainTable, tcInfo, needAlias, params, useTableSet, force, wp);
@@ -1040,7 +1040,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         if (param.needQueryPage()) {
             if (param.needQueryCount()) {
-                boolean queryHasMany = calcQueryHasMany(useRelationList);
+                boolean queryHasMany = calcQueryHasMany(useRelationSet);
                 return queryCountPage(fromSql, whereSql, wherePrint, mainTable, param, result, queryHasMany, needAlias, params, force);
             } else {
                 return queryNoCountPage(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, force);
@@ -1054,21 +1054,25 @@ public class TableColumnTemplate implements InitializingBean {
         }
     }
 
-    private Set<String> calcTableSet(List<TableJoinRelation> relationList) {
+    private Set<String> calcTableSet(Set<TableJoinRelation> relationSet) {
         Set<String> tableSet = new HashSet<>();
-        for (TableJoinRelation joinRelation : relationList) {
-            tableSet.add(joinRelation.getMasterTable().getName());
-            tableSet.add(joinRelation.getChildTable().getName());
+        if (QueryUtil.isNotEmpty(relationSet)) {
+            for (TableJoinRelation joinRelation : relationSet) {
+                tableSet.add(joinRelation.getMasterTable().getName());
+                tableSet.add(joinRelation.getChildTable().getName());
+            }
         }
         return tableSet;
     }
-    private boolean calcQueryHasMany(List<TableJoinRelation> paramRelationList) {
-        for (TableJoinRelation joinRelation : paramRelationList) {
-            String masterTableName = joinRelation.getMasterTable().getName();
-            String childTableName = joinRelation.getChildTable().getName();
-            TableColumnRelation relation = tcInfo.findRelationByMasterChild(masterTableName, childTableName);
-            if (QueryUtil.isNotNull(relation) && relation.getType().hasMany()) {
-                return true;
+    private boolean calcQueryHasMany(Set<TableJoinRelation> paramRelationSet) {
+        if (QueryUtil.isNotEmpty(paramRelationSet)) {
+            for (TableJoinRelation joinRelation : paramRelationSet) {
+                String masterTableName = joinRelation.getMasterTable().getName();
+                String childTableName = joinRelation.getChildTable().getName();
+                TableColumnRelation relation = tcInfo.findRelationByMasterChild(masterTableName, childTableName);
+                if (QueryUtil.isNotNull(relation) && relation.getType().hasMany()) {
+                    return true;
+                }
             }
         }
         return false;

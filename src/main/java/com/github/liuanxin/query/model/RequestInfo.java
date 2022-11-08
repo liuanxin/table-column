@@ -113,7 +113,7 @@ public class RequestInfo {
         return result.checkResult(table, tcInfo);
     }
 
-    public List<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet, Set<String> resultTableSet) {
+    public Set<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet, Set<String> resultTableSet) {
         Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(relation)) {
             for (List<String> values : relation) {
@@ -192,7 +192,7 @@ public class RequestInfo {
         }
     }
 
-    private List<TableJoinRelation> handleRelation(String mainTable, Map<String, Set<TableJoinRelation>> relationMap) {
+    private Set<TableJoinRelation> handleRelation(String mainTable, Map<String, Set<TableJoinRelation>> relationMap) {
         Set<TableJoinRelation> relationSet = new LinkedHashSet<>();
         Set<String> tableSet = new HashSet<>();
         Set<TableJoinRelation> mainSet = relationMap.remove(mainTable);
@@ -214,6 +214,6 @@ public class RequestInfo {
                 }
             }
         }
-        return new ArrayList<>(relationSet);
+        return relationSet;
     }
 }

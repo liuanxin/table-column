@@ -3,10 +3,7 @@ package com.github.liuanxin.query.util;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.model.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 
 public class QuerySqlUtil {
 
@@ -45,14 +42,14 @@ public class QuerySqlUtil {
         }
     }
 
-    public static String toFromSql(TableColumnInfo tcInfo, String mainTable, List<TableJoinRelation> relationList) {
+    public static String toFromSql(TableColumnInfo tcInfo, String mainTable, Set<TableJoinRelation> relationSet) {
         StringBuilder sbd = new StringBuilder(" FROM ");
         Table table = tcInfo.findTable(mainTable);
         String mainTableName = table.getName();
         sbd.append(toSqlField(mainTableName));
-        if (QueryUtil.isNotEmpty(relationList)) {
+        if (QueryUtil.isNotEmpty(relationSet)) {
             sbd.append(" AS ").append(toSqlField(table.getAlias()));
-            for (TableJoinRelation joinRelation : relationList) {
+            for (TableJoinRelation joinRelation : relationSet) {
                 sbd.append(joinRelation.generateJoin(tcInfo));
             }
         }
