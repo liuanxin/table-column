@@ -123,8 +123,8 @@ public class RequestInfo {
                 }
                 Table masterTable = tcInfo.findTable(values.get(0));
                 Table childTable = tcInfo.findTable(values.get(2));
-                String mn = masterTable.getAlias();
-                String cn = childTable.getAlias();
+                String mn = masterTable.getName();
+                String cn = childTable.getName();
                 if ((paramTableSet.contains(mn) && paramTableSet.contains(cn))
                         || (resultTableSet.contains(mn) && resultTableSet.contains(cn))) {
                     JoinType joinType = JoinType.deserializer(values.get(1));
@@ -133,7 +133,7 @@ public class RequestInfo {
                 }
             }
         }
-        return handleRelation(table, relationMap);
+        return handleRelation(tcInfo.findTable(table).getName(), relationMap);
     }
 
     public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet,
@@ -150,12 +150,12 @@ public class RequestInfo {
 
         for (String paramTable : paramTableSet) {
             if (!allTableSet.contains(paramTable)) {
-                throw new RuntimeException("relation: need param table(" + paramTable + ")");
+                throw new RuntimeException("relation: need param table(" + tcInfo.findTable(paramTable).getAlias() + ")");
             }
         }
         for (String resultTable : resultTableSet) {
             if (!allTableSet.contains(resultTable)) {
-                throw new RuntimeException("relation: need result table(" + resultTable + ")");
+                throw new RuntimeException("relation: need result table(" + tcInfo.findTable(resultTable).getAlias() + ")");
             }
         }
     }
