@@ -16,8 +16,7 @@ public class RequestInfo {
     private ResultType type;
     /** 出参 */
     private ReqResult result;
-
-    /** { [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderPrice" ] ] */
+    /** [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderPrice" ] ] */
     private List<List<String>> relation;
 
     public RequestInfo() {}
