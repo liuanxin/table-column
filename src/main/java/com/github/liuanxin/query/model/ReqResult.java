@@ -119,13 +119,13 @@ public class ReqResult {
             currentTable = table;
             Table tableInfo = tcInfo.findTable(currentTable);
             if (QueryUtil.isNull(tableInfo)) {
-                throw new RuntimeException("result has no defined table(" + currentTable + ")");
+                throw new RuntimeException("result: has no defined table(" + currentTable + ")");
             }
         } else {
             currentTable = mainTable;
         }
         if (QueryUtil.isEmpty(columns)) {
-            throw new RuntimeException("result table(" + currentTable + ") need columns");
+            throw new RuntimeException("result: table(" + currentTable + ") need columns");
         }
 
         Set<String> allTableSet = new LinkedHashSet<>();
@@ -141,19 +141,19 @@ public class ReqResult {
                 } else if (obj instanceof List<?>) {
                     List<?> groups = (List<?>) obj;
                     if (QueryUtil.isEmpty(groups)) {
-                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") error");
+                        throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") error");
                     }
                     int size = groups.size();
                     if (size < 3) {
-                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") data error");
+                        throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") data error");
                     }
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
                     if (QueryUtil.isNull(group)) {
-                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") type error");
+                        throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") type error");
                     }
                     String column = QueryUtil.toStr(groups.get(2));
                     if (QueryUtil.isEmpty(column)) {
-                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") column error");
+                        throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") column error");
                     }
 
                     if (group == ResultGroup.COUNT_DISTINCT) {
@@ -168,7 +168,7 @@ public class ReqResult {
 
                     String functionColumn = group.generateColumn(column);
                     if (columnCheckRepeatedSet.contains(functionColumn)) {
-                        throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has repeated");
+                        throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has repeated");
                     }
                     columnCheckRepeatedSet.add(functionColumn);
 
@@ -178,13 +178,13 @@ public class ReqResult {
                         for (int i = 3; i < evenSize; i += 2) {
                             ConditionType conditionType = ConditionType.deserializer(groups.get(i));
                             if (conditionType == null) {
-                                throw new RuntimeException("result table(" + currentTable + ") function("
+                                throw new RuntimeException("result: table(" + currentTable + ") function("
                                         + groups + ") having condition error");
                             }
 
                             Object value = groups.get(i + 1);
                             if (group.checkNotHavingValue(value)) {
-                                throw new RuntimeException("result table(" + currentTable + ") function("
+                                throw new RuntimeException("result: table(" + currentTable + ") function("
                                         + groups + ") having condition value(" + value + ") type error");
                             }
                         }
@@ -204,32 +204,32 @@ public class ReqResult {
             }
         }
         if (!hasColumnOrFunction) {
-            throw new RuntimeException("result table(" + currentTable + ") no columns");
+            throw new RuntimeException("result: table(" + currentTable + ") no columns");
         }
 
         for (Object obj : innerList) {
             Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
             if (inner == null) {
-                throw new RuntimeException("result table(" + currentTable + ") relation(" + obj + ") error");
+                throw new RuntimeException("result: table(" + currentTable + ") relation(" + obj + ") error");
             }
             for (Map.Entry<String, ReqResult> entry : inner.entrySet()) {
                 String innerColumn = entry.getKey();
                 ReqResult innerResult = entry.getValue();
                 if (innerResult == null) {
-                    throw new RuntimeException("result table(" + mainTable + ") inner(" + innerColumn + ") error");
+                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") error");
                 }
                 if (columnCheckRepeatedSet.contains(innerColumn)) {
-                    throw new RuntimeException("result table(" + mainTable + ") inner(" + innerColumn + ") has repeated");
+                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") has repeated");
                 }
                 columnCheckRepeatedSet.add(innerColumn);
 
                 String innerTable = innerResult.getTable();
                 if (QueryUtil.isEmpty(innerTable)) {
-                    throw new RuntimeException("result table(" + mainTable + ") inner(" + innerColumn + ") need table");
+                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") need table");
                 }
                 Table table = tcInfo.findTable(innerTable);
                 if (QueryUtil.isNull(table)) {
-                    throw new RuntimeException("result table(" + mainTable + ") inner(" + innerColumn + ") has no defined table");
+                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") has no defined table");
                 }
 
                 TableColumnRelation relation = tcInfo.findRelationByMasterChild(mainTable, innerTable);
@@ -237,11 +237,11 @@ public class ReqResult {
                     relation = tcInfo.findRelationByMasterChild(innerTable, mainTable);
                 }
                 if (QueryUtil.isNull(relation)) {
-                    throw new RuntimeException("result " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
+                    throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
                 }
                 Set<String> innerTableSet = innerResult.checkResult(innerTable, tcInfo);
                 if (innerTableSet.size() > 1) {
-                    throw new RuntimeException("result " + mainTable + " - " + innerColumn + "(" + innerTable + ") just has one Table to Query");
+                    throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") just has one Table to Query");
                 }
             }
         }
@@ -252,29 +252,29 @@ public class ReqResult {
                                             List<?> groups, Set<String> allTableSet) {
         Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
         if (sa == null) {
-            throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined table");
+            throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined table");
         }
         if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column)) == null) {
-            throw new RuntimeException("result table(" + currentTable + ") function(" + groups + ") has no defined column");
+            throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined column");
         }
         allTableSet.add(sa.getName());
     }
 
     private Table checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
         if (QueryUtil.isEmpty(column)) {
-            throw new RuntimeException("result table(" + currentTable + ") column can't be blank");
+            throw new RuntimeException("result: table(" + currentTable + ") column can't be blank");
         }
 
         Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
         if (sa == null) {
-            throw new RuntimeException("result table(" + currentTable + ") column(" + column + ") has no defined table");
+            throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has no defined table");
         }
         if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column)) == null) {
-            throw new RuntimeException("result table(" + currentTable + ") column(" + column + ") has no defined column");
+            throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has no defined column");
         }
 
         if (columnSet.contains(column)) {
-            throw new RuntimeException("result table(" + currentTable + ") column(" + column + ") has repeated");
+            throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has repeated");
         }
         columnSet.add(column);
         return sa;

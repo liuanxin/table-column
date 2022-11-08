@@ -155,39 +155,39 @@ public class ReqParamOperate {
                 if (condition instanceof List<?>) {
                     List<?> list = (List<?>) condition;
                     if (QueryUtil.isEmpty(list)) {
-                        throw new RuntimeException("param condition(" + condition + ") can't be blank");
+                        throw new RuntimeException("param: condition(" + condition + ") can't be blank");
                     }
                     int size = list.size();
                     if (size < 2) {
-                        throw new RuntimeException("param condition(" + condition + ") error");
+                        throw new RuntimeException("param: condition(" + condition + ") error");
                     }
                     String column = QueryUtil.toStr(list.get(0));
                     if (QueryUtil.isEmpty(column)) {
-                        throw new RuntimeException("param condition(" + condition + ") column can't be blank");
+                        throw new RuntimeException("param: condition(" + condition + ") column can't be blank");
                     }
 
                     Table sa = tcInfo.findTable(QueryUtil.getTableName(column, mainTable));
                     if (sa == null) {
-                        throw new RuntimeException("param condition(" + condition + ") column has no table info");
+                        throw new RuntimeException("param: condition(" + condition + ") column has no table info");
                     }
                     queryTableSet.add(sa.getName());
 
                     boolean standardSize = (size == 2);
                     ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
                     if (type == null) {
-                        throw new RuntimeException(String.format("param condition column(%s) type(%s) error", column, list.get(1)));
+                        throw new RuntimeException(String.format("param: condition column(%s) type(%s) error", column, list.get(1)));
                     }
 
                     TableColumn tableColumn = tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column));
                     if (tableColumn == null) {
-                        throw new RuntimeException(String.format("param condition column(%s) has no column info", column));
+                        throw new RuntimeException(String.format("param: condition column(%s) has no column info", column));
                     }
                     type.checkTypeAndValue(tableColumn.getFieldType(), column,
                             list.get(standardSize ? 1 : 2), tableColumn.getStrLen(), maxListCount);
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
                     if (compose == null) {
-                        throw new RuntimeException("compose condition(" + condition + ") error");
+                        throw new RuntimeException("param: compose condition(" + condition + ") error");
                     }
                     compose.checkCondition(mainTable, tcInfo, maxListCount);
                 }
