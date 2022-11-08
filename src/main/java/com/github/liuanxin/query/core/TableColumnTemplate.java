@@ -1248,7 +1248,10 @@ public class TableColumnTemplate implements InitializingBean {
                         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
                         Map<String, Object> innerData = innerDataMap.get(fieldName);
                         // put --> address : { ... }    or    items : [ ... ]
-                        data.put(fieldName, innerData.get(QueryUtil.toStr(relationValue)));
+                        Object value = innerData.get(QueryUtil.toStr(relationValue));
+                        if (QueryUtil.isNotNull(value)) {
+                            data.put(fieldName, value);
+                        }
                     }
                 }
             }
