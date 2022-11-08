@@ -62,7 +62,7 @@ public class QueryUtil {
         return tableNameToClassAlias(tablePrefix, tableName, 0);
     }
 
-    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1 -> 小写, 2 -> 大写, 3 -> 保持一致, 10 -> A~B...Z~AA...ZZ */
+    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1 -> 一致, 2 -> User-Info, 3 -> 小写, 4 -> 大写, 10 -> A~B...Z~AA...ZZ */
     public static String tableNameToClassAlias(String tablePrefix, String tableName, int aliasRule) {
         if (isEmpty(tableName)) {
             return "";
@@ -71,38 +71,61 @@ public class QueryUtil {
             String tableAlias = TABLE_ALIAS_MAP.get(tableName);
             if (isNotEmpty(tableAlias)) {
                 return tableAlias;
+            } else {
+                String ta = numTo26Radix(TABLE_ALIAS.incrementAndGet());
+                TABLE_ALIAS_MAP.put(tableName, ta);
+                return ta;
             }
-            String ta = numTo26Radix(TABLE_ALIAS.incrementAndGet());
-            TABLE_ALIAS_MAP.put(tableName, ta);
-            return ta;
         }
+
         String tn;
         if (isNotEmpty(tablePrefix) && tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
             tn = tableName.substring(tablePrefix.length());
         } else {
             tn = tableName;
         }
-        if (aliasRule == 1) {
-            return tn.toLowerCase();
-        } else if (aliasRule == 2) {
-            return tn.toUpperCase();
-        } else if (aliasRule == 3) {
-            return tn;
-        } else {
-            StringBuilder sbd = new StringBuilder();
-            char[] chars = tn.toCharArray();
-            int len = chars.length;
-            sbd.append(Character.toUpperCase(chars[0]));
-            for (int i = 1; i < len; i++) {
-                char c = chars[i];
-                if (c == '_') {
-                    i++;
-                    sbd.append(Character.toUpperCase(chars[i]));
-                } else {
-                    sbd.append(Character.toLowerCase(c));
-                }
+        switch (aliasRule) {
+            case 1: {
+                return tn;
             }
-            return sbd.toString();
+            case 2: {
+                StringBuilder sbd = new StringBuilder();
+                char[] chars = tn.toCharArray();
+                int len = chars.length;
+                sbd.append(Character.toUpperCase(chars[0]));
+                for (int i = 1; i < len; i++) {
+                    char c = chars[i];
+                    if (c == '_') {
+                        i++;
+                        sbd.append("-").append(Character.toUpperCase(chars[i]));
+                    } else {
+                        sbd.append(Character.toLowerCase(c));
+                    }
+                }
+                return sbd.toString();
+            }
+            case 3: {
+                return tn.toLowerCase();
+            }
+            case 4: {
+                return tn.toUpperCase();
+            }
+            default: {
+                StringBuilder sbd = new StringBuilder();
+                char[] chars = tn.toCharArray();
+                int len = chars.length;
+                sbd.append(Character.toUpperCase(chars[0]));
+                for (int i = 1; i < len; i++) {
+                    char c = chars[i];
+                    if (c == '_') {
+                        i++;
+                        sbd.append(Character.toUpperCase(chars[i]));
+                    } else {
+                        sbd.append(Character.toLowerCase(c));
+                    }
+                }
+                return sbd.toString();
+            }
         }
     }
 
@@ -111,43 +134,63 @@ public class QueryUtil {
         return columnNameToFieldAlias(columnName, "", 0);
     }
 
-    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 小写, 2 -> 大写, 3 -> 保持一致, 10 -> a~b...z~aa...zz */
+    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 一致, 2 -> user-name, 3 -> 小写, 4 -> 大写, 10 -> a~b...z~aa...zz */
     public static String columnNameToFieldAlias(String columnName, String tableName, int aliasRule) {
         if (isEmpty(columnName)) {
             return "";
         }
-        if (aliasRule == 10) {
-            String key = toStr(tableName) + "-_-" + columnName;
-            String columnAlias = COLUMN_ALIAS_MAP.get(key);
-            if (isNotEmpty(columnAlias)) {
-                return columnAlias;
+        switch (aliasRule) {
+            case 1: {
+                return columnName;
             }
-
-            int increment = COLUMN_ALIAS.computeIfAbsent(tableName, k -> new AtomicInteger()).incrementAndGet();
-            String ca = numTo26Radix(increment).toLowerCase();
-            COLUMN_ALIAS_MAP.put(key, ca);
-            return ca;
-        }
-        if (aliasRule == 1) {
-            return columnName.toLowerCase();
-        } else if (aliasRule == 2) {
-            return columnName.toUpperCase();
-        } else if (aliasRule == 3) {
-            return columnName;
-        } else {
-            StringBuilder sbd = new StringBuilder();
-            char[] chars = columnName.toCharArray();
-            int len = chars.length;
-            for (int i = 0; i < len; i++) {
-                char c = chars[i];
-                if (c == '_') {
-                    i++;
-                    sbd.append(Character.toUpperCase(chars[i]));
+            case 2: {
+                StringBuilder sbd = new StringBuilder();
+                char[] chars = columnName.toCharArray();
+                int len = chars.length;
+                for (int i = 0; i < len; i++) {
+                    char c = chars[i];
+                    if (c == '_') {
+                        i++;
+                        sbd.append("-").append(Character.toLowerCase(chars[i]));
+                    } else {
+                        sbd.append(Character.toLowerCase(c));
+                    }
+                }
+                return sbd.toString();
+            }
+            case 3: {
+                return columnName.toLowerCase();
+            }
+            case 4: {
+                return columnName.toUpperCase();
+            }
+            case 10: {
+                String key = toStr(tableName) + "-_-" + columnName;
+                String columnAlias = COLUMN_ALIAS_MAP.get(key);
+                if (isNotEmpty(columnAlias)) {
+                    return columnAlias;
                 } else {
-                    sbd.append(Character.toLowerCase(c));
+                    int increment = COLUMN_ALIAS.computeIfAbsent(tableName, k -> new AtomicInteger()).incrementAndGet();
+                    String ca = numTo26Radix(increment).toLowerCase();
+                    COLUMN_ALIAS_MAP.put(key, ca);
+                    return ca;
                 }
             }
-            return sbd.toString();
+            default: {
+                StringBuilder sbd = new StringBuilder();
+                char[] chars = columnName.toCharArray();
+                int len = chars.length;
+                for (int i = 0; i < len; i++) {
+                    char c = chars[i];
+                    if (c == '_') {
+                        i++;
+                        sbd.append(Character.toUpperCase(chars[i]));
+                    } else {
+                        sbd.append(Character.toLowerCase(c));
+                    }
+                }
+                return sbd.toString();
+            }
         }
     }
 
