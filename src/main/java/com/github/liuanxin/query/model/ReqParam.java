@@ -150,7 +150,7 @@ public class ReqParam {
 
         printSql.append(" WHERE ").append(wherePrint);
         Set<String> tableSet = new LinkedHashSet<>();
-        tableSet.add(mainTable);
+        tableSet.add(tcInfo.findTable(mainTable).getName());
         if (QueryUtil.isNotEmpty(useTableSet)) {
             tableSet.addAll(useTableSet);
         }
