@@ -117,7 +117,7 @@ public class QueryUtil {
             return "";
         }
         if (aliasRule == 10) {
-            String key = tableName + "-_-" + columnName;
+            String key = toStr(tableName) + "-_-" + columnName;
             String columnAlias = COLUMN_ALIAS_MAP.get(key);
             if (isNotEmpty(columnAlias)) {
                 return columnAlias;
