@@ -17,8 +17,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class QueryUtil {
 
     private static final Map<String, Map<String, Field>> FIELDS_CACHE = new ConcurrentHashMap<>();
+
     private static final AtomicInteger TABLE_ALIAS = new AtomicInteger();
+    private static final Map<String, String> TABLE_ALIAS_MAP = new ConcurrentHashMap<>();
+
     private static final Map<String, AtomicInteger> COLUMN_ALIAS = new ConcurrentHashMap<>();
+    private static final Map<String, String> COLUMN_ALIAS_MAP = new ConcurrentHashMap<>();
 
 
     /** UserInfo --> user_info */
@@ -53,13 +57,6 @@ public class QueryUtil {
         return sbd.toString();
     }
 
-    public static void resetCache(int aliasRule) {
-        if (aliasRule == 10) {
-            TABLE_ALIAS.set(0);
-            COLUMN_ALIAS.clear();
-        }
-    }
-
     /** user_info | USER_INFO --> UserInfo */
     public static String tableNameToClass(String tablePrefix, String tableName) {
         return tableNameToClassAlias(tablePrefix, tableName, 0);
@@ -71,8 +68,13 @@ public class QueryUtil {
             return "";
         }
         if (aliasRule == 10) {
-            int increment = TABLE_ALIAS.incrementAndGet();
-            return numTo26Radix(increment);
+            String tableAlias = TABLE_ALIAS_MAP.get(tableName);
+            if (isNotEmpty(tableAlias)) {
+                return tableAlias;
+            }
+            String ta = numTo26Radix(TABLE_ALIAS.incrementAndGet());
+            TABLE_ALIAS_MAP.put(tableName, ta);
+            return ta;
         }
         String tn;
         if (isNotEmpty(tablePrefix) && tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
@@ -115,8 +117,16 @@ public class QueryUtil {
             return "";
         }
         if (aliasRule == 10) {
+            String key = tableName + "-_-" + columnName;
+            String columnAlias = COLUMN_ALIAS_MAP.get(key);
+            if (isNotEmpty(columnAlias)) {
+                return columnAlias;
+            }
+
             int increment = COLUMN_ALIAS.computeIfAbsent(tableName, k -> new AtomicInteger()).incrementAndGet();
-            return numTo26Radix(increment).toLowerCase();
+            String ca = numTo26Radix(increment).toLowerCase();
+            COLUMN_ALIAS_MAP.put(key, ca);
+            return ca;
         }
         if (aliasRule == 1) {
             return columnName.toLowerCase();

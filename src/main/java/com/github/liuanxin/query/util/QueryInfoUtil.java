@@ -86,7 +86,6 @@ public class QueryInfoUtil {
 
         Set<String> tableNameSet = new HashSet<>();
         Set<String> tableAliasSet = new HashSet<>();
-        QueryUtil.resetCache(aliasRule);
         for (Class<?> clazz : classes) {
             TableIgnore tableIgnore = clazz.getAnnotation(TableIgnore.class);
             if (QueryUtil.isNotNull(tableIgnore) && tableIgnore.value()) {
@@ -287,7 +286,6 @@ public class QueryInfoUtil {
 
         Set<String> tableNameSet = new HashSet<>();
         Set<String> tableAliasSet = new HashSet<>();
-        QueryUtil.resetCache(aliasRule);
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             String tableAlias = QueryUtil.tableNameToClassAlias(tablePrefix, tableName, aliasRule);
@@ -384,7 +382,6 @@ public class QueryInfoUtil {
         Set<String> importSet = new TreeSet<>();
         Set<String> javaImportSet = new TreeSet<>();
         int success = 0;
-        QueryUtil.resetCache(aliasRule);
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             if (QueryUtil.isNotEmpty(tableSet) && !tableSet.contains(tableName.toLowerCase())) {
