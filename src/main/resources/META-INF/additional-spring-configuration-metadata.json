@@ -26,7 +26,7 @@
       "type": "com.github.liuanxin.query.enums.AliasGenerateRule",
       "defaultValue": "Standard",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "别名生成的规则: Standard(表 UserInfo  字段 userName), Same, Horizontal(表 User-Info  字段 user-name), Lower, Upper, Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz)."
+      "description": "别名生成的规则: Standard(表 UserInfo  字段 userName), Horizontal(表 User-Info  字段 user-name), Under(表 User_Info  字段 user_name), Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz), Same, Lower, Upper."
     },
     {
       "name": "query.deep-max-page-size",

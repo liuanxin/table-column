@@ -106,6 +106,22 @@ public class QueryUtil {
                 }
                 return sbd.toString();
             }
+            case Under: {
+                StringBuilder sbd = new StringBuilder();
+                char[] chars = tn.toCharArray();
+                int len = chars.length;
+                sbd.append(Character.toUpperCase(chars[0]));
+                for (int i = 1; i < len; i++) {
+                    char c = chars[i];
+                    if (c == '_') {
+                        i++;
+                        sbd.append("_").append(Character.toUpperCase(chars[i]));
+                    } else {
+                        sbd.append(Character.toLowerCase(c));
+                    }
+                }
+                return sbd.toString();
+            }
             case Lower: {
                 return tn.toLowerCase();
             }
@@ -155,6 +171,21 @@ public class QueryUtil {
                     if (c == '_') {
                         i++;
                         sbd.append("-").append(Character.toLowerCase(chars[i]));
+                    } else {
+                        sbd.append(Character.toLowerCase(c));
+                    }
+                }
+                return sbd.toString();
+            }
+            case Under: {
+                StringBuilder sbd = new StringBuilder();
+                char[] chars = columnName.toCharArray();
+                int len = chars.length;
+                for (int i = 0; i < len; i++) {
+                    char c = chars[i];
+                    if (c == '_') {
+                        i++;
+                        sbd.append("_").append(Character.toLowerCase(chars[i]));
                     } else {
                         sbd.append(Character.toLowerCase(c));
                     }
