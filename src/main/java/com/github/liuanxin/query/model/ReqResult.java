@@ -166,11 +166,11 @@ public class ReqResult {
                         }
                     }
 
-                    String functionColumn = group.generateColumn(column);
-                    if (columnCheckRepeatedSet.contains(functionColumn)) {
+                    String functionAlias = group.generateAlias(column);
+                    if (columnCheckRepeatedSet.contains(functionAlias)) {
                         throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has repeated");
                     }
-                    columnCheckRepeatedSet.add(functionColumn);
+                    columnCheckRepeatedSet.add(functionAlias);
 
                     if (size > 4) {
                         // 先右移 1 位除以 2, 再左移 1 位乘以 2, 变成偶数
@@ -267,10 +267,10 @@ public class ReqResult {
 
         Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.getTableName(column, currentTable));
         if (QueryUtil.isNull(tableInfo)) {
-            throw new RuntimeException("result: table(" + currentTable + ") - " + column + " has no defined table");
+            throw new RuntimeException("result: table(" + currentTable + ") has no defined table(" + column + ")");
         }
         if (QueryUtil.isNull(tcInfo.findTableColumnWithAlias(tableInfo, QueryUtil.getColumnName(column)))) {
-            throw new RuntimeException("result: table(" + currentTable + ") - " + column + " has no defined column");
+            throw new RuntimeException("result: table(" + currentTable + ") has no defined column(" + column + ")");
         }
 
         if (columnSet.contains(column)) {
@@ -360,15 +360,17 @@ public class ReqResult {
     private String generateFunctionColumn(List<?> groups, String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
         String column = QueryUtil.toStr(groups.get(2));
         ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
+        String columnInfo;
         if (group == ResultGroup.COUNT_DISTINCT) {
             StringJoiner funSj = new StringJoiner(", ");
             for (String col : column.split(",")) {
                 funSj.add(QueryUtil.getQueryColumn(needAlias, col, mainTable, tcInfo));
             }
-            return group.generateColumn(funSj.toString());
+            columnInfo = funSj.toString();
         } else {
-            return group.generateColumn(QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo));
+            columnInfo = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
         }
+        return group.generateColumn(columnInfo);
     }
 
     public boolean needGroup() {
