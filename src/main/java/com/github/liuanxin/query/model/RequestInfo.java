@@ -6,33 +6,25 @@ import com.github.liuanxin.query.util.QueryUtil;
 
 import java.util.*;
 
-public class RequestInfo {
+public class RequestInfo extends RequestModel {
 
-    /** 主表 */
-    private String table;
+    /** 模板别名, 用这个值映射 RequestModel 的内容 */
+    private String alias;
     /** 入参 */
     private ReqParam param;
-    /** 出参类型, 对象(obj)还是数组(arr), 不设置则是数组 */
-    private ResultType type;
-    /** 出参 */
-    private ReqResult result;
-    /** [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderPrice" ] ] */
-    private List<List<String>> relation;
 
     public RequestInfo() {}
-    public RequestInfo(String table, ReqParam param, ResultType type, ReqResult result, List<List<String>> relation) {
-        this.table = table;
+    public RequestInfo(String alias, ReqParam param, String table, ResultType type, ReqResult result, List<List<String>> relation) {
+        super(table, type, result, relation);
+        this.alias = alias;
         this.param = param;
-        this.type = type;
-        this.result = result;
-        this.relation = relation;
     }
 
-    public String getTable() {
-        return table;
+    public String getAlias() {
+        return alias;
     }
-    public void setTable(String table) {
-        this.table = table;
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     public ReqParam getParam() {
@@ -42,55 +34,49 @@ public class RequestInfo {
         this.param = param;
     }
 
-    public ResultType getType() {
-        return type;
-    }
-    public void setType(ResultType type) {
-        this.type = type;
-    }
-
-    public ReqResult getResult() {
-        return result;
-    }
-    public void setResult(ReqResult result) {
-        this.result = result;
-    }
-
-    public List<List<String>> getRelation() {
-        return relation;
-    }
-    public void setRelation(List<List<String>> relation) {
-        this.relation = relation;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RequestInfo)) return false;
         RequestInfo that = (RequestInfo) o;
-        return Objects.equals(table, that.table) && Objects.equals(param, that.param)
-                && type == that.type && Objects.equals(result, that.result)
-                && Objects.equals(relation, that.relation);
+        return Objects.equals(alias, that.alias) && Objects.equals(param, that.param) &&
+                Objects.equals(getTable(), that.getTable()) && getType() == that.getType() &&
+                Objects.equals(getResult(), that.getResult()) && Objects.equals(getRelation(), that.getRelation());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, param, type, result, relation);
+        return Objects.hash(alias, param, getTable(), getTable(), getRelation(), getRelation());
     }
 
     @Override
     public String toString() {
         return "RequestInfo{" +
-                "table='" + table + '\'' +
+                ", alias=" + alias +
                 ", param=" + param +
-                ", type=" + type +
-                ", result=" + result +
-                ", relation=" + relation +
+                "table='" + getTable() + '\'' +
+                ", type=" + getTable() +
+                ", result=" + getRelation() +
+                ", relation=" + getRelation() +
                 '}';
     }
 
 
+    public void handleAlias(Map<String, RequestModel> requestAliasMap) {
+        if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
+            RequestModel model = requestAliasMap.get(alias);
+            if (QueryUtil.isNotNull(model)) {
+                setTable(model.getTable());
+                setType(model.getType());
+                setResult(model.getResult());
+                setRelation(model.getRelation());
+            }
+        }
+    }
+
+
     public void checkTable(TableColumnInfo tcInfo) {
+        String table = getTable();
         if (QueryUtil.isEmpty(table)) {
             throw new RuntimeException("request: need table");
         }
@@ -103,17 +89,19 @@ public class RequestInfo {
         if (param == null) {
             throw new RuntimeException("request: need param");
         }
-        return param.checkParam(table, tcInfo, maxListCount);
+        return param.checkParam(getTable(), tcInfo, maxListCount);
     }
 
     public Set<String> checkResult(TableColumnInfo tcInfo) {
+        ReqResult result = getResult();
         if (result == null) {
             throw new RuntimeException("request: need result");
         }
-        return result.checkResult(table, tcInfo);
+        return result.checkResult(getTable(), tcInfo);
     }
 
     public Set<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet, Set<String> resultTableSet) {
+        List<List<String>> relation = getRelation();
         Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(relation)) {
             for (List<String> values : relation) {
@@ -132,15 +120,15 @@ public class RequestInfo {
                 }
             }
         }
-        return handleRelation(tcInfo.findTable(table).getName(), relationMap);
+        return handleRelation(tcInfo.findTable(getTable()).getName(), relationMap);
     }
 
     public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet,
                               Set<String> paramTableSet, Set<String> resultTableSet) {
-        Table tableInfo = tcInfo.findTable(table);
+        Table tableInfo = tcInfo.findTable(getTable());
         paramTableSet.remove(tableInfo.getName());
         resultTableSet.remove(tableInfo.getName());
-        if (QueryUtil.isEmpty(relation)) {
+        if (QueryUtil.isEmpty(getRelation())) {
             if (QueryUtil.isNotEmpty(paramTableSet) || QueryUtil.isNotEmpty(resultTableSet)) {
                 throw new RuntimeException("request: need relation");
             }
@@ -159,6 +147,7 @@ public class RequestInfo {
         }
     }
     private void checkRelation(TableColumnInfo tcInfo) {
+        List<List<String>> relation = getRelation();
         if (QueryUtil.isNotEmpty(relation)) {
             String append = "<->";
             Set<String> tableRelation = new HashSet<>();
@@ -179,6 +168,7 @@ public class RequestInfo {
                 }
                 tableRelation.add(key);
             }
+            String table = getTable();
             boolean hasMain = false;
             for (String tr : tableRelation) {
                 if (tr.startsWith(table + append)) {

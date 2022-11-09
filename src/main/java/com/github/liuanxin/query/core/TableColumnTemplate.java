@@ -59,11 +59,16 @@ public class TableColumnTemplate implements InitializingBean {
 
     private TableColumnInfo tcInfo;
 
-    private final JdbcTemplate jdbcTemplate;
     private final List<TableColumnRelation> relationList;
-    public TableColumnTemplate(JdbcTemplate jdbcTemplate, List<TableColumnRelation> relationList) {
+    private final Map<String, RequestModel> requestAliasMap;
+
+    private final JdbcTemplate jdbcTemplate;
+    public TableColumnTemplate(JdbcTemplate jdbcTemplate,
+                               List<TableColumnRelation> relationList,
+                               Map<String, RequestModel> requestAliasMap) {
         this.jdbcTemplate = jdbcTemplate;
         this.relationList = QueryUtil.isEmpty(relationList) ? new ArrayList<>() : new ArrayList<>(relationList);
+        this.requestAliasMap = requestAliasMap;
     }
 
     @Override
@@ -987,6 +992,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isNull(req)) {
             return null;
         }
+        req.handleAlias(requestAliasMap);
 
         req.checkTable(tcInfo);
         Set<String> paramTableSet = req.checkParam(tcInfo, maxListCount);
