@@ -38,7 +38,7 @@ public class QuerySqlUtil {
         } else if (Date.class.isAssignableFrom(type)) {
             return "'" + QueryUtil.formatDate(QueryUtil.toDate(value)) + "'";
         } else {
-            return "'" + value + "'";
+            return "'" + QueryUtil.toStr(value).replace("'", "''") + "'";
         }
     }
 
