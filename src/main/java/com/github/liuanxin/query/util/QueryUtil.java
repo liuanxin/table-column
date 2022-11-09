@@ -1,6 +1,7 @@
 package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.constant.QueryConst;
+import com.github.liuanxin.query.enums.AliasGenerateRule;
 import com.github.liuanxin.query.model.Table;
 import com.github.liuanxin.query.model.TableColumn;
 import com.github.liuanxin.query.model.TableColumnInfo;
@@ -59,15 +60,16 @@ public class QueryUtil {
 
     /** user_info | USER_INFO --> UserInfo */
     public static String tableNameToClass(String tablePrefix, String tableName) {
-        return tableNameToClassAlias(tablePrefix, tableName, 0);
+        return tableNameToClassAlias(tablePrefix, tableName, null);
     }
 
-    /** 表名是 user_info 或 USER_INFO : 0 -> UserInfo, 1 -> 一致, 2 -> User-Info, 3 -> 小写, 4 -> 大写, 10 -> A~B...Z~AA...ZZ */
-    public static String tableNameToClassAlias(String tablePrefix, String tableName, int aliasRule) {
+    public static String tableNameToClassAlias(String tablePrefix, String tableName, AliasGenerateRule aliasRule) {
         if (isEmpty(tableName)) {
             return "";
         }
-        if (aliasRule == 10) {
+
+        AliasGenerateRule rule = defaultIfNull(aliasRule, AliasGenerateRule.Standard);
+        if (rule == AliasGenerateRule.Letter) {
             String tableAlias = TABLE_ALIAS_MAP.get(tableName);
             if (isNotEmpty(tableAlias)) {
                 return tableAlias;
@@ -84,11 +86,11 @@ public class QueryUtil {
         } else {
             tn = tableName;
         }
-        switch (aliasRule) {
-            case 1: {
+        switch (rule) {
+            case Same: {
                 return tn;
             }
-            case 2: {
+            case Horizontal: {
                 StringBuilder sbd = new StringBuilder();
                 char[] chars = tn.toCharArray();
                 int len = chars.length;
@@ -104,10 +106,10 @@ public class QueryUtil {
                 }
                 return sbd.toString();
             }
-            case 3: {
+            case Lower: {
                 return tn.toLowerCase();
             }
-            case 4: {
+            case Upper: {
                 return tn.toUpperCase();
             }
             default: {
@@ -131,19 +133,20 @@ public class QueryUtil {
 
     /** user_name | USER_NAME --> userName */
     public static String columnNameToField(String columnName) {
-        return columnNameToFieldAlias(columnName, "", 0);
+        return columnNameToFieldAlias(columnName, "", null);
     }
 
-    /** 字段名是 user_name 或 USER_NAME : 0 -> userName, 1 -> 一致, 2 -> user-name, 3 -> 小写, 4 -> 大写, 10 -> a~b...z~aa...zz */
-    public static String columnNameToFieldAlias(String columnName, String tableName, int aliasRule) {
+    public static String columnNameToFieldAlias(String columnName, String tableName, AliasGenerateRule aliasRule) {
         if (isEmpty(columnName)) {
             return "";
         }
-        switch (aliasRule) {
-            case 1: {
+
+        AliasGenerateRule rule = defaultIfNull(aliasRule, AliasGenerateRule.Standard);
+        switch (rule) {
+            case Same: {
                 return columnName;
             }
-            case 2: {
+            case Horizontal: {
                 StringBuilder sbd = new StringBuilder();
                 char[] chars = columnName.toCharArray();
                 int len = chars.length;
@@ -158,13 +161,13 @@ public class QueryUtil {
                 }
                 return sbd.toString();
             }
-            case 3: {
+            case Lower: {
                 return columnName.toLowerCase();
             }
-            case 4: {
+            case Upper: {
                 return columnName.toUpperCase();
             }
-            case 10: {
+            case Letter: {
                 String key = toStr(tableName) + "-_-" + columnName;
                 String columnAlias = COLUMN_ALIAS_MAP.get(key);
                 if (isNotEmpty(columnAlias)) {
@@ -507,6 +510,9 @@ public class QueryUtil {
         return !isDouble(obj);
     }
 
+    public static <T> T defaultIfNull(T obj, T defaultObj) {
+        return isNull(obj) ? defaultObj : obj;
+    }
     public static String defaultIfBlank(String str, String defaultStr) {
         return isEmpty(str) ? defaultStr : str;
     }

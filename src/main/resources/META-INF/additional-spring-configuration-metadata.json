@@ -23,10 +23,10 @@
     },
     {
       "name": "query.alias-generate-rule",
-      "type": "java.lang.Integer",
-      "defaultValue": "0",
+      "type": "com.github.liuanxin.query.enums.AliasGenerateRule",
+      "defaultValue": "Standard",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "表名是 user_info 或 USER_INFO, 字段名是 user_name 或 USER_NAME 时, 别名生成的规则: 0(表别名 UserInfo, 字段别名 userName), 1(一致), 2(表别名 User-Info, 字段别名 user-name), 3(小写), 4(大写), 10(表别名 A-B...Z-AA...ZZ, 字段别名 a-b...z-aa...zz)."
+      "description": "别名生成的规则: Standard(表 UserInfo  字段 userName), Same, Horizontal(表 User-Info  字段 user-name), Lower, Upper, Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz)."
     },
     {
       "name": "query.deep-max-page-size",

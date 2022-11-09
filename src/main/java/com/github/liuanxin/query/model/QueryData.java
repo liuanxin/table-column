@@ -14,7 +14,7 @@ public class QueryData<T> {
     private final Class<T> clazz;
     private final List<FunctionSerialize<T,?>> selectList;
     private final Set<String> functionSet;
-    private final SingleTableWhere where;
+    private final ParamWhere where;
     private final List<FunctionSerialize<T,?>> groupByList;
     private final Set<String> havingSet;
     private final Map<FunctionSerialize<T,?>, QueryOrder> orderMap;
@@ -25,7 +25,7 @@ public class QueryData<T> {
         this.clazz = clazz;
         selectList = new ArrayList<>();
         functionSet = new LinkedHashSet<>();
-        where = new SingleTableWhere();
+        where = new ParamWhere();
         groupByList = new ArrayList<>();
         havingSet = new LinkedHashSet<>();
         orderMap = new LinkedHashMap<>();
@@ -74,7 +74,7 @@ public class QueryData<T> {
         }
         return this;
     }
-    public QueryData<T> addComposeCondition(SingleTableWhere composeCondition) {
+    public QueryData<T> addComposeCondition(ParamWhere composeCondition) {
         if (QueryUtil.isNotNull(composeCondition)) {
             where.addComposeCondition(composeCondition);
         }

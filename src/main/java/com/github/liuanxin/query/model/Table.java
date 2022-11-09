@@ -399,10 +399,10 @@ public class Table {
     }
 
 
-    public String generateDelete(SingleTableWhere query, TableColumnInfo tcInfo,
+    public String generateDelete(ParamWhere query, TableColumnInfo tcInfo,
                                  List<Object> params, StringBuilder printSql, boolean force) {
         StringBuilder wherePrint = new StringBuilder();
-        String where = query.generateSql(name, tcInfo, params, wherePrint);
+        String where = query.generateSql(name, tcInfo, false, params, wherePrint);
         if (QueryUtil.isEmpty(where)) {
             return "";
         }
@@ -420,13 +420,13 @@ public class Table {
     }
 
 
-    public String generateCountQuery(SingleTableWhere query, TableColumnInfo tcInfo,
+    public String generateCountQuery(ParamWhere query, TableColumnInfo tcInfo,
                                      List<Object> params, StringBuilder printSql,
                                      String groupBy, String having, String havingPrint, String orderBy,
                                      List<Integer> pageList, boolean force) {
         return generateQuery(query, tcInfo, params, printSql, "COUNT(*)", groupBy, having, havingPrint, orderBy, pageList, force);
     }
-    public String generateQuery(SingleTableWhere query, TableColumnInfo tcInfo,
+    public String generateQuery(ParamWhere query, TableColumnInfo tcInfo,
                                 List<Object> params, StringBuilder printSql,
                                 String column, String groupBy, String having, String havingPrint, String orderBy,
                                 List<Integer> pageList, boolean force) {
@@ -435,7 +435,7 @@ public class Table {
         }
 
         StringBuilder wherePrint = new StringBuilder();
-        String where = query.generateSql(name, tcInfo, params, wherePrint);
+        String where = query.generateSql(name, tcInfo, false, params, wherePrint);
         if (QueryUtil.isEmpty(where)) {
             return "";
         }
@@ -486,9 +486,8 @@ public class Table {
     }
 
 
-    public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField,
-                                    SingleTableWhere query, TableColumnInfo tcInfo,
-                                    List<Object> params, StringBuilder printSql) {
+    public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField, ParamWhere query,
+                                    TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql) {
         List<String> setList = new ArrayList<>();
         List<String> setPrintList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {
@@ -503,9 +502,8 @@ public class Table {
         return update(query, tcInfo, params, printSql, setList, setPrintList);
     }
 
-    public <T> String generateUpdate(T updateObj, boolean generateNullField,
-                                     SingleTableWhere query, TableColumnInfo tcInfo,
-                                     List<Object> params, StringBuilder printSql) {
+    public <T> String generateUpdate(T updateObj, boolean generateNullField, ParamWhere query,
+                                     TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql) {
         List<String> setList = new ArrayList<>();
         List<String> setPrintList = new ArrayList<>();
         Class<?> clazz = updateObj.getClass();
@@ -534,15 +532,14 @@ public class Table {
         return update(query, tcInfo, params, printSql, setList, setPrintList);
     }
 
-    private String update(SingleTableWhere query, TableColumnInfo tcInfo,
-                          List<Object> params, StringBuilder printSql,
-                          List<String> setList, List<String> setPrintList) {
+    private String update(ParamWhere query, TableColumnInfo tcInfo, List<Object> params,
+                          StringBuilder printSql, List<String> setList, List<String> setPrintList) {
         if (QueryUtil.isEmpty(setList)) {
             return "";
         }
 
         StringBuilder print = new StringBuilder();
-        String where = query.generateSql(name, tcInfo, params, print);
+        String where = query.generateSql(name, tcInfo, false, params, print);
         if (QueryUtil.isEmpty(where)) {
             return "";
         }

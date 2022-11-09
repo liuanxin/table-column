@@ -12,25 +12,25 @@ public class IdUtil {
     /** 开始时间截 */
     private static final long START_MS = 1420139045697L;
 
-    /** 机器 id 所占的位数 */
+    /** 机器进程 id 所占的位数 */
     private static final long WORKER_ID_BITS = 5L;
 
-    /** 数据标识id所占的位数 */
+    /** 机器 mac 地址 id 所占的位数 */
     private static final long DATACENTER_ID_BITS = 5L;
 
-    /** 支持的最大机器 id */
+    /** 支持的最大进程 id */
     private static final long MAX_WORKER_ID = ~(-1L << WORKER_ID_BITS);
 
-    /** 支持的最大数据标识 id */
+    /** 支持的最大 mac 地址 id */
     private static final long MAX_DATACENTER_ID = ~(-1L << DATACENTER_ID_BITS);
 
     /** 序列在 id 中占的位数 */
     private static final long SEQUENCE_BITS = 12L;
 
-    /** 机器 id 的左移位数 */
+    /** 机器进程 id 的左移位数 */
     private static final long WORKER_ID_SHIFT = SEQUENCE_BITS;
 
-    /** 数据标识 id 向左移位数 */
+    /** 机器 mac 地址 id 向左移位数 */
     private static final long DATACENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
 
     /** 时间截向左移位数 */
@@ -39,10 +39,10 @@ public class IdUtil {
     /** 同一毫秒内的最大自增序列, 达到了将会使用下一毫秒 */
     private static final long SEQUENCE_MASK = ~(-1L << SEQUENCE_BITS);
 
-    /** 工作机器 id */
+    /** 根据机器进程得到的 id */
     private static final long WORKER_ID;
 
-    /** 数据中心 id */
+    /** 根据 mac 地址得到的 id */
     private static final long DATACENTER_ID;
 
     private static final Lock LOCK = new ReentrantLock();
@@ -61,11 +61,12 @@ public class IdUtil {
         long id = 0L;
         try {
             byte[] mac = NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress();
-            if (null != mac) {
+            if (mac != null) {
                 id = ((0x000000FF & (long) mac[mac.length - 2]) | (0x0000FF00 & (((long) mac[mac.length - 1]) << 8))) >> 6;
                 id = id % (MAX_DATACENTER_ID + 1);
             }
         } catch (Exception ignore) {
+            id = ThreadLocalRandom.current().nextLong(MAX_DATACENTER_ID + 1);
         }
         return id;
     }

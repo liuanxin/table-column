@@ -2,6 +2,7 @@ package com.github.liuanxin.query.util;
 
 import com.github.liuanxin.query.annotation.*;
 import com.github.liuanxin.query.constant.QueryConst;
+import com.github.liuanxin.query.enums.AliasGenerateRule;
 import com.github.liuanxin.query.model.Table;
 import com.github.liuanxin.query.model.TableColumn;
 import com.github.liuanxin.query.model.TableColumnInfo;
@@ -31,7 +32,7 @@ public class QueryInfoUtil {
     private static final MetadataReaderFactory READER = new CachingMetadataReaderFactory(RESOLVER);
 
 
-    public static TableColumnInfo infoWithScan(String tablePrefix, int aliasRule, String classPackages,
+    public static TableColumnInfo infoWithScan(String tablePrefix, AliasGenerateRule aliasRule, String classPackages,
                                                List<TableColumnRelation> relationList,
                                                String globalLogicColumn, String globalLogicValue,
                                                String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
@@ -71,7 +72,7 @@ public class QueryInfoUtil {
         return set;
     }
 
-    private static TableColumnInfo infoWithClass(String tablePrefix, int aliasRule, Set<Class<?>> classes,
+    private static TableColumnInfo infoWithClass(String tablePrefix, AliasGenerateRule aliasRule, Set<Class<?>> classes,
                                                  List<TableColumnRelation> relationList,
                                                  String globalLogicColumn, String globalLogicValue,
                                                  String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
@@ -272,7 +273,7 @@ public class QueryInfoUtil {
     }
 
 
-    public static TableColumnInfo infoWithDb(String tablePrefix, int aliasRule,
+    public static TableColumnInfo infoWithDb(String tablePrefix, AliasGenerateRule aliasRule,
                                              List<Map<String, Object>> tableList,
                                              List<Map<String, Object>> tableColumnList,
                                              String globalLogicColumn, String globalLogicValue,
@@ -362,7 +363,8 @@ public class QueryInfoUtil {
     }
 
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath,
-                                     String modelSuffix, int aliasRule, String tablePrefix, boolean generateComment,
+                                     String modelSuffix, AliasGenerateRule aliasRule,
+                                     String tablePrefix, boolean generateComment,
                                      List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
         File packageDir = new File(targetPath.replace(".", "/"), packagePath.replace(".", "/"));
         if (!packageDir.exists()) {
