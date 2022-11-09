@@ -200,8 +200,7 @@ public class QueryInfoUtil {
             }
             aliasMap.put(QueryConst.TABLE_PREFIX + tableAlias, tableName);
             tableClassMap.put(clazz.getName(), tableName);
-            tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias,
-                    logicColumn, logicValue, logicDeleteValue, columnMap));
+            tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias, logicColumn, logicValue, logicDeleteValue, columnMap));
         }
         return new TableColumnInfo(aliasMap, tableClassMap, tableMap);
     }
@@ -346,8 +345,7 @@ public class QueryInfoUtil {
                 }
             }
             aliasMap.put(QueryConst.TABLE_PREFIX + tableAlias, tableName);
-            tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias,
-                    logicColumn, logicValue, logicDeleteValue, columnMap));
+            tableMap.put(tableName, new Table(tableName, tableDesc, tableAlias, logicColumn, logicValue, logicDeleteValue, columnMap));
         }
         return new TableColumnInfo(aliasMap, new HashMap<>(), tableMap);
     }

@@ -35,9 +35,8 @@ public class Table {
     private List<String> idKey;
 
     public Table() {}
-    public Table(String name, String desc, String alias,
-                 String logicColumn, String logicValue, String logicDeleteValue,
-                 Map<String, TableColumn> columnMap) {
+    public Table(String name, String desc, String alias, String logicColumn, String logicValue,
+                 String logicDeleteValue, Map<String, TableColumn> columnMap) {
         this.name = name;
         this.desc = desc;
         this.alias = alias;

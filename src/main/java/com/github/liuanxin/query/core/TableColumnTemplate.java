@@ -154,7 +154,13 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public List<QueryInfo> forceInfo(String tables) {
+        return info(tables, true);
+    }
     public List<QueryInfo> info(String tables) {
+        return info(tables, false);
+    }
+    private List<QueryInfo> info(String tables, boolean force) {
         if (online) {
             return Collections.emptyList();
         }
@@ -166,21 +172,24 @@ public class TableColumnTemplate implements InitializingBean {
             if (QueryUtil.isEmpty(tableSet) || tableSet.contains(tableAlias.toLowerCase())) {
                 List<QueryInfo.QueryColumn> columnList = new ArrayList<>();
                 for (TableColumn tc : table.getColumnMap().values()) {
-                    String type = tc.getFieldType().getSimpleName();
-                    Integer length = tc.getStrLen();
-                    TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), tc.getName());
-                    String relationTable, relationColumn;
-                    if (QueryUtil.isNull(relation)) {
-                        relationTable = null;
-                        relationColumn = null;
-                    } else {
-                        Table tb = tcInfo.findTable(relation.getOneTable());
-                        relationTable = tb.getAlias();
-                        relationColumn = tb.getColumnMap().get(relation.getOneColumn()).getAlias();
+                    String columnName = tc.getName();
+                    if (!columnName.equals(table.getLogicColumn()) || force) {
+                        String type = tc.getFieldType().getSimpleName();
+                        Integer length = tc.getStrLen();
+                        TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), columnName);
+                        String relationTable, relationColumn;
+                        if (QueryUtil.isNull(relation)) {
+                            relationTable = null;
+                            relationColumn = null;
+                        } else {
+                            Table tb = tcInfo.findTable(relation.getOneTable());
+                            relationTable = tb.getAlias();
+                            relationColumn = tb.getColumnMap().get(relation.getOneColumn()).getAlias();
+                        }
+                        boolean needValue = tc.isNotNull() && !tc.isHasDefault();
+                        columnList.add(new QueryInfo.QueryColumn(tc.getAlias(), tc.getDesc(), type,
+                                (needValue ? true : null), length, relationTable, relationColumn));
                     }
-                    boolean needValue = tc.isNotNull() && !tc.isHasDefault();
-                    columnList.add(new QueryInfo.QueryColumn(tc.getAlias(), tc.getDesc(), type,
-                            (needValue ? true : null), length, relationTable, relationColumn));
                 }
                 queryList.add(new QueryInfo(tableAlias, table.getDesc(), columnList));
             }
