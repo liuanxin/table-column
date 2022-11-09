@@ -267,10 +267,10 @@ public class ReqResult {
 
         Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.getTableName(column, currentTable));
         if (QueryUtil.isNull(tableInfo)) {
-            throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has no defined table");
+            throw new RuntimeException("result: table(" + currentTable + ") - " + column + " has no defined table");
         }
         if (QueryUtil.isNull(tcInfo.findTableColumnWithAlias(tableInfo, QueryUtil.getColumnName(column)))) {
-            throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has no defined column");
+            throw new RuntimeException("result: table(" + currentTable + ") - " + column + " has no defined column");
         }
 
         if (columnSet.contains(column)) {
