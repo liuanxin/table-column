@@ -47,7 +47,7 @@
       "type": "java.lang.Integer",
       "defaultValue": "0",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "当表与表之间是一对一关联, 但查询时数据却出现了多条, 1:以前面的为准, 2:后面覆盖前面, 否则抛出异常."
+      "description": "当表与表之间是一对一关联, 但查询时数据却出现了多条, 0.抛出异常, 1.以前面的为准, 2.后面覆盖前面."
     },
     {
       "name": "query.logic-delete-column",
