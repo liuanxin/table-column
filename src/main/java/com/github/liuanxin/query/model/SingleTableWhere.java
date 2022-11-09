@@ -193,10 +193,10 @@ public class SingleTableWhere {
                         Object value = list.get(standardSize ? 1 : 2);
                         ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
 
-                        Class<?> columnType = tcInfo.findTableColumn(table, column).getFieldType();
+                        Class<?> fieldType = tcInfo.findTableColumn(table, column).getFieldType();
                         String useColumn = QueryUtil.getQueryColumn(false, column, table, tcInfo);
                         StringBuilder print = new StringBuilder();
-                        String sql = type.generateSql(useColumn, columnType, value, params, print);
+                        String sql = type.generateSql(useColumn, fieldType, value, params, print);
                         if (QueryUtil.isNotEmpty(sql)) {
                             sj.add(sql);
                             printSj.add(print);

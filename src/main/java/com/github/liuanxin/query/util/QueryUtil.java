@@ -544,7 +544,8 @@ public class QueryUtil {
 
     public static String getQueryColumn(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
         Table table = tcInfo.findTable(getTableName(column, mainTable));
-        String useColumnName = QuerySqlUtil.toSqlField(tcInfo.findTableColumn(table, getColumnName(column)).getName());
+        TableColumn tableColumn = tcInfo.findTableColumn(table, getColumnName(column));
+        String useColumnName = QuerySqlUtil.toSqlField(tableColumn.getName());
         if (needAlias) {
             return QuerySqlUtil.toSqlField(table.getAlias()) + "." + useColumnName;
         } else {

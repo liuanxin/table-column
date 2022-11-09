@@ -102,11 +102,11 @@ public class ReqParam {
             List<String> noColumnList = new ArrayList<>();
             for (String column : sort.keySet()) {
                 String tableName = QueryUtil.getTableName(column, mainTable);
-                Table table = tcInfo.findTable(tableName);
+                Table table = tcInfo.findTableWithAlias(tableName);
                 if (QueryUtil.isNull(table)) {
                     noTableList.add(column);
                 } else {
-                    if (QueryUtil.isNull(tcInfo.findTableColumn(table, QueryUtil.getColumnName(column)))) {
+                    if (QueryUtil.isNull(tcInfo.findTableColumnWithAlias(table, QueryUtil.getColumnName(column)))) {
                         noColumnList.add(column);
                     }
                     paramTableSet.add(table.getName());

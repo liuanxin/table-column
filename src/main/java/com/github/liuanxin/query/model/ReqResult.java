@@ -117,7 +117,7 @@ public class ReqResult {
         String currentTable;
         if (QueryUtil.isNotEmpty(table)) {
             currentTable = table;
-            Table tableInfo = tcInfo.findTable(currentTable);
+            Table tableInfo = tcInfo.findTableWithAlias(currentTable);
             if (QueryUtil.isNull(tableInfo)) {
                 throw new RuntimeException("result: has no defined table(" + currentTable + ")");
             }
@@ -232,9 +232,9 @@ public class ReqResult {
                     throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") has no defined table");
                 }
 
-                TableColumnRelation relation = tcInfo.findRelationByMasterChild(mainTable, innerTable);
+                TableColumnRelation relation = tcInfo.findRelationByMasterChildWithAlias(mainTable, innerTable);
                 if (QueryUtil.isNull(relation)) {
-                    relation = tcInfo.findRelationByMasterChild(innerTable, mainTable);
+                    relation = tcInfo.findRelationByMasterChildWithAlias(innerTable, mainTable);
                 }
                 if (QueryUtil.isNull(relation)) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
@@ -250,14 +250,14 @@ public class ReqResult {
 
     private static void checkFunctionColumn(TableColumnInfo tcInfo, String column, String currentTable,
                                             List<?> groups, Set<String> allTableSet) {
-        Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
-        if (sa == null) {
+        Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.getTableName(column, currentTable));
+        if (tableInfo == null) {
             throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined table");
         }
-        if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column)) == null) {
+        if (tcInfo.findTableColumnWithAlias(tableInfo, QueryUtil.getColumnName(column)) == null) {
             throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined column");
         }
-        allTableSet.add(sa.getName());
+        allTableSet.add(tableInfo.getName());
     }
 
     private Table checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
@@ -265,11 +265,11 @@ public class ReqResult {
             throw new RuntimeException("result: table(" + currentTable + ") column can't be blank");
         }
 
-        Table sa = tcInfo.findTable(QueryUtil.getTableName(column, currentTable));
-        if (sa == null) {
+        Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.getTableName(column, currentTable));
+        if (QueryUtil.isNull(tableInfo)) {
             throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has no defined table");
         }
-        if (tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column)) == null) {
+        if (QueryUtil.isNull(tcInfo.findTableColumnWithAlias(tableInfo, QueryUtil.getColumnName(column)))) {
             throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has no defined column");
         }
 
@@ -277,7 +277,7 @@ public class ReqResult {
             throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has repeated");
         }
         columnSet.add(column);
-        return sa;
+        return tableInfo;
     }
 
     public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {

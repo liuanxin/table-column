@@ -50,31 +50,49 @@ public class TableColumnInfo {
         return QueryUtil.isEmpty(tableName) ? null : tableMap.get(tableName);
     }
 
-    public Table findTable(String tableName) {
-        if (QueryUtil.isEmpty(tableName)) {
+    public Table findTable(String tableOrAliasName) {
+        if (QueryUtil.isEmpty(tableOrAliasName)) {
             return null;
         }
-        String tn = tableName.trim();
-        String ta = aliasMap.get(QueryConst.TABLE_PREFIX + tn);
-        return tableMap.get(QueryUtil.defaultIfBlank(ta, tn));
+        String tan = tableOrAliasName.trim();
+        String ta = aliasMap.get(QueryConst.TABLE_PREFIX + tan);
+        return tableMap.get(QueryUtil.defaultIfBlank(ta, tan));
     }
 
-    public TableColumn findTableColumn(Table table, String columnName) {
-        if (QueryUtil.isNull(table) || QueryUtil.isEmpty(columnName)) {
+    public Table findTableWithAlias(String tableAlias) {
+        if (QueryUtil.isEmpty(tableAlias)) {
+            return null;
+        }
+        return tableMap.get(aliasMap.get(QueryConst.TABLE_PREFIX + tableAlias.trim()));
+    }
+
+    public TableColumn findTableColumn(Table table, String columnOrAliasName) {
+        if (QueryUtil.isNull(table) || QueryUtil.isEmpty(columnOrAliasName)) {
             return null;
         }
         Map<String, TableColumn> columnMap = table.getColumnMap();
         if (QueryUtil.isEmpty(columnMap)) {
             return null;
         }
-        String cn = columnName.trim();
+        String cn = columnOrAliasName.trim();
         String ca = aliasMap.get(QueryConst.COLUMN_PREFIX  + table.getAlias() + "-" + cn);
         return columnMap.get(QueryUtil.defaultIfBlank(ca, cn));
     }
 
-    public TableColumn findTableColumn(String tableName, String columnName) {
-        Table table = findTable(tableName);
-        return QueryUtil.isNull(table) ? null : findTableColumn(table, columnName);
+    public TableColumn findTableColumnWithAlias(Table table, String columnAliasName) {
+        if (QueryUtil.isNull(table) || QueryUtil.isEmpty(columnAliasName)) {
+            return null;
+        }
+        Map<String, TableColumn> columnMap = table.getColumnMap();
+        if (QueryUtil.isEmpty(columnMap)) {
+            return null;
+        }
+        return columnMap.get(aliasMap.get(QueryConst.COLUMN_PREFIX  + table.getAlias() + "-" + columnAliasName.trim()));
+    }
+
+    public TableColumn findTableColumn(String tableOrAliasName, String columnOrAliasName) {
+        Table table = findTable(tableOrAliasName);
+        return QueryUtil.isNull(table) ? null : findTableColumn(table, columnOrAliasName);
     }
 
     public TableColumnRelation findRelationByMasterChild(String masterTable, String childTable) {
@@ -89,6 +107,21 @@ public class TableColumnInfo {
         }
 
         Table child = findTable(childTable);
+        return QueryUtil.isNull(child) ? null : relationMap.get(child.getName());
+    }
+
+    public TableColumnRelation findRelationByMasterChildWithAlias(String masterTableAlias, String childTableAlias) {
+        Table table = findTableWithAlias(masterTableAlias);
+        if (QueryUtil.isNull(table)) {
+            return null;
+        }
+
+        Map<String, TableColumnRelation> relationMap = masterChildTableMap.get(table.getName());
+        if (QueryUtil.isEmpty(relationMap)) {
+            return null;
+        }
+
+        Table child = findTableWithAlias(childTableAlias);
         return QueryUtil.isNull(child) ? null : relationMap.get(child.getName());
     }
 

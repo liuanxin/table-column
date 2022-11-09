@@ -161,12 +161,12 @@ public class ReqParamOperate {
                     if (size < 2) {
                         throw new RuntimeException("param: condition(" + condition + ") error");
                     }
-                    String column = QueryUtil.toStr(list.get(0));
-                    if (QueryUtil.isEmpty(column)) {
+                    String columnAlias = QueryUtil.toStr(list.get(0));
+                    if (QueryUtil.isEmpty(columnAlias)) {
                         throw new RuntimeException("param: condition(" + condition + ") column can't be blank");
                     }
 
-                    Table sa = tcInfo.findTable(QueryUtil.getTableName(column, mainTable));
+                    Table sa = tcInfo.findTableWithAlias(QueryUtil.getTableName(columnAlias, mainTable));
                     if (sa == null) {
                         throw new RuntimeException("param: condition(" + condition + ") column has no table info");
                     }
@@ -175,14 +175,14 @@ public class ReqParamOperate {
                     boolean standardSize = (size == 2);
                     ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
                     if (type == null) {
-                        throw new RuntimeException(String.format("param: condition column(%s) type(%s) error", column, list.get(1)));
+                        throw new RuntimeException(String.format("param: condition column(%s) type(%s) error", columnAlias, list.get(1)));
                     }
 
-                    TableColumn tableColumn = tcInfo.findTableColumn(sa, QueryUtil.getColumnName(column));
+                    TableColumn tableColumn = tcInfo.findTableColumnWithAlias(sa, QueryUtil.getColumnName(columnAlias));
                     if (tableColumn == null) {
-                        throw new RuntimeException(String.format("param: condition column(%s) has no column info", column));
+                        throw new RuntimeException(String.format("param: condition column(%s) has no column info", columnAlias));
                     }
-                    type.checkTypeAndValue(tableColumn.getFieldType(), column,
+                    type.checkTypeAndValue(tableColumn.getFieldType(), columnAlias,
                             list.get(standardSize ? 1 : 2), tableColumn.getStrLen(), maxListCount);
                 } else {
                     ReqParamOperate compose = QueryJsonUtil.convert(condition, ReqParamOperate.class);
@@ -220,10 +220,10 @@ public class ReqParamOperate {
 
                         String tableName = QueryUtil.getTableName(column, mainTable);
                         String columnName = QueryUtil.getColumnName(column);
-                        Class<?> columnType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
+                        Class<?> fieldType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
                         String useColumn = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
                         StringBuilder print = new StringBuilder();
-                        String sql = type.generateSql(useColumn, columnType, value, params, print);
+                        String sql = type.generateSql(useColumn, fieldType, value, params, print);
                         if (QueryUtil.isNotEmpty(sql)) {
                             sj.add(sql);
                             printSj.add(print);

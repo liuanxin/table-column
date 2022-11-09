@@ -94,7 +94,7 @@ public class RequestInfo {
         if (QueryUtil.isEmpty(table)) {
             throw new RuntimeException("request: need table");
         }
-        if (tcInfo.findTable(table) == null) {
+        if (tcInfo.findTableWithAlias(table) == null) {
             throw new RuntimeException("request: has no defined table(" + table + ")");
         }
     }
@@ -164,12 +164,12 @@ public class RequestInfo {
             Set<String> tableRelation = new HashSet<>();
             for (List<String> values : relation) {
                 JoinType joinType = JoinType.deserializer(values.get(1));
-                if (joinType == null) {
+                if (QueryUtil.isNull(joinType)) {
                     throw new RuntimeException("relation join type error, support: inner left right");
                 }
                 String masterTable = values.get(0);
                 String childTable = values.get(2);
-                if (tcInfo.findRelationByMasterChild(masterTable, childTable) == null) {
+                if (QueryUtil.isNull(tcInfo.findRelationByMasterChildWithAlias(masterTable, childTable))) {
                     throw new RuntimeException("relation: " + masterTable + " - " + childTable + " has no relation");
                 }
 
