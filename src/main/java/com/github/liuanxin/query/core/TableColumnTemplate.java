@@ -80,20 +80,29 @@ public class TableColumnTemplate implements InitializingBean {
                 throw new RuntimeException(String.format("class not found in(%s)", scanPackages));
             }
         } else {
-            String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
-            // table_name, table_comment
-            List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
-            // table_name, column_name, column_type, column_comment, has_pri, varchar_length
-            List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
-            tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, aliasGenerateRule, tableList, tableColumnList,
-                    logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
+            loadDatabase();
         }
         QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
+    }
+    private void loadDatabase() {
+        String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
+        // table_name, table_comment
+        List<Map<String, Object>> tableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
+        // table_name, column_name, column_type, column_comment, has_pri, varchar_length
+        List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
+        tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, aliasGenerateRule, tableList, tableColumnList,
+                logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
     }
 
 
     public TableColumnInfo getTcInfo() {
         return tcInfo;
+    }
+
+
+    public void refreshWithDatabase() {
+        loadDatabase();
+        QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
     }
 
 
@@ -214,8 +223,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("insert sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("insert sql: [{}]", printSql);
         }
         return jdbcTemplate.update(insertSql, params.toArray());
     }
@@ -268,8 +277,8 @@ public class TableColumnTemplate implements InitializingBean {
             List<Object> params = new ArrayList<>();
             String batchInsertSql = tableInfo.generateBatchInsertMap(lt, generateNullField, params, printSql);
             if (QueryUtil.isNotEmpty(batchInsertSql)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("batch insert-map sql: [{}]", printSql);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("batch insert-map sql: [{}]", printSql);
                 }
                 flag += jdbcTemplate.update(batchInsertSql, params.toArray());
             }
@@ -327,8 +336,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("insert sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("insert sql: [{}]", printSql);
         }
         return jdbcTemplate.update(insertSql, params.toArray());
     }
@@ -391,8 +400,8 @@ public class TableColumnTemplate implements InitializingBean {
             List<Object> params = new ArrayList<>();
             String batchInsertSql = table.generateBatchInsert(lt, generateNullField, params, printSql);
             if (QueryUtil.isNotEmpty(batchInsertSql)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("batch insert sql: [{}]", printSql);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("batch insert sql: [{}]", printSql);
                 }
                 flag += jdbcTemplate.update(batchInsertSql, params.toArray());
             }
@@ -547,8 +556,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("delete sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("delete sql: [{}]", printSql);
         }
         return jdbcTemplate.update(deleteSql, params.toArray());
     }
@@ -612,8 +621,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("update-map sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("update-map sql: [{}]", printSql);
         }
         return jdbcTemplate.update(updateSql, params.toArray());
     }
@@ -679,8 +688,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("update sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("update sql: [{}]", printSql);
         }
         return jdbcTemplate.update(updateSql, params.toArray());
     }
@@ -711,8 +720,8 @@ public class TableColumnTemplate implements InitializingBean {
             return Collections.emptyMap();
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query sql: [{}]", printSql);
         }
         return QueryUtil.first(jdbcTemplate.queryForList(querySql, params.toArray()));
     }
@@ -746,8 +755,8 @@ public class TableColumnTemplate implements InitializingBean {
             String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, select,
                     null, null, null, null, null, force);
             if (QueryUtil.isNotEmpty(querySql)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("query sql: [{}]", printSql);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("query sql: [{}]", printSql);
                 }
                 List<Map<String, Object>> maps = jdbcTemplate.queryForList(querySql, params.toArray());
                 if (QueryUtil.isNotEmpty(maps)) {
@@ -789,8 +798,8 @@ public class TableColumnTemplate implements InitializingBean {
             return Collections.emptyList();
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query sql: [{}]", printSql);
         }
         return jdbcTemplate.queryForList(querySql, params.toArray());
     }
@@ -824,8 +833,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query count sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query count sql: [{}]", printSql);
         }
         Long count = jdbcTemplate.queryForObject(querySql, Long.class, params.toArray());
         return QueryUtil.isNull(count) ? 0 : count;
@@ -859,8 +868,8 @@ public class TableColumnTemplate implements InitializingBean {
             return null;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query-id sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query-id sql: [{}]", printSql);
         }
         return QueryUtil.first(jdbcTemplate.queryForList(querySql, clazz, params.toArray()));
     }
@@ -893,8 +902,8 @@ public class TableColumnTemplate implements InitializingBean {
             return Collections.emptyList();
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query-ids sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query-ids sql: [{}]", printSql);
         }
         return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
     }
@@ -930,8 +939,8 @@ public class TableColumnTemplate implements InitializingBean {
             return Collections.emptyList();
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query sql: [{}]", printSql);
         }
         return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
     }
@@ -969,8 +978,8 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query count sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query count sql: [{}]", printSql);
         }
         Long count = jdbcTemplate.queryForObject(querySql, Long.class, params.toArray());
         return QueryUtil.isNull(count) ? 0 : count;
@@ -1125,8 +1134,8 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private long queryCount(String countSql, List<Object> params, StringBuilder printSql) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("query count sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("query count sql: [{}]", printSql);
         }
         Long count = jdbcTemplate.queryForObject(countSql, Long.class, params.toArray());
         return QueryUtil.isNull(count) ? 0L : count;
@@ -1143,8 +1152,8 @@ public class TableColumnTemplate implements InitializingBean {
             // SELECT id FROM ... WHERE .?. ORDER BY ... LIMIT ...
             String idPageSql = QuerySqlUtil.toIdPageSql(tcInfo, fromAndWhere,
                     fromAndWherePrint, mainTable, needAlias, param, params, printSql);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("query condition sql: [{}]", printSql);
+            if (LOG.isInfoEnabled()) {
+                LOG.info("query condition sql: [{}]", printSql);
             }
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(idPageSql, params.toArray());
 
@@ -1207,8 +1216,8 @@ public class TableColumnTemplate implements InitializingBean {
     private List<Map<String, Object>> assemblyResult(String mainSql, boolean needAlias, List<Object> params,
                                                      String mainTable, ReqResult result, boolean force,
                                                      StringBuilder printSql) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("sql: [{}]", printSql);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("sql: [{}]", printSql);
         }
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
         if (QueryUtil.isNotEmpty(dataList)) {
@@ -1308,8 +1317,8 @@ public class TableColumnTemplate implements InitializingBean {
             List<Object> params = new ArrayList<>();
             String innerSql = QuerySqlUtil.toInnerSql(selectColumn, table, relationColumn, ids, params, printSql);
             String logicDelete = tableInfo.logicDeleteCondition(force, needAlias);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("query inner sql: [{}]", printSql + logicDelete);
+            if (LOG.isInfoEnabled()) {
+                LOG.info("query inner sql: [{}]", printSql + logicDelete);
             }
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql + logicDelete, params.toArray());
             if (QueryUtil.isNotEmpty(idList)) {
