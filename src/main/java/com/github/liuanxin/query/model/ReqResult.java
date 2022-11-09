@@ -239,7 +239,7 @@ public class ReqResult {
                 if (QueryUtil.isNull(relation)) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
                 }
-                Set<String> innerTableSet = innerResult.checkResult(innerTable, tcInfo);
+                Set<String> innerTableSet = innerResult.checkResult(mainTable, tcInfo);
                 if (innerTableSet.size() > 1) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") just has one Table to Query");
                 }
