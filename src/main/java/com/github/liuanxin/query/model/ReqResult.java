@@ -518,6 +518,11 @@ public class ReqResult {
                         if (QueryUtil.isNotNull(date)) {
                             data.put(columnName, QueryUtil.formatDate(date));
                         }
+                    } else if (QueryUtil.serializableToStr(fieldType)) {
+                        String str = QueryUtil.toStr(data.get(column));
+                        if (QueryUtil.isNotEmpty(str)) {
+                            data.put(columnName, str);
+                        }
                     }
                 } else if (obj instanceof List<?>) {
                     List<?> groups = (List<?>) obj;

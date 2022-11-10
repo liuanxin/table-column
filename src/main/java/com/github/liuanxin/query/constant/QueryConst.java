@@ -34,6 +34,9 @@ public final class QueryConst {
         DB_TYPE_MAP.put("float", Float.class);
         DB_TYPE_MAP.put("double", Double.class);
     }
+    public static final Set<Class<?>> SERIALIZE_STR_SET = new HashSet<>(Arrays.asList(
+            Long.class, BigDecimal.class, Float.class, Double.class
+    ));
 
     public static final String TABLE_PREFIX = "__table__";
     public static final String COLUMN_PREFIX = "__column__";

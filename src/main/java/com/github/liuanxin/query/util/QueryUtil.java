@@ -314,6 +314,10 @@ public class QueryUtil {
         throw new RuntimeException("unknown db type" + dbType);
     }
 
+    public static boolean serializableToStr(Class<?> fieldType) {
+        return QueryConst.SERIALIZE_STR_SET.contains(fieldType);
+    }
+
     public static String toStr(Object obj) {
         return obj == null ? "" : obj.toString().trim();
     }
