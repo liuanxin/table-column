@@ -513,15 +513,15 @@ public class ReqResult {
                     String tableName = QueryUtil.getTableName(column, currentTable);
                     String columnName = QueryUtil.getColumnName(column);
                     Class<?> fieldType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
-                    if (Date.class.isAssignableFrom(fieldType)) {
-                        Date date = QueryUtil.toDate(data.get(columnName));
-                        if (QueryUtil.isNotNull(date)) {
-                            data.put(columnName, QueryUtil.formatDate(date));
-                        }
-                    } else if (QueryUtil.serializableToStr(fieldType)) {
+                    if (QueryUtil.serializableToStr(fieldType)) {
                         String str = QueryUtil.toStr(data.get(column));
                         if (QueryUtil.isNotEmpty(str)) {
                             data.put(columnName, str);
+                        }
+                    } else if (Date.class.isAssignableFrom(fieldType)) {
+                        Date date = QueryUtil.toDate(data.get(columnName));
+                        if (QueryUtil.isNotNull(date)) {
+                            data.put(columnName, QueryUtil.formatDate(date));
                         }
                     }
                 } else if (obj instanceof List<?>) {
