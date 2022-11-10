@@ -1,6 +1,7 @@
 package com.github.liuanxin.query.constant;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 public final class QueryConst {
@@ -35,7 +36,7 @@ public final class QueryConst {
         DB_TYPE_MAP.put("double", Double.class);
     }
     public static final Set<Class<?>> SERIALIZE_STR_SET = new HashSet<>(Arrays.asList(
-            Long.class, BigDecimal.class, Float.class, Double.class
+            Long.class, BigInteger.class, BigDecimal.class, Float.class, Double.class
     ));
 
     public static final String TABLE_PREFIX = "__table__";
