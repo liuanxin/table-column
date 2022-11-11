@@ -111,12 +111,12 @@ public class IdUtil {
                 if (offset <= 5) {
                     try {
                         Thread.sleep(5 - offset);
-                        timestamp = getMs();
-                        if (timestamp < lastTimestamp) {
-                            throw new RuntimeException(String.format("时钟回拨. %d 毫秒内不生成 id", (lastTimestamp - timestamp)));
-                        }
                     } catch (Exception e) {
                         throw new RuntimeException(e);
+                    }
+                    timestamp = getMs();
+                    if (timestamp < lastTimestamp) {
+                        throw new RuntimeException(String.format("再次时钟回拨. %d 毫秒内拒绝生成 id", (lastTimestamp - timestamp)));
                     }
                 } else {
                     throw new RuntimeException(String.format("时钟回拨. %d 毫秒内拒绝生成 id", offset));
@@ -159,10 +159,10 @@ public class IdUtil {
 
         public static long getMs() {
             // 使用 static class 来确保延迟加载的单例
-            return InstanceHolder.INSTANCE.now.get();
+            return Instance.TIME_MILLIS.now.get();
         }
-        private static class InstanceHolder {
-            public static final TimeMillis INSTANCE = new TimeMillis();
+        private static class Instance {
+            public static final TimeMillis TIME_MILLIS = new TimeMillis();
         }
     }
 }
