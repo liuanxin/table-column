@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class IdUtil {
 
     /** 开始时间截 */
-    private static final long START_MS = 1420139045697L;
+    private static final long START_MS = 1391371506897L;
 
     /** 机器进程 id 所占的位数 */
     private static final long WORKER_ID_BITS = 5L;
