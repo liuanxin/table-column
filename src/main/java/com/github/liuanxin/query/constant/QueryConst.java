@@ -61,9 +61,8 @@ public final class QueryConst {
     public static final Set<String> SUPPORT_COUNT_SET = new HashSet<>(Arrays.asList("*", "1"));
 
 
-    public static final Integer DEFAULT_INDEX = 1;
     public static final Integer DEFAULT_LIMIT = 10;
-    public static final List<Integer> LIMIT_ONE = Arrays.asList(DEFAULT_INDEX, 1);
+    public static final List<Integer> LIMIT_ONE = Arrays.asList(1, 1);
     public static final Set<Integer> LIMIT_SET = new LinkedHashSet<>(Arrays.asList(
             1, 2, 3, 5, DEFAULT_LIMIT, 20, 30, 50, 100, 200, 300, 500, 1000)
     );

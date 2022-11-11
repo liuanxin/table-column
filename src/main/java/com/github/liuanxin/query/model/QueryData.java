@@ -128,11 +128,38 @@ public class QueryData<T> {
         return this;
     }
 
-    public String toSql(TableColumnInfo tcInfo, List<Object> params) {
+    public String toSql(TableColumnInfo tcInfo, List<Object> params, boolean force) {
         Table table = tcInfo.findTableByClass(clazz);
         if (QueryUtil.isNull(table)) {
             throw new RuntimeException("no ({" + clazz + "}) table has defined");
         }
+
+        List<String> columnList;
+        if (QueryUtil.isEmpty(selectList)) {
+            columnList = table.allColumn(force);
+        } else {
+            columnList = new ArrayList<>();
+            for (FunctionSerialize<T, ?> select : selectList) {
+                columnList.add(QueryLambdaUtil.toColumnAndAlias(select));
+            }
+        }
+        if (QueryUtil.isNotEmpty(functionSet)) {
+            columnList.addAll(functionSet);
+        }
+        String select = String.join(", ", columnList);
+
+        List<String> groupByColumnList = new ArrayList<>();
+        if (QueryUtil.isNotEmpty(groupByList)) {
+            for (FunctionSerialize<T, ?> groupBy : groupByList) {
+                groupByColumnList.add(QueryLambdaUtil.toColumnName(groupBy));
+            }
+        }
+        String groupBy = String.join(", ", groupByColumnList);
+
+        List<Object> havingParams = new ArrayList<>();
+//        return table.generateQuery(where, tcInfo, params, printSql, select,
+//                groupBy, having, havingPrint, orderBy, pageList, force);
+        // todo
         return null;
     }
 

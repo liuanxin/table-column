@@ -108,8 +108,9 @@ public class ReqParam {
                 } else {
                     if (QueryUtil.isNull(tcInfo.findTableColumnWithAlias(table, QueryUtil.getColumnName(column)))) {
                         noColumnList.add(column);
+                    } else {
+                        paramTableSet.add(table.getName());
                     }
-                    paramTableSet.add(table.getName());
                 }
             }
             if (QueryUtil.isNotEmpty(noTableList)) {
@@ -198,10 +199,10 @@ public class ReqParam {
         return ((long) index * limit) <= count;
     }
     private int calcIndex() {
-        return (page.size() == 0) ? QueryConst.DEFAULT_INDEX : page.get(0);
+        return page.get(0);
     }
     private int calcLimit() {
-        return (page.size() == 1) ? QueryConst.DEFAULT_LIMIT : page.get(1);
+        return (page.size() > 1) ? page.get(1) : QueryConst.DEFAULT_LIMIT;
     }
     public String generatePageSql(List<Object> params, StringBuilder printSql) {
         if (needQueryPage()) {

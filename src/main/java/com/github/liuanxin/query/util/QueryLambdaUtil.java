@@ -127,22 +127,43 @@ public final class QueryLambdaUtil {
     public static <T> String toColumnName(SupplierSerialize<T> supplier) {
         return toColumnName(toField(supplier));
     }
-    private static String toColumnName(Field field) {
-        ColumnIgnore columnIgnore = field.getAnnotation(ColumnIgnore.class);
-        if (QueryUtil.isNotNull(columnIgnore) && columnIgnore.value()) {
-            return "";
-        }
-
-        ColumnInfo ci = field.getAnnotation(ColumnInfo.class);
-        if (QueryUtil.isNotNull(ci)) {
-            String columnName = ci.value();
+    private static String toColumnName(Field field, ColumnInfo columnInfo) {
+        if (QueryUtil.isNotNull(columnInfo)) {
+            String columnName = columnInfo.value();
             if (QueryUtil.isNotEmpty(columnName)) {
                 return columnName;
             }
         }
         return QueryUtil.fieldToColumnName(field.getName());
     }
+    private static String toColumnName(Field field) {
+        return toColumnName(field, toColumnInfo(field));
+    }
+    private static ColumnInfo toColumnInfo(Field field) {
+        ColumnIgnore columnIgnore = field.getAnnotation(ColumnIgnore.class);
+        if (QueryUtil.isNotNull(columnIgnore) && columnIgnore.value()) {
+            return null;
+        }
+        return field.getAnnotation(ColumnInfo.class);
+    }
     public static <T> String toColumnName(FunctionSerialize<T, ?> function) {
         return toColumnName(toField(function));
+    }
+
+    public static <T> String toColumnAndAlias(SupplierSerialize<T> supplier) {
+        return toColumnAndAlias(toField(supplier));
+    }
+    public static <T> String toColumnAndAlias(Field field) {
+        ColumnInfo columnInfo = toColumnInfo(field);
+        String columnName = toColumnName(field, columnInfo);
+        if (QueryUtil.isNotNull(columnInfo)) {
+            String fieldName = field.getName();
+            return fieldName.equals(columnName) ? columnName : (columnName + " AS " + fieldName);
+        } else {
+            return columnName;
+        }
+    }
+    public static <T> String toColumnAndAlias(FunctionSerialize<T, ?> function) {
+        return toColumnAndAlias(toField(function));
     }
 }

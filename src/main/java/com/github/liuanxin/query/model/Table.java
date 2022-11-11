@@ -170,17 +170,38 @@ public class Table {
         return sj.toString();
     }
 
-    public String generateSelect(Boolean useAlias) {
+    public String generateSelect(boolean useAlias, boolean force) {
         StringJoiner sj = new StringJoiner(", ");
         for (TableColumn column : columnMap.values()) {
-            if (QueryUtil.isNotNull(useAlias)) {
-                sj.add(column.getName() + " AS " + (useAlias ? column.getAlias() : column.getFieldName()));
-            } else {
-                sj.add(column.getName());
+            String columnName = column.getName();
+            if (!columnName.equals(logicColumn) || force) {
+                String alias = useAlias ? column.getAlias() : column.getFieldName();
+                if (columnName.equals(alias)) {
+                    sj.add(columnName);
+                } else {
+                    sj.add(columnName + " AS " + alias);
+                }
             }
         }
         return sj.toString();
     }
+
+    public List<String> allColumn(boolean force) {
+        List<String> columnList = new ArrayList<>();
+        for (TableColumn column : columnMap.values()) {
+            String columnName = column.getName();
+            if (!columnName.equals(logicColumn) || force) {
+                String fieldName = column.getFieldName();
+                if (columnName.equals(fieldName)) {
+                    columnList.add(columnName);
+                } else {
+                    columnList.add(columnName + " AS " + fieldName);
+                }
+            }
+        }
+        return columnList;
+    }
+
 
 
     public String generateInsertMap(Map<String, Object> data, boolean generateNullField,
@@ -419,14 +440,12 @@ public class Table {
     }
 
 
-    public String generateCountQuery(ParamWhere query, TableColumnInfo tcInfo,
-                                     List<Object> params, StringBuilder printSql,
+    public String generateCountQuery(ParamWhere query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
                                      String groupBy, String having, String havingPrint, String orderBy,
                                      List<Integer> pageList, boolean force) {
         return generateQuery(query, tcInfo, params, printSql, "COUNT(*)", groupBy, having, havingPrint, orderBy, pageList, force);
     }
-    public String generateQuery(ParamWhere query, TableColumnInfo tcInfo,
-                                List<Object> params, StringBuilder printSql,
+    public String generateQuery(ParamWhere query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
                                 String column, String groupBy, String having, String havingPrint, String orderBy,
                                 List<Integer> pageList, boolean force) {
         if (QueryUtil.isEmpty(column)) {

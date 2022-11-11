@@ -730,7 +730,7 @@ public class TableColumnTemplate implements InitializingBean {
         StringBuilder printSql = new StringBuilder();
         List<Object> params = new ArrayList<>();
         ParamWhere query = ParamWhere.buildId(tableInfo.idWhere(false), id);
-        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(true),
+        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(true, force),
                 null, null, null, null, QueryConst.LIMIT_ONE, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyMap();
@@ -762,7 +762,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         String idField = tableInfo.idWhere(false);
-        String select = tableInfo.generateSelect(true);
+        String select = tableInfo.generateSelect(true, force);
         List<Map<String, Object>> returnList = new ArrayList<>();
         for (List<Serializable> lt : QueryUtil.split(ids, maxListCount)) {
             StringBuilder printSql = new StringBuilder();
@@ -808,7 +808,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         StringBuilder printSql = new StringBuilder();
         List<Object> params = new ArrayList<>();
-        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(false),
+        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(false, force),
                 groupBy, having, havingPrint, orderBy, pageList, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyList();
@@ -882,7 +882,7 @@ public class TableColumnTemplate implements InitializingBean {
         StringBuilder printSql = new StringBuilder();
         List<Object> params = new ArrayList<>();
         ParamWhere query = ParamWhere.buildId(table.idWhere(false), id);
-        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false),
+        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
                 null, null, null, null, QueryConst.LIMIT_ONE, force);
         if (QueryUtil.isEmpty(querySql)) {
             return null;
@@ -916,7 +916,7 @@ public class TableColumnTemplate implements InitializingBean {
         StringBuilder printSql = new StringBuilder();
         List<Object> params = new ArrayList<>();
         ParamWhere query = ParamWhere.buildIds(table.idWhere(false), ids);
-        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false),
+        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
                 null, null, null, null, null, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyList();
@@ -953,7 +953,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         StringBuilder printSql = new StringBuilder();
         List<Object> params = new ArrayList<>();
-        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false),
+        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
                 groupBy, having, havingPrint, orderBy, pageList, force);
         if (QueryUtil.isEmpty(querySql)) {
             return Collections.emptyList();
