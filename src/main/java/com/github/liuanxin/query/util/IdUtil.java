@@ -133,12 +133,12 @@ public class IdUtil {
                 // 不同毫秒序列号随机 1 或 2
                 sequence = ThreadLocalRandom.current().nextLong(1, 3);
             }
-            // 上次生成ID的时间截
+            // 上次的时间截
             lastTimestamp = timestamp;
         } finally {
             LOCK.unlock();
         }
-        // 移位并通过或运算拼到一起组成 64 位的 id
+        // 移位 及 或运算 组成 64 位 id
         return ((timestamp - START_MS) << TIMESTAMP_LEFT_SHIFT)
                 | (DATACENTER_ID << DATACENTER_ID_SHIFT)
                 | (WORKER_ID << WORKER_ID_SHIFT)
