@@ -354,7 +354,13 @@ public class QueryUtil {
     }
 
     public static Boolean toBoolean(Object obj) {
-        return (isNotNull(obj) && QueryConst.BOOLEAN_SET.contains(obj.toString().toLowerCase())) ? true : null;
+        if (isNotNull(obj)) {
+            String str = obj.toString().trim().toLowerCase();
+            if (QueryConst.BOOLEAN_SET.contains(str)) {
+                return QueryConst.TRUE_SET.contains(str);
+            }
+        }
+        return null;
     }
 
     public static int toInt(Object obj) {
