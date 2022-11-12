@@ -43,10 +43,10 @@ public final class QueryConst {
     public static final String COLUMN_PREFIX = "__column__";
 
     public static final Set<String> TRUE_SET = new HashSet<>(Arrays.asList(
-            "true", "1", "on", "yes", "✔", "✓", "\u2713", "\u2714"
+            "true", "1", "on", "yes" //, "✔", "✓", "\u2713", "\u2714"
     ));
     public static final Set<String> FALSE_SET = new HashSet<>(Arrays.asList(
-            "false", "0", "off", "no", "✘", "✗", "\u2717", "\u2718"
+            "false", "0", "off", "no" //, "✘", "✗", "\u2717", "\u2718"
     ));
     public static final Set<String> BOOLEAN_SET = new HashSet<>();
     static {
