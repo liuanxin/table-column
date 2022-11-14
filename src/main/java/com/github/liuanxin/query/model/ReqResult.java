@@ -115,9 +115,9 @@ public class ReqResult {
 
     public void handleInit(String mainTable, TableColumnInfo tcInfo, boolean force) {
         if (QueryUtil.isEmpty(columns)) {
-            Table table = tcInfo.findTableWithAlias(QueryUtil.defaultIfBlank(this.table, mainTable));
-            if (QueryUtil.isNotNull(table)) {
-                List<String> columnList = table.allColumn(force);
+            Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.defaultIfBlank(table, mainTable));
+            if (QueryUtil.isNotNull(tableInfo)) {
+                List<String> columnList = tableInfo.allColumn(force);
                 if (QueryUtil.isNotEmpty(columnList)) {
                     columns = new ArrayList<>(columnList);
                 }
@@ -127,14 +127,14 @@ public class ReqResult {
 
     public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo) {
         String currentTable;
-        if (QueryUtil.isNotEmpty(table)) {
+        if (QueryUtil.isEmpty(table)) {
+            currentTable = mainTable;
+        } else {
             currentTable = table;
             Table tableInfo = tcInfo.findTableWithAlias(currentTable);
             if (QueryUtil.isNull(tableInfo)) {
                 throw new RuntimeException("result: has no defined table(" + currentTable + ")");
             }
-        } else {
-            currentTable = mainTable;
         }
         if (QueryUtil.isEmpty(columns)) {
             throw new RuntimeException("result: table(" + currentTable + ") need columns");

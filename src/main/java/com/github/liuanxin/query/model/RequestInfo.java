@@ -96,7 +96,8 @@ public class RequestInfo extends RequestModel {
     public Set<String> checkResult(TableColumnInfo tcInfo, boolean force) {
         ReqResult result = getResult();
         if (QueryUtil.isNull(result)) {
-            throw new RuntimeException("request: need result");
+            result = new ReqResult();
+            setResult(result);
         }
 
         String table = getTable();
