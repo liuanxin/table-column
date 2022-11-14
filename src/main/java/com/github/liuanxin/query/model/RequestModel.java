@@ -11,18 +11,21 @@ public class RequestModel {
 
     /** 主表 */
     private String table;
-    /** 出参类型, 对象(obj)还是数组(arr), 不设置则是数组 */
-    private ResultType type;
+
     /** 出参 */
     private ReqResult result;
-    /** [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderPrice" ] ] */
+
+    /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
+    private ResultType type;
+
+    /** 入参里用到的表的关系. 如: [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderLog" ] ] */
     private List<List<String>> relation;
 
     public RequestModel() {}
-    public RequestModel(String table, ResultType type, ReqResult result, List<List<String>> relation) {
+    public RequestModel(String table, ReqResult result, ResultType type, List<List<String>> relation) {
         this.table = table;
-        this.type = type;
         this.result = result;
+        this.type = type;
         this.relation = relation;
     }
 
@@ -33,18 +36,18 @@ public class RequestModel {
         this.table = table;
     }
 
-    public ResultType getType() {
-        return type;
-    }
-    public void setType(ResultType type) {
-        this.type = type;
-    }
-
     public ReqResult getResult() {
         return result;
     }
     public void setResult(ReqResult result) {
         this.result = result;
+    }
+
+    public ResultType getType() {
+        return type;
+    }
+    public void setType(ResultType type) {
+        this.type = type;
     }
 
     public List<List<String>> getRelation() {
@@ -59,21 +62,21 @@ public class RequestModel {
         if (this == o) return true;
         if (!(o instanceof RequestModel)) return false;
         RequestModel that = (RequestModel) o;
-        return Objects.equals(table, that.table) && type == that.type
-                && Objects.equals(result, that.result) && Objects.equals(relation, that.relation);
+        return Objects.equals(table, that.table) && Objects.equals(result, that.result)
+                && type == that.type && Objects.equals(relation, that.relation);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, type, result, relation);
+        return Objects.hash(table, result, type, relation);
     }
 
     @Override
     public String toString() {
         return "RequestInfo{" +
                 "table='" + table + '\'' +
-                ", type=" + type +
                 ", result=" + result +
+                ", type=" + type +
                 ", relation=" + relation +
                 '}';
     }
@@ -83,8 +86,8 @@ public class RequestModel {
         RequestModel model = requestAliasMap.get(alias);
         if (QueryUtil.isNotNull(model)) {
             this.table = model.getTable();
-            this.type = model.getType();
             this.result = model.getResult();
+            this.type = model.getType();
             this.relation = model.getRelation();
         }
     }

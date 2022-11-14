@@ -14,8 +14,9 @@ public class RequestInfo extends RequestModel {
     private ReqParam param;
 
     public RequestInfo() {}
-    public RequestInfo(String alias, ReqParam param, String table, ResultType type, ReqResult result, List<List<String>> relation) {
-        super(table, type, result, relation);
+    public RequestInfo(String alias, ReqParam param, String table, ReqResult result,
+                       ResultType type, List<List<String>> relation) {
+        super(table, result, type, relation);
         this.alias = alias;
         this.param = param;
     }
@@ -39,14 +40,14 @@ public class RequestInfo extends RequestModel {
         if (this == o) return true;
         if (!(o instanceof RequestInfo)) return false;
         RequestInfo that = (RequestInfo) o;
-        return Objects.equals(alias, that.alias) && Objects.equals(param, that.param) &&
-                Objects.equals(getTable(), that.getTable()) && getType() == that.getType() &&
-                Objects.equals(getResult(), that.getResult()) && Objects.equals(getRelation(), that.getRelation());
+        return Objects.equals(alias, that.alias) && Objects.equals(param, that.param)
+                && Objects.equals(getTable(), that.getTable()) && Objects.equals(getResult(), that.getResult())
+                && getType() == that.getType() && Objects.equals(getRelation(), that.getRelation());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, param, getTable(), getTable(), getRelation(), getRelation());
+        return Objects.hash(alias, param, getTable(), getResult(), getType(), getRelation());
     }
 
     @Override
@@ -55,8 +56,8 @@ public class RequestInfo extends RequestModel {
                 ", alias=" + alias +
                 ", param=" + param +
                 ", table='" + getTable() + '\'' +
-                ", type=" + getTable() +
-                ", result=" + getRelation() +
+                ", result=" + getResult() +
+                ", type=" + getType() +
                 ", relation=" + getRelation() +
                 '}';
     }
