@@ -238,8 +238,8 @@ public class ParamWhere {
                         StringBuilder print = new StringBuilder();
                         String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params, print);
                         if (QueryUtil.isNotEmpty(innerWhereSql)) {
-                            sj.add("( " + innerWhereSql + " )");
-                            printSj.add("( " + print + " )");
+                            sj.add("(" + innerWhereSql + ")");
+                            printSj.add("(" + print + ")");
                         }
                     }
                 }
