@@ -159,7 +159,8 @@ public class IdUtil {
                 return thread;
             }).scheduleAtFixedRate(() -> now.set(System.currentTimeMillis()), 1, 1, TimeUnit.MILLISECONDS);
         }
-        public long getNow() {
+
+        long getNow() {
             return now.get();
         }
     }
