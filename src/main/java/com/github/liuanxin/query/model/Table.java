@@ -154,7 +154,7 @@ public class Table {
                 return column;
             }
         } else {
-            return "(" + idSelect(needAlias) + ")";
+            return "( " + idSelect(needAlias) + " )";
         }
     }
     public String idSelect(boolean needAlias) {
@@ -297,8 +297,8 @@ public class Table {
                     errorList.add(index + " : " + vs);
                 }
                 if (QueryUtil.isNotEmpty(values)) {
-                    sj.add("(" + String.join(", ", values) + ")");
-                    print.add("(" + String.join(", ", printList) + ")");
+                    sj.add("( " + String.join(", ", values) + " )");
+                    print.add("( " + String.join(", ", printList) + " )");
                 }
             }
             if (QueryUtil.isNotEmpty(dataLengthMap)) {
@@ -408,7 +408,7 @@ public class Table {
                     countErrorList.add(index + " : " + vs);
                 }
                 if (QueryUtil.isNotEmpty(values)) {
-                    sj.add("(" + String.join(", ", values) + ")");
+                    sj.add("( " + String.join(", ", values) + " )");
                 }
             }
             if (QueryUtil.isNotEmpty(errorMap)) {
@@ -502,12 +502,12 @@ public class Table {
         if (emptyLogic) {
             printSql.append(wherePrint);
         } else {
-            printSql.append("(").append(wherePrint).append(")").append(logicDelete);
+            printSql.append("( ").append(wherePrint).append(" )").append(logicDelete);
         }
         printSql.append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
                 .append(QueryUtil.toStr(orderBy)).append(limitPrint);
         return "SELECT " + column + " FROM " + table + " WHERE "
-                + (emptyLogic ? where : ("(" + where + ")" + logicDelete))
+                + (emptyLogic ? where : ("( " + where + " )" + logicDelete))
                 + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
     }
     public String logicDeleteCondition(boolean force, boolean needAlias) {

@@ -159,8 +159,8 @@ public class QuerySqlUtil {
                     innerPrint.add(QuerySqlUtil.toPrintValue(data.getClass(), data));
                     params.add(data);
                 }
-                sj.add("(" + innerJoiner + ")");
-                print.add("(" + innerPrint + ")");
+                sj.add("( " + innerJoiner + " )");
+                print.add("( " + innerPrint + " )");
             } else {
                 // WHERE id IN (x, y, z)
                 Object data = idMap.get(idKey.get(0));
@@ -174,8 +174,8 @@ public class QuerySqlUtil {
         return "SELECT " + selectColumn + " FROM " + tables + " WHERE " + idColumn + " IN (" + sj + ")";
     }
 
-    public static String toInnerSql(String selectColumn, String table, String relationColumn,
-                                    List<Object> relationIds, List<Object> params, StringBuilder printSql) {
+    public static String toInnerSql(String selectColumn, String table, String relationColumn, List<Object> relationIds,
+                                    List<Object> params, StringBuilder printSql, String logicDelete) {
         StringJoiner in = new StringJoiner(", ");
         StringJoiner print = new StringJoiner(", ");
         for (Object relationId : relationIds) {
@@ -183,8 +183,14 @@ public class QuerySqlUtil {
             print.add(QuerySqlUtil.toPrintValue(relationId.getClass(), relationId));
             params.add(relationId);
         }
-        printSql.append("SELECT ").append(selectColumn).append(" FROM ").append(table)
-                .append(" WHERE ").append(relationColumn).append(" IN (").append(print).append(")");
-        return "SELECT " + selectColumn + " FROM " + table + " WHERE " + relationColumn + " IN" + " (" + in + ")";
+        printSql.append("SELECT ").append(selectColumn).append(" FROM ").append(table).append(" WHERE ");
+        boolean emptyLogic = QueryUtil.isEmpty(logicDelete);
+        if (emptyLogic) {
+            printSql.append(relationColumn).append(" IN (").append(print).append(")");
+        } else {
+            printSql.append("( ").append(relationColumn).append(" IN (").append(print).append(")").append(" )").append(logicDelete);
+        }
+        return "SELECT " + selectColumn + " FROM " + table + " WHERE "
+                + (emptyLogic ? (relationColumn + " IN" + " (" + in + ")") : ("( " + relationColumn + " IN" + " (" + in + ")" + " )" + logicDelete));
     }
 }

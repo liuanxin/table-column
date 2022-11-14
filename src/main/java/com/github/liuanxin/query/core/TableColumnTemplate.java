@@ -1322,15 +1322,16 @@ public class TableColumnTemplate implements InitializingBean {
         String selectColumn = result.generateInnerSelect(relationColumn, tcInfo, removeColumn);
         Table tableInfo = tcInfo.findTable(innerTable);
         String table = QuerySqlUtil.toSqlField(tableInfo.getName());
+        String logicDelete = tableInfo.logicDeleteCondition(force, needAlias);
+        List<Object> params = new ArrayList<>();
         for (List<Object> ids : QueryUtil.split(relationIds, maxListCount)) {
+            params.clear();
             StringBuilder printSql = new StringBuilder();
-            List<Object> params = new ArrayList<>();
-            String innerSql = QuerySqlUtil.toInnerSql(selectColumn, table, relationColumn, ids, params, printSql);
-            String logicDelete = tableInfo.logicDeleteCondition(force, needAlias);
+            String innerSql = QuerySqlUtil.toInnerSql(selectColumn, table, relationColumn, ids, params, printSql, logicDelete);
             if (LOG.isInfoEnabled()) {
-                LOG.info("query inner sql: [{}]", printSql + logicDelete);
+                LOG.info("query inner sql: [{}]", printSql);
             }
-            List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql + logicDelete, params.toArray());
+            List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql, params.toArray());
             if (QueryUtil.isNotEmpty(idList)) {
                 mapList.addAll(idList);
             }
