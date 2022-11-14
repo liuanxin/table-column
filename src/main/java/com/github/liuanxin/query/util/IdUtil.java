@@ -97,9 +97,6 @@ public class IdUtil {
         }
         return timestamp;
     }
-    private static long getMs() {
-        return TimeMillis.getMs();
-    }
 
     public static long getId() {
         long timestamp;
@@ -145,24 +142,25 @@ public class IdUtil {
                 | sequence;
     }
 
+    private static long getMs() {
+        // 使用 static class 来确保延迟加载的单例
+        return TimeMillis.TIME_MILLIS.getNow();
+    }
+
     private static final class TimeMillis {
+        private static final TimeMillis TIME_MILLIS = new TimeMillis();
         private final AtomicLong now;
         private TimeMillis() {
             now = new AtomicLong(System.currentTimeMillis());
-            // 每毫秒将当前毫秒的时间戳存起来
+            // 每过一毫秒将当前毫秒的时间戳存起来
             Executors.newSingleThreadScheduledExecutor(runnable -> {
                 Thread thread = new Thread(runnable, "get-ms-schedule");
                 thread.setDaemon(true);
                 return thread;
             }).scheduleAtFixedRate(() -> now.set(System.currentTimeMillis()), 1, 1, TimeUnit.MILLISECONDS);
         }
-
-        public static long getMs() {
-            // 使用 static class 来确保延迟加载的单例
-            return Instance.TIME_MILLIS.now.get();
-        }
-        private static class Instance {
-            public static final TimeMillis TIME_MILLIS = new TimeMillis();
+        public long getNow() {
+            return now.get();
         }
     }
 }
