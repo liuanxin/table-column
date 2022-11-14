@@ -163,9 +163,9 @@ public class ReqParam {
         if (emptyLogic) {
             printSql.append(wherePrint);
         } else {
-            printSql.append("( ").append(wherePrint).append(" )").append(logicDelete);
+            printSql.append("(").append(wherePrint).append(")").append(logicDelete);
         }
-        return " WHERE " + (emptyLogic ? where : ("( " + where + " )" + logicDelete));
+        return " WHERE " + (emptyLogic ? where : ("(" + where + ")" + logicDelete));
     }
 
     public String generateOrderSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
