@@ -117,9 +117,9 @@ public class ReqResult {
         if (QueryUtil.isEmpty(columns)) {
             Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.defaultIfBlank(table, mainTable));
             if (QueryUtil.isNotNull(tableInfo)) {
-                List<String> columnList = tableInfo.allColumn(force);
-                if (QueryUtil.isNotEmpty(columnList)) {
-                    columns = new ArrayList<>(columnList);
+                List<String> columnAliasList = tableInfo.allColumnAlias(force);
+                if (QueryUtil.isNotEmpty(columnAliasList)) {
+                    columns = new ArrayList<>(columnAliasList);
                 }
             }
         }

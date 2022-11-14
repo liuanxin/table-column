@@ -202,6 +202,17 @@ public class Table {
         return columnList;
     }
 
+    public List<String> allColumnAlias(boolean force) {
+        List<String> columnInfoList = new ArrayList<>();
+        for (TableColumn column : columnMap.values()) {
+            String columnName = column.getName();
+            if (!columnName.equals(logicColumn) || force) {
+                columnInfoList.add(column.getAlias());
+            }
+        }
+        return columnInfoList;
+    }
+
 
 
     public String generateInsertMap(Map<String, Object> data, boolean generateNullField,
