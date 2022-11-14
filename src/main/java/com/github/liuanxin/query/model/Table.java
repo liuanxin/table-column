@@ -489,6 +489,7 @@ public class Table {
             }
         }
         String logicDelete = logicDeleteCondition(force, false);
+        boolean emptyLogic = QueryUtil.isEmpty(logicDelete);
 
         // 1. FROM: determine
         // 2. WHERE: filters on the rows
@@ -497,11 +498,16 @@ public class Table {
         // 5. ORDER BY: arranges the remaining rows/groups
         // 6. LIMIT: filters on the remaining rows/groups
         String table = QuerySqlUtil.toSqlField(name);
-        printSql.append("SELECT ").append(column).append(" FROM ").append(table)
-                .append(" WHERE ").append(wherePrint).append(logicDelete)
-                .append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
+        printSql.append("SELECT ").append(column).append(" FROM ").append(table).append(" WHERE ");
+        if (emptyLogic) {
+            printSql.append(wherePrint);
+        } else {
+            printSql.append("(").append(wherePrint).append(")").append(logicDelete);
+        }
+        printSql.append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
                 .append(QueryUtil.toStr(orderBy)).append(limitPrint);
-        return "SELECT " + column + " FROM " + table + " WHERE " + where + logicDelete
+        return "SELECT " + column + " FROM " + table + " WHERE "
+                + (emptyLogic ? where : ("(" + where + ")" + logicDelete))
                 + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
     }
     public String logicDeleteCondition(boolean force, boolean needAlias) {

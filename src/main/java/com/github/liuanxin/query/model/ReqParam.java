@@ -149,7 +149,7 @@ public class ReqParam {
             return "";
         }
 
-        printSql.append(" WHERE ").append(wherePrint);
+        printSql.append(" WHERE ");
         Set<String> tableSet = new LinkedHashSet<>();
         tableSet.add(tcInfo.findTable(mainTable).getName());
         if (QueryUtil.isNotEmpty(useTableSet)) {
@@ -157,11 +157,15 @@ public class ReqParam {
         }
         StringBuilder logicDelete = new StringBuilder();
         for (String t : tableSet) {
-            String ld = tcInfo.findTable(t).logicDeleteCondition(force, needAlias);
-            printSql.append(ld);
-            logicDelete.append(ld);
+            logicDelete.append(tcInfo.findTable(t).logicDeleteCondition(force, needAlias));
         }
-        return " WHERE " + where + logicDelete;
+        boolean emptyLogic = (logicDelete.length() == 0);
+        if (emptyLogic) {
+            printSql.append(wherePrint);
+        } else {
+            printSql.append("(").append(wherePrint).append(")").append(logicDelete);
+        }
+        return " WHERE " + (emptyLogic ? where : ("(" + where + ")" + logicDelete));
     }
 
     public String generateOrderSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
