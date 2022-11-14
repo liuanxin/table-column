@@ -54,7 +54,7 @@ public class RequestInfo extends RequestModel {
         return "RequestInfo{" +
                 ", alias=" + alias +
                 ", param=" + param +
-                "table='" + getTable() + '\'' +
+                ", table='" + getTable() + '\'' +
                 ", type=" + getTable() +
                 ", result=" + getRelation() +
                 ", relation=" + getRelation() +
@@ -63,15 +63,7 @@ public class RequestInfo extends RequestModel {
 
 
     public void handleAlias(Map<String, RequestModel> requestAliasMap) {
-        if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
-            RequestModel model = requestAliasMap.get(alias);
-            if (QueryUtil.isNotNull(model)) {
-                setTable(model.getTable());
-                setType(model.getType());
-                setResult(model.getResult());
-                setRelation(model.getRelation());
-            }
-        }
+        super.fillAlias(alias, requestAliasMap);
     }
 
 

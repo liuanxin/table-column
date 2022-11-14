@@ -1,8 +1,10 @@
 package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.ResultType;
+import com.github.liuanxin.query.util.QueryUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class RequestModel {
@@ -74,5 +76,18 @@ public class RequestModel {
                 ", result=" + result +
                 ", relation=" + relation +
                 '}';
+    }
+
+
+    protected void fillAlias(String alias, Map<String, RequestModel> requestAliasMap) {
+        if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
+            RequestModel model = requestAliasMap.get(alias);
+            if (QueryUtil.isNotNull(model)) {
+                this.table = model.getTable();
+                this.type = model.getType();
+                this.result = model.getResult();
+                this.relation = model.getRelation();
+            }
+        }
     }
 }

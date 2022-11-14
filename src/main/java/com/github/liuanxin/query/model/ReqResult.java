@@ -106,10 +106,7 @@ public class ReqResult {
 
     @Override
     public String toString() {
-        return "ReqResult{" +
-                "table='" + table + '\'' +
-                ", columns=" + columns +
-                '}';
+        return "ReqResult{table='" + table + "', columns=" + columns + '}';
     }
 
 
