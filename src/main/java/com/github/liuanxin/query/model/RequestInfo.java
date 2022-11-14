@@ -63,7 +63,9 @@ public class RequestInfo extends RequestModel {
 
 
     public void handleAlias(Map<String, RequestModel> requestAliasMap) {
-        super.fillAlias(alias, requestAliasMap);
+        if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
+            super.fillAlias(alias, requestAliasMap);
+        }
     }
 
 

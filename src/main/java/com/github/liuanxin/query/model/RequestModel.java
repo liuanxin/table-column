@@ -80,14 +80,12 @@ public class RequestModel {
 
 
     protected void fillAlias(String alias, Map<String, RequestModel> requestAliasMap) {
-        if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
-            RequestModel model = requestAliasMap.get(alias);
-            if (QueryUtil.isNotNull(model)) {
-                this.table = model.getTable();
-                this.type = model.getType();
-                this.result = model.getResult();
-                this.relation = model.getRelation();
-            }
+        RequestModel model = requestAliasMap.get(alias);
+        if (QueryUtil.isNotNull(model)) {
+            this.table = model.getTable();
+            this.type = model.getType();
+            this.result = model.getResult();
+            this.relation = model.getRelation();
         }
     }
 }
