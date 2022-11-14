@@ -96,6 +96,9 @@ public class ReqParam {
         if (QueryUtil.isNotNull(query)) {
             paramTableSet.addAll(query.checkCondition(mainTable, tcInfo, maxListCount));
         }
+        if (QueryUtil.isEmpty(paramTableSet) && QueryUtil.isEmpty(page)) {
+            throw new RuntimeException("param: required query or paging");
+        }
 
         if (QueryUtil.isNotEmpty(sort)) {
             List<String> noTableList = new ArrayList<>();
