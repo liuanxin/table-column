@@ -154,7 +154,7 @@ public class ParamWhere {
 
         Set<String> queryTableSet = new LinkedHashSet<>();
         for (Object condition : conditions) {
-            if (condition != null) {
+            if (QueryUtil.isNotNull(condition)) {
                 if (condition instanceof List<?>) {
                     List<?> list = (List<?>) condition;
                     if (QueryUtil.isEmpty(list)) {
@@ -234,7 +234,7 @@ public class ParamWhere {
                     }
                 } else {
                     ParamWhere compose = QueryJsonUtil.convert(condition, ParamWhere.class);
-                    if (compose != null) {
+                    if (QueryUtil.isNotNull(compose)) {
                         StringBuilder print = new StringBuilder();
                         String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params, print);
                         if (QueryUtil.isNotEmpty(innerWhereSql)) {

@@ -517,6 +517,10 @@ public class QueryUtil {
         return !isEmpty(map);
     }
 
+    public static boolean greater0(Number number) {
+        return isNotNull(number) && number.intValue() > 0;
+    }
+
     public static boolean isLong(Object obj) {
         if (obj == null) {
             return false;

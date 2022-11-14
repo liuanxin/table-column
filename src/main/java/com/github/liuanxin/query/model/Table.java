@@ -464,7 +464,7 @@ public class Table {
             Integer page = pageList.get(0);
             Integer limitSize = (pageList.size() > 1) ? pageList.get(1) : 0;
 
-            int index = (page == null || page <= 0) ? 1 : page;
+            int index = (QueryUtil.isNull(page) || page <= 0) ? 1 : page;
             int size = QueryConst.LIMIT_SET.contains(limitSize) ? limitSize : QueryConst.DEFAULT_LIMIT;
             if (index == 1) {
                 params.add(size);

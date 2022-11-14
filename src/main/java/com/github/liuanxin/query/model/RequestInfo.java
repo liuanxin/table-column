@@ -80,24 +80,28 @@ public class RequestInfo extends RequestModel {
         if (QueryUtil.isEmpty(table)) {
             throw new RuntimeException("request: need table");
         }
-        if (tcInfo.findTableWithAlias(table) == null) {
+        if (QueryUtil.isNull(tcInfo.findTableWithAlias(table))) {
             throw new RuntimeException("request: has no defined table(" + table + ")");
         }
     }
 
     public Set<String> checkParam(TableColumnInfo tcInfo, int maxListCount) {
-        if (param == null) {
+        if (QueryUtil.isNull(param)) {
             throw new RuntimeException("request: need param");
         }
         return param.checkParam(getTable(), tcInfo, maxListCount);
     }
 
-    public Set<String> checkResult(TableColumnInfo tcInfo) {
+
+    public Set<String> checkResult(TableColumnInfo tcInfo, boolean force) {
         ReqResult result = getResult();
-        if (result == null) {
+        if (QueryUtil.isNull(result)) {
             throw new RuntimeException("request: need result");
         }
-        return result.checkResult(getTable(), tcInfo);
+
+        String table = getTable();
+        result.handleInit(table, tcInfo, force);
+        return result.checkResult(table, tcInfo);
     }
 
     public Set<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet, Set<String> resultTableSet) {

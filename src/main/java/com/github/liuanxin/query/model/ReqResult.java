@@ -113,6 +113,18 @@ public class ReqResult {
     }
 
 
+    public void handleInit(String mainTable, TableColumnInfo tcInfo, boolean force) {
+        if (QueryUtil.isEmpty(columns)) {
+            Table table = tcInfo.findTableWithAlias(QueryUtil.defaultIfBlank(this.table, mainTable));
+            if (QueryUtil.isNotNull(table)) {
+                List<String> columnList = table.allColumn(force);
+                if (QueryUtil.isNotEmpty(columnList)) {
+                    columns = new ArrayList<>(columnList);
+                }
+            }
+        }
+    }
+
     public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo) {
         String currentTable;
         if (QueryUtil.isNotEmpty(table)) {
@@ -133,7 +145,7 @@ public class ReqResult {
         List<Object> innerList = new ArrayList<>();
         boolean hasColumnOrFunction = false;
         for (Object obj : columns) {
-            if (obj != null) {
+            if (QueryUtil.isNotNull(obj)) {
                 if (obj instanceof String) {
                     String column = (String) obj;
                     allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getName());
@@ -176,8 +188,7 @@ public class ReqResult {
                         // 先右移 1 位除以 2, 再左移 1 位乘以 2, 变成偶数
                         int evenSize = size >> 1 << 1;
                         for (int i = 3; i < evenSize; i += 2) {
-                            ConditionType conditionType = ConditionType.deserializer(groups.get(i));
-                            if (conditionType == null) {
+                            if (QueryUtil.isNull(ConditionType.deserializer(groups.get(i)))) {
                                 throw new RuntimeException("result: table(" + currentTable + ") function("
                                         + groups + ") having condition error");
                             }
@@ -192,7 +203,7 @@ public class ReqResult {
                     hasColumnOrFunction = true;
                 } else {
                     Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
-                    if (dateColumn != null) {
+                    if (QueryUtil.isNotNull(dateColumn)) {
                         for (String column : dateColumn.keySet()) {
                             allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getName());
                         }
@@ -209,13 +220,13 @@ public class ReqResult {
 
         for (Object obj : innerList) {
             Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
-            if (inner == null) {
+            if (QueryUtil.isNull(inner)) {
                 throw new RuntimeException("result: table(" + currentTable + ") relation(" + obj + ") error");
             }
             for (Map.Entry<String, ReqResult> entry : inner.entrySet()) {
                 String innerColumn = entry.getKey();
                 ReqResult innerResult = entry.getValue();
-                if (innerResult == null) {
+                if (QueryUtil.isNull(innerResult)) {
                     throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") error");
                 }
                 if (columnCheckRepeatedSet.contains(innerColumn)) {
@@ -250,14 +261,14 @@ public class ReqResult {
 
     private static void checkFunctionColumn(TableColumnInfo tcInfo, String column, String currentTable,
                                             List<?> groups, Set<String> allTableSet) {
-        Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.getTableName(column, currentTable));
-        if (tableInfo == null) {
+        Table table = tcInfo.findTableWithAlias(QueryUtil.getTableName(column, currentTable));
+        if (QueryUtil.isNull(table)) {
             throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined table");
         }
-        if (tcInfo.findTableColumnWithAlias(tableInfo, QueryUtil.getColumnName(column)) == null) {
+        if (QueryUtil.isNull(tcInfo.findTableColumnWithAlias(table, QueryUtil.getColumnName(column)))) {
             throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined column");
         }
-        allTableSet.add(tableInfo.getName());
+        allTableSet.add(table.getName());
     }
 
     private Table checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
@@ -296,7 +307,7 @@ public class ReqResult {
                 columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, col, currentTableName, tcInfo));
             } else {
                 Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
-                if (dateColumn != null) {
+                if (QueryUtil.isNotEmpty(dateColumn)) {
                     for (String column : dateColumn.keySet()) {
                         columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTableName, tcInfo));
                     }
@@ -313,10 +324,10 @@ public class ReqResult {
             // child-master or master-child all need to query masterId
             String innerTable = innerResult.getTable();
             TableColumnRelation relation = tcInfo.findRelationByMasterChild(currentTable, innerTable);
-            if (relation == null) {
+            if (QueryUtil.isNull(relation)) {
                 relation = tcInfo.findRelationByMasterChild(innerTable, currentTable);
             }
-            if (relation != null) {
+            if (QueryUtil.isNotNull(relation)) {
                 String column = relation.getOneColumn();
                 columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTable, tcInfo));
             }
@@ -340,7 +351,7 @@ public class ReqResult {
         for (Object obj : columns) {
             if (!(obj instanceof String)  && !(obj instanceof List<?>)) {
                 Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
-                if (inner != null) {
+                if (QueryUtil.isNotEmpty(inner)) {
                     returnMap.putAll(inner);
                 }
             }
@@ -452,7 +463,7 @@ public class ReqResult {
                 columnSet.add(generateFunctionColumn((List<?>) obj, innerTableName, false, tcInfo));
             } else {
                 Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
-                if (dateColumn != null) {
+                if (QueryUtil.isNotEmpty(dateColumn)) {
                     for (String column : dateColumn.keySet()) {
                         String tableName = QueryUtil.getTableName(column, innerTableName);
                         if (tableName.equals(innerTableName)) {
@@ -461,14 +472,14 @@ public class ReqResult {
                     }
                 } else {
                     Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
-                    if (inner != null) {
+                    if (QueryUtil.isNotNull(inner)) {
                         for (ReqResult innerInnerResult : inner.values()) {
                             String innerInnerTable = innerInnerResult.getTable();
                             TableColumnRelation relation = tcInfo.findRelationByMasterChild(innerTableName, innerInnerTable);
-                            if (relation == null) {
+                            if (QueryUtil.isNull(relation)) {
                                 relation = tcInfo.findRelationByMasterChild(innerInnerTable, innerTableName);
                             }
-                            if (relation != null) {
+                            if (QueryUtil.isNotNull(relation)) {
                                 String column = relation.getOneColumn();
                                 columnSet.add(QueryUtil.getQueryColumnAndAlias(false, column, innerTableName, tcInfo));
                             }
@@ -507,7 +518,7 @@ public class ReqResult {
     public void handleData(String mainTable, boolean needAlias, Map<String, Object> data, TableColumnInfo tcInfo) {
         String currentTable = QueryUtil.isEmpty(table) ? mainTable : table;
         for (Object obj : columns) {
-            if (obj != null) {
+            if (QueryUtil.isNotNull(obj)) {
                 if (obj instanceof String) {
                     String column = (String) obj;
                     String tableName = QueryUtil.getTableName(column, currentTable);
@@ -554,12 +565,12 @@ public class ReqResult {
                     }
                 } else {
                     Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
-                    if (dateColumn != null) {
+                    if (QueryUtil.isNotEmpty(dateColumn)) {
                         for (Map.Entry<String, List<String>> entry : dateColumn.entrySet()) {
                             List<String> values = entry.getValue();
                             if (QueryUtil.isNotEmpty(values)) {
                                 Date date = QueryUtil.toDate(data.get(entry.getKey()));
-                                if (date != null) {
+                                if (QueryUtil.isNotNull(date)) {
                                     String pattern = values.get(0);
                                     String timezone = (values.size() > 1) ? values.get(1) : null;
                                     data.put(entry.getKey(), QueryUtil.formatDate(date, pattern, timezone));

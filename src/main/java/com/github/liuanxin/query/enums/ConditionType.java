@@ -205,7 +205,7 @@ public enum ConditionType {
         return String.format("%s %s", sqlField, value);
     }
     protected String generateCondition(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-        if (value == null) {
+        if (QueryUtil.isNull(value)) {
             return "";
         } else {
             params.add(QuerySqlUtil.toValue(type, value));
@@ -214,7 +214,7 @@ public enum ConditionType {
         }
     }
     protected String generateMulti(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-        if (value == null || !MULTI_TYPE.contains(this) || !(value instanceof Collection<?>)) {
+        if (QueryUtil.isNull(value) || !MULTI_TYPE.contains(this) || !(value instanceof Collection<?>)) {
             return "";
         }
         Collection<?> c = (Collection<?>) value;
@@ -252,7 +252,7 @@ public enum ConditionType {
             StringJoiner sj = new StringJoiner(", ");
             StringJoiner printSj = new StringJoiner(", ");
             for (Object obj : c) {
-                if (obj != null) {
+                if (QueryUtil.isNotNull(obj)) {
                     if (!hasChange) {
                         hasChange = true;
                     }
@@ -352,13 +352,13 @@ public enum ConditionType {
     }
 
     private void checkValue(Class<?> type, String column, Object value, Integer strLen, int maxListCount) {
-        if (value != null) {
+        if (QueryUtil.isNotNull(value)) {
             if (MULTI_TYPE.contains(this)) {
                 if (value instanceof Collection<?>) {
                     int count = 0;
                     Collection<?> collection = (Collection<?>) value;
                     for (Object obj : collection) {
-                        if (obj != null) {
+                        if (QueryUtil.isNotNull(obj)) {
                             checkValueType(type, column, obj, strLen);
                             count++;
                         }

@@ -184,7 +184,7 @@ public class ReqParam {
         return QueryUtil.isNotNull(page);
     }
     public boolean needQueryCount() {
-        return notCount == null || !notCount;
+        return QueryUtil.isNull(notCount) || !notCount;
     }
     public boolean needQueryCurrentPage(long count) {
         if (count <= 0) {

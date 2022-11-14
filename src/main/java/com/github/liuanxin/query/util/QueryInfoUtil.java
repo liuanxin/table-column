@@ -179,7 +179,7 @@ public class QueryInfoUtil {
 
                 aliasMap.put(QueryConst.COLUMN_PREFIX + tableAlias + "-" + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
-                        ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
+                        (QueryUtil.greater0(strLen) ? strLen : null), notNull, hasDefault, fieldType, fieldName));
             }
             if (QueryUtil.isEmpty(logicColumn)) {
                 TableColumn tableColumn = columnMap.get(globalLogicColumn);
@@ -326,7 +326,7 @@ public class QueryInfoUtil {
 
                 aliasMap.put(QueryConst.COLUMN_PREFIX + tableAlias + "-" + columnAlias, columnName);
                 columnMap.put(columnName, new TableColumn(columnName, columnDesc, columnAlias, primary,
-                        ((strLen == null || strLen <= 0) ? null : strLen), notNull, hasDefault, fieldType, fieldName));
+                        (QueryUtil.greater0(strLen) ? strLen : null), notNull, hasDefault, fieldType, fieldName));
             }
             String logicColumn = null, logicValue = null, logicDeleteValue = null;
             TableColumn tableColumn = columnMap.get(globalLogicColumn);
@@ -403,7 +403,6 @@ public class QueryInfoUtil {
                 String columnDesc = QueryUtil.toStr(columnInfo.get("cc"));
                 boolean primary = "PRI".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ck")));
                 Integer strLen = QueryUtil.toInteger(QueryUtil.toStr(columnInfo.get("cml")));
-                boolean hasLen = (strLen != null && strLen > 0);
                 boolean notNull = QueryUtil.toBool(QueryUtil.toStr(columnInfo.get("ine")));
                 boolean primaryIncrement = primary && "auto_increment".equalsIgnoreCase(QueryUtil.toStr(columnInfo.get("ex")));
                 boolean hasDefault = primaryIncrement || QueryUtil.isNotNull(columnInfo.get("cd"));
@@ -426,7 +425,7 @@ public class QueryInfoUtil {
                 if (primary) {
                     columnInfoList.add("primary = true");
                 }
-                if (hasLen) {
+                if (QueryUtil.greater0(strLen)) {
                     columnInfoList.add("strLen = " + strLen);
                 }
                 if (notNull) {

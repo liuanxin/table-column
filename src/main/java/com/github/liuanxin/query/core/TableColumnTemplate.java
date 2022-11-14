@@ -1010,11 +1010,12 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isNull(req)) {
             return null;
         }
-        req.handleAlias(requestAliasMap);
 
+        req.handleAlias(requestAliasMap);
         req.checkTable(tcInfo);
+
         Set<String> paramTableSet = req.checkParam(tcInfo, maxListCount);
-        Set<String> resultTableSet = req.checkResult(tcInfo);
+        Set<String> resultTableSet = req.checkResult(tcInfo, force);
         Set<TableJoinRelation> useRelationSet = req.checkRelation(tcInfo, paramTableSet, resultTableSet);
         Set<String> useTableSet = calcTableSet(useRelationSet);
         req.checkAllTable(tcInfo, useTableSet, paramTableSet, resultTableSet);
