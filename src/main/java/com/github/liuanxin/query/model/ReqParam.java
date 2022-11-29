@@ -142,17 +142,6 @@ public class ReqParam {
 
     public String generateWhereSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, List<Object> params,
                                    Set<String> useTableSet, boolean force, StringBuilder printSql) {
-        if (QueryUtil.isNull(query)) {
-            return "";
-        }
-
-        StringBuilder wherePrint = new StringBuilder();
-        String where = query.generateSql(mainTable, tcInfo, needAlias, params, wherePrint);
-        if (QueryUtil.isEmpty(where)) {
-            return "";
-        }
-
-        printSql.append(" WHERE ");
         Set<String> tableSet = new LinkedHashSet<>();
         tableSet.add(tcInfo.findTable(mainTable).getName());
         if (QueryUtil.isNotEmpty(useTableSet)) {
@@ -163,6 +152,29 @@ public class ReqParam {
             logicDelete.append(tcInfo.findTable(t).logicDeleteCondition(force, needAlias));
         }
         boolean emptyLogic = (logicDelete.length() == 0);
+
+        String ld = logicDelete.toString().replaceFirst(" AND ", "");
+        if (QueryUtil.isNull(query)) {
+            if (emptyLogic) {
+                return "";
+            } else {
+                printSql.append(" WHERE ").append(ld);
+                return " WHERE " + ld;
+            }
+        }
+
+        StringBuilder wherePrint = new StringBuilder();
+        String where = query.generateSql(mainTable, tcInfo, needAlias, params, wherePrint);
+        if (QueryUtil.isEmpty(where)) {
+            if (emptyLogic) {
+                return "";
+            } else {
+                printSql.append(" WHERE ").append(ld);
+                return " WHERE " + ld;
+            }
+        }
+
+        printSql.append(" WHERE ");
         if (emptyLogic) {
             printSql.append(wherePrint);
         } else {
