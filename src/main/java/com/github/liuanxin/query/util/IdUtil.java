@@ -28,8 +28,11 @@ public class IdUtil {
 
     private static final Lock LOCK = new ReentrantLock();
 
-    /** 起始时间截 */
+    /** 起始时间戳 */
     private static final long START_MS = 1391371506897L;
+
+    /** 处理时钟回拨的毫秒数, 间隔在这个范围内则休眠, 休眠后依然有回拨情况则拒绝生成, 如果超过这个时间直接拒绝生成 */
+    private static final int CLOCK_BACK_MS = 5;
 
     /** 机器 mac 地址 id 所占的位数 */
     private static final long DATACENTER_ID_BITS = 5L;
@@ -90,35 +93,12 @@ public class IdUtil {
         }
         return (sbd.toString().hashCode() & 0xffff) % (MAX_WORKER_ID + 1);
     }
-    private static long nextMillis(long lastTimestamp) {
-        long timestamp = getMs();
-        while (timestamp <= lastTimestamp) {
-            timestamp = getMs();
-        }
-        return timestamp;
-    }
 
     public static long getId() {
         long timestamp;
         LOCK.lock();
         try {
-            timestamp = getMs();
-            if (timestamp < lastTimestamp) {
-                long offset = lastTimestamp - timestamp;
-                if (offset <= 5) {
-                    try {
-                        Thread.sleep(5 - offset);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                    timestamp = getMs();
-                    if (timestamp < lastTimestamp) {
-                        throw new RuntimeException(String.format("再次时钟回拨. %d 毫秒内拒绝生成 id", (lastTimestamp - timestamp)));
-                    }
-                } else {
-                    throw new RuntimeException(String.format("时钟回拨. %d 毫秒内拒绝生成 id", offset));
-                }
-            }
+            timestamp = clockBackMs();
             if (lastTimestamp == timestamp) {
                 // 同毫秒时序列号自增
                 sequence = (sequence + 1) & SEQUENCE_MASK;
@@ -136,10 +116,35 @@ public class IdUtil {
             LOCK.unlock();
         }
         // 移位 及 或运算 组成 64 位 id
-        return ((timestamp - START_MS) << TIMESTAMP_LEFT_SHIFT)
-                | (DATACENTER_ID << DATACENTER_ID_SHIFT)
-                | (WORKER_ID << WORKER_ID_SHIFT)
-                | sequence;
+        return ((timestamp - START_MS) << TIMESTAMP_LEFT_SHIFT) | (DATACENTER_ID << DATACENTER_ID_SHIFT)
+                | (WORKER_ID << WORKER_ID_SHIFT) | sequence;
+    }
+
+    private static long clockBackMs() {
+        long timestamp = getMs();
+        if (timestamp < lastTimestamp) {
+            long offset = lastTimestamp - timestamp;
+            if (offset <= CLOCK_BACK_MS) {
+                long ms = CLOCK_BACK_MS - offset;
+                try {
+                    Thread.sleep(ms);
+                } catch (Exception e) {
+                    throw new RuntimeException(String.format("时钟回拨. 休眠 %d 毫秒时异常", ms), e);
+                }
+                return clockBackMs();
+            } else {
+                throw new RuntimeException(String.format("时钟回拨. %d 毫秒内拒绝生成 id", offset));
+            }
+        }
+        return timestamp;
+    }
+
+    private static long nextMillis(long lastTimestamp) {
+        long timestamp = getMs();
+        while (timestamp <= lastTimestamp) {
+            timestamp = getMs();
+        }
+        return timestamp;
     }
 
     private static long getMs() {
