@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 3. 进程数据
  * 4. 自增数据
  *
- * 当 1 毫秒内自增达到了最大则使用下一毫秒; 如果碰到时钟回拨则休眠到下一毫秒;
+ * 当 1 毫秒内自增达到了最大则使用下一毫秒; 如果时钟回拨, 在指定间隔内时则休眠, 否则拒绝;
  * </pre>
  */
 public class IdUtil {
