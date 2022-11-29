@@ -114,10 +114,13 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
-    public void refreshWithDatabase() {
+    public boolean refreshWithDatabase() {
         if (QueryUtil.isEmpty(scanPackages)) {
             loadDatabase();
             QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
+            return true;
+        } else {
+            return false;
         }
     }
 
