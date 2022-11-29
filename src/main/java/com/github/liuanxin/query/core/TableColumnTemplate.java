@@ -144,9 +144,8 @@ public class TableColumnTemplate implements InitializingBean {
         Set<String> tableSet = new LinkedHashSet<>();
         if (QueryUtil.isNotEmpty(tables)) {
             for (String te : tables.split(",")) {
-                String trim = te.trim();
-                if (QueryUtil.isNotEmpty(trim)) {
-                    tableSet.add(trim.toLowerCase());
+                if (QueryUtil.isNotEmpty(te)) {
+                    tableSet.add(te.trim().toLowerCase());
                 }
             }
         }
