@@ -120,7 +120,7 @@ public class ReqParam {
                 throw new RuntimeException("param sort: table " + noTableList + " has no defined");
             }
             if (QueryUtil.isNotEmpty(noColumnList)) {
-                throw new RuntimeException("param sort: column " + noTableList + " has no defined");
+                throw new RuntimeException("param sort: column " + noColumnList + " has no defined");
             }
         }
 
