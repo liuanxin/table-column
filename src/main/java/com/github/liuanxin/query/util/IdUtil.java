@@ -7,8 +7,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * <pre>
@@ -26,9 +24,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class IdUtil {
 
-    private static final Lock LOCK = new ReentrantLock();
 
-    /** 起始时间戳 */
+    /** 起始时间截 */
     private static final long START_MS = 1391371506897L;
 
     /** 处理时钟回拨的毫秒数, 间隔在这个范围内则休眠, 休眠后依然有回拨情况则拒绝生成, 如果超过这个时间直接拒绝生成 */
@@ -68,10 +65,6 @@ public class IdUtil {
     private static long lastTimestamp = -1L;
 
     static {
-        DATACENTER_ID = getDatacenterId();
-        WORKER_ID = getMaxWorkerId();
-    }
-    private static long getDatacenterId() {
         long id = 0L;
         try {
             byte[] mac = NetworkInterface.getByInetAddress(InetAddress.getLocalHost()).getHardwareAddress();
@@ -82,23 +75,43 @@ public class IdUtil {
         } catch (Exception ignore) {
             id = ThreadLocalRandom.current().nextLong(MAX_DATACENTER_ID + 1);
         }
-        return id;
-    }
-    private static long getMaxWorkerId() {
+        DATACENTER_ID = id;
+
         StringBuilder sbd = new StringBuilder();
         sbd.append(IdUtil.DATACENTER_ID);
         String name = ManagementFactory.getRuntimeMXBean().getName();
         if (name != null && !name.isEmpty()) {
             sbd.append(name.split("@")[0]);
         }
-        return (sbd.toString().hashCode() & 0xffff) % (MAX_WORKER_ID + 1);
+        WORKER_ID = (sbd.toString().hashCode() & 0xffff) % (MAX_WORKER_ID + 1);
     }
 
     public static long getId() {
-        long timestamp;
-        LOCK.lock();
-        try {
-            timestamp = clockBackMs();
+        return Ids.IDS.getId();
+    }
+
+    private static final class Ids {
+        private static final Ids IDS = new Ids();
+        private Ids() {}
+
+        synchronized long getId() {
+            long timestamp = getMs();
+            if (timestamp < lastTimestamp) {
+                long offset = lastTimestamp - timestamp;
+                if (offset <= CLOCK_BACK_MS) {
+                    try {
+                        wait(CLOCK_BACK_MS - offset);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    timestamp = getMs();
+                    if (timestamp < lastTimestamp) {
+                        throw new RuntimeException(String.format("再次时钟回拨. %d 毫秒内拒绝生成 id", (lastTimestamp - timestamp)));
+                    }
+                } else {
+                    throw new RuntimeException(String.format("时钟回拨. %d 毫秒内拒绝生成 id", offset));
+                }
+            }
             if (lastTimestamp == timestamp) {
                 // 同毫秒时序列号自增
                 sequence = (sequence + 1) & SEQUENCE_MASK;
@@ -112,44 +125,24 @@ public class IdUtil {
             }
             // 上次的时间截
             lastTimestamp = timestamp;
-        } finally {
-            LOCK.unlock();
-        }
-        // 移位 及 或运算 组成 64 位 id
-        return ((timestamp - START_MS) << TIMESTAMP_LEFT_SHIFT) | (DATACENTER_ID << DATACENTER_ID_SHIFT)
-                | (WORKER_ID << WORKER_ID_SHIFT) | sequence;
-    }
 
-    private static long clockBackMs() {
-        long timestamp = getMs();
-        if (timestamp < lastTimestamp) {
-            long offset = lastTimestamp - timestamp;
-            if (offset <= CLOCK_BACK_MS) {
-                long ms = CLOCK_BACK_MS - offset;
-                try {
-                    Thread.sleep(ms);
-                } catch (Exception e) {
-                    throw new RuntimeException(String.format("时钟回拨. 休眠 %d 毫秒时异常", ms), e);
-                }
-                return clockBackMs();
-            } else {
-                throw new RuntimeException(String.format("时钟回拨. %d 毫秒内拒绝生成 id", offset));
+            // 移位 及 或运算 组成 64 位 id
+            return ((timestamp - START_MS) << TIMESTAMP_LEFT_SHIFT)
+                    | (DATACENTER_ID << DATACENTER_ID_SHIFT)
+                    | (WORKER_ID << WORKER_ID_SHIFT)
+                    | sequence;
+        }
+        private static long nextMillis(long lastTimestamp) {
+            long timestamp = getMs();
+            while (timestamp <= lastTimestamp) {
+                timestamp = getMs();
             }
+            return timestamp;
         }
-        return timestamp;
-    }
-
-    private static long nextMillis(long lastTimestamp) {
-        long timestamp = getMs();
-        while (timestamp <= lastTimestamp) {
-            timestamp = getMs();
+        private static long getMs() {
+            // 使用 static class 来确保延迟加载的单例
+            return TimeMillis.TIME_MILLIS.getNow();
         }
-        return timestamp;
-    }
-
-    private static long getMs() {
-        // 使用 static class 来确保延迟加载的单例
-        return TimeMillis.TIME_MILLIS.getNow();
     }
 
     private static final class TimeMillis {
@@ -164,7 +157,8 @@ public class IdUtil {
                 return thread;
             }).scheduleAtFixedRate(() -> now.set(System.currentTimeMillis()), 1, 1, TimeUnit.MILLISECONDS);
         }
-        private long getNow() {
+
+        long getNow() {
             return now.get();
         }
     }
