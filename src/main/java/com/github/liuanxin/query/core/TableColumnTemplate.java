@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.util.*;
 
-@SuppressWarnings({"DuplicatedCode"})
+@SuppressWarnings({"DuplicatedCode", "unchecked"})
 public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
@@ -1356,7 +1356,6 @@ public class TableColumnTemplate implements InitializingBean {
                     if (hasMany) {
                         List<Object> list;
                         if (QueryUtil.isNotNull(obj) && (obj instanceof List<?>)) {
-                            // noinspection unchecked
                             list = (List<Object>) obj;
                         } else {
                             list = new ArrayList<>();

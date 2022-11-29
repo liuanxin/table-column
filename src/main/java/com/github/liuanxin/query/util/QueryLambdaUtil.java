@@ -20,10 +20,10 @@ public final class QueryLambdaUtil {
     private static final Map<String, Class<?>> CLASS_MAP = new ConcurrentHashMap<>();
     private static final Map<String, Field> CLASS_FIELD_MAP = new ConcurrentHashMap<>();
 
+    @SuppressWarnings("deprecation")
     private static SerializedLambda toMataInfo(Serializable obj) {
         try {
             Method lambdaMethod = obj.getClass().getDeclaredMethod("writeReplace");
-            // noinspection deprecation
             boolean accessible = lambdaMethod.isAccessible();
             if (!accessible) {
                 lambdaMethod.setAccessible(true);
