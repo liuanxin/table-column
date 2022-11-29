@@ -19,11 +19,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * 3. 进程数据
  * 4. 自增数据
  *
- * 当 1 毫秒内自增达到了最大则使用下一毫秒; 如果碰到时钟回拨会休眠到下一时钟;
+ * 当 1 毫秒内自增达到了最大则使用下一毫秒; 如果碰到时钟回拨则休眠到下一毫秒;
  * </pre>
  */
 public class IdUtil {
-
 
     /** 起始时间截 */
     private static final long START_MS = 1391371506897L;
@@ -102,7 +101,7 @@ public class IdUtil {
                     try {
                         wait(CLOCK_BACK_MS - offset);
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException(String.format("时钟回拨. 等待 %d 毫秒时异常", (lastTimestamp - timestamp)), e);
                     }
                     timestamp = getMs();
                     if (timestamp < lastTimestamp) {
