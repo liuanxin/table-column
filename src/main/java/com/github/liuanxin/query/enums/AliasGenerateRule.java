@@ -3,7 +3,7 @@ package com.github.liuanxin.query.enums;
 /** if table name has `user_info` or `USER_INFO`, column name has `user_name` or `USER_NAME` */
 public enum AliasGenerateRule {
 
-    /** table alias: UserInfo, column alias: userName */
+    /** default if not defined. table alias: UserInfo, column alias: userName */
     Standard,
 
     /** table alias: User-Info, column alias: user-name */
@@ -17,7 +17,9 @@ public enum AliasGenerateRule {
 
     Same,
 
+    /** table alias: user_info, column alias: user_name */
     Lower,
 
+    /** table alias: USER_INFO, column alias: USER_NAME */
     Upper
 }
