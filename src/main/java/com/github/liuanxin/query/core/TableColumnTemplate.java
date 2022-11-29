@@ -76,14 +76,14 @@ public class TableColumnTemplate implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        if (QueryUtil.isNotEmpty(scanPackages)) {
+        if (QueryUtil.isEmpty(scanPackages)) {
+            loadDatabase();
+        } else {
             tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, aliasGenerateRule, scanPackages, relationList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
             if (QueryUtil.isNull(tcInfo)) {
                 throw new RuntimeException(String.format("class not found in(%s)", scanPackages));
             }
-        } else {
-            loadDatabase();
         }
         QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
     }
@@ -115,8 +115,10 @@ public class TableColumnTemplate implements InitializingBean {
 
 
     public void refreshWithDatabase() {
-        loadDatabase();
-        QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
+        if (QueryUtil.isEmpty(scanPackages)) {
+            loadDatabase();
+            QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
+        }
     }
 
 
