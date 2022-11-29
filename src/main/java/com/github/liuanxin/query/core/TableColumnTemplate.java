@@ -2,7 +2,9 @@ package com.github.liuanxin.query.core;
 
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.enums.AliasGenerateRule;
+import com.github.liuanxin.query.enums.OneToOneHasManyRule;
 import com.github.liuanxin.query.enums.ResultType;
+import com.github.liuanxin.query.enums.TableRelationType;
 import com.github.liuanxin.query.model.*;
 import com.github.liuanxin.query.util.QueryInfoUtil;
 import com.github.liuanxin.query.util.QuerySqlUtil;
@@ -40,8 +42,8 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.max-list-count:1000}")
     private int maxListCount;
 
-    @Value("${query.one-to-one-has-many:0}")
-    private int oneToOneHasMany;
+    @Value("${query.one-to-one-has-many:}")
+    private OneToOneHasManyRule oneToOneHasMany;
 
     @Value("${query.logic-delete-column:}")
     private String logicDeleteColumn;
@@ -1342,7 +1344,9 @@ public class TableColumnTemplate implements InitializingBean {
         handleData(mapList, needAlias, innerTable, result, force);
         // { id1 : { ... },  id2 : { ... } }    or    { code1 : [ ... ], code2 : [ ... ] }
         Map<String, Object> innerDataMap = new HashMap<>();
-        boolean hasMany = masterChild && relation.getType().hasMany();
+        TableRelationType relationType = relation.getType();
+        // array : ( (master -> child) && (relation not one-to-one) )  ||  ( (child -> master) && (relation has many-to-many) )
+        boolean hasMany = (masterChild && relationType.hasMany()) || (!masterChild && relationType.hasManyMaster());
         for (Map<String, Object> data : mapList) {
             if (QueryUtil.isNotNull(data)) {
                 String key = QueryUtil.toStr(data.get(tableColumn.getAlias()));
@@ -1361,14 +1365,14 @@ public class TableColumnTemplate implements InitializingBean {
                         innerDataMap.put(key, list);
                     } else {
                         if (QueryUtil.isNotNull(obj)) {
-                            switch (oneToOneHasMany) {
-                                case 1: { break; }
-                                case 2: {
+                            switch (QueryUtil.defaultIfNull(oneToOneHasMany, OneToOneHasManyRule.Exception)) {
+                                case First: { break; }
+                                case Cover: {
                                     innerDataMap.put(key, data);
                                     break;
                                 }
                                 default: {
-                                    throw new RuntimeException(String.format("%s, but multiple data(%s.%s - %s.%s : %s)",
+                                    throw new RuntimeException(String.format("%s, but data has multi(%s.%s - %s.%s : %s)",
                                             (masterChild ? "one-to-one" : "child-to-master"),
                                             relation.getOneTable(), relation.getOneColumn(),
                                             relation.getOneOrManyTable(), relation.getOneOrManyColumn(),

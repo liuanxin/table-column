@@ -26,7 +26,7 @@
       "type": "com.github.liuanxin.query.enums.AliasGenerateRule",
       "defaultValue": "Standard",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "别名生成的规则: Standard(表 UserInfo  字段 userName), Horizontal(表 User-Info  字段 user-name), Under(表 User_Info  字段 user_name), Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz), Same, Lower, Upper."
+      "description": "别名生成的规则: Standard(表 UserInfo  字段 userName, 不设置则默认是此值), Horizontal(表 User-Info  字段 user-name), Under(表 User_Info  字段 user_name), Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz), Same(一致), Lower(小写), Upper(大写)."
     },
     {
       "name": "query.deep-max-page-size",
@@ -47,7 +47,7 @@
       "type": "java.lang.Integer",
       "defaultValue": "0",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "当表与表之间是一对一关联, 但查询时数据却出现了多条, 0.抛出异常, 1.以前面的为准, 2.后面覆盖前面."
+      "description": "当表与表之间是一对一关联, 但查询时数据却出现了多条, Exception: 抛出异常(不设置则默认是此值), First: 以前面的为准, Cover: 后面覆盖前面."
     },
     {
       "name": "query.logic-delete-column",
