@@ -100,7 +100,7 @@ public enum ConditionType {
             return generateMulti(column, type, value, params, printSql);
         }
     },
-    NBE("NOT BETWEEN", "不在区间") {
+    NBET("NOT BETWEEN", "不在区间") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateMulti(column, type, value, params, printSql);
@@ -137,13 +137,31 @@ public enum ConditionType {
             return generateCondition(column, type, ("%" + value + "%"), params, printSql);
         }
     },
+    NFUZZY("NOT LIKE", "不模糊") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, ("%" + value + "%"), params, printSql);
+        }
+    },
     START("LIKE", "开头") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, (value + "%"), params, printSql);
         }
     },
+    NSTART("NOT LIKE", "不开头") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, (value + "%"), params, printSql);
+        }
+    },
     END("LIKE", "结尾") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, ("%" + value), params, printSql);
+        }
+    },
+    NEND("NOT LIKE", "不结尾") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, ("%" + value), params, printSql);
@@ -222,7 +240,7 @@ public enum ConditionType {
             return "";
         }
 
-        if (this == BET || this == NBE) {
+        if (this == BET || this == NBET) {
             Object[] arr = c.toArray();
             Object start = arr[0];
             Object end = arr.length > 1 ? arr[1] : null;
@@ -275,17 +293,20 @@ public enum ConditionType {
             IN,
             NI,
             BET,
-            NBE
+            NBET
     ));
-    /** string: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(include)、开头(start)、结尾(end) */
+    /** string: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(fuzzy)、不包含(nfuzzy)、开头(start)、不开头(nstart)、结尾(end)、不结尾(nend) */
     private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             EQ,
             NE,
             IN,
             NI,
             FUZZY,
+            NFUZZY,
             START,
-            END
+            NSTART,
+            END,
+            NEND
     ));
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
             STRING_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
@@ -301,7 +322,7 @@ public enum ConditionType {
             LT,
             LE,
             BET,
-            NBE
+            NBET
     ));
     private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
             NUMBER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
@@ -313,7 +334,7 @@ public enum ConditionType {
             LT,
             LE,
             BET,
-            NBE
+            NBET
     ));
     private static final String DATE_TYPE_INFO = String.format("Date type can only be used in 「%s」 conditions",
             DATE_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
