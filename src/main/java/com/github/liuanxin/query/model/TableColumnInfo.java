@@ -3,12 +3,14 @@ package com.github.liuanxin.query.model;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TableColumnInfo {
+public class TableColumnInfo implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final Map<String, String> aliasMap;
     private final Map<String, String> tableClassMap;

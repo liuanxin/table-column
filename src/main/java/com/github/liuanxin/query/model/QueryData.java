@@ -7,9 +7,11 @@ import com.github.liuanxin.query.function.FunctionSerialize;
 import com.github.liuanxin.query.util.QueryLambdaUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class QueryData<T> {
+public class QueryData<T> implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final Class<T> clazz;
     private final List<QueryRelation> relationList;

@@ -3,11 +3,13 @@ package com.github.liuanxin.query.model;
 import com.github.liuanxin.query.enums.ResultType;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class ReqModel {
+public class ReqModel implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** 主表 */
     private String table;

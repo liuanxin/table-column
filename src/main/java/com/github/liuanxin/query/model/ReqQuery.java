@@ -101,7 +101,8 @@ import java.util.*;
  * }
  * </pre>
  */
-public class ReqQuery {
+public class ReqQuery implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** 条件拼接类型: 并且(and) 和 或者(or) 两种, 不设置则默认是 and */
     private OperateType operate;

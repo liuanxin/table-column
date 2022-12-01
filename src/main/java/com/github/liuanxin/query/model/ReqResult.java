@@ -5,6 +5,7 @@ import com.github.liuanxin.query.enums.ResultGroup;
 import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -64,7 +65,8 @@ import java.util.*;
  * 第三个参数是函数中的列, 每四个和第五个参数表示 HAVING 过滤时的条件
  * </pre>
  */
-public class ReqResult {
+public class ReqResult implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** 表 */
     private String table;

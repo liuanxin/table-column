@@ -2,9 +2,11 @@ package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.TableRelationType;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class TableColumnRelation {
+public class TableColumnRelation implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private String oneTable;
     private String oneColumn;

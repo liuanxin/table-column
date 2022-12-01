@@ -1,5 +1,6 @@
 package com.github.liuanxin.query.model;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +8,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class PageReturn<T> {
+public class PageReturn<T> implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private static final PageReturn EMPTY = new PageReturn<>(0L, Collections.emptyList());
 

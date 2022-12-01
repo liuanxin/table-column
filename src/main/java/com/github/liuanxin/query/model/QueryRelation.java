@@ -2,9 +2,11 @@ package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.JoinType;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class QueryRelation {
+public class QueryRelation implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final Class<?> left;
     private final JoinType type;

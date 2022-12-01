@@ -1,8 +1,10 @@
 package com.github.liuanxin.query.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class TableColumn {
+public class TableColumn implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** column name */
     private String name;

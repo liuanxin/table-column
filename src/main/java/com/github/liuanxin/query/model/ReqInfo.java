@@ -4,9 +4,11 @@ import com.github.liuanxin.query.enums.JoinType;
 import com.github.liuanxin.query.enums.ResultType;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class ReqInfo extends ReqModel {
+public class ReqInfo extends ReqModel implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** 模板别名, 用这个值映射 RequestModel 的内容 */
     private String alias;

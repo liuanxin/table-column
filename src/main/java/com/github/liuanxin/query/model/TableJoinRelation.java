@@ -3,9 +3,11 @@ package com.github.liuanxin.query.model;
 import com.github.liuanxin.query.enums.JoinType;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class TableJoinRelation {
+public class TableJoinRelation implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private Table masterTable;
     private JoinType joinType;

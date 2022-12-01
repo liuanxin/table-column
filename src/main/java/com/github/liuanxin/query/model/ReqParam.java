@@ -3,6 +3,7 @@ package com.github.liuanxin.query.model;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -19,7 +20,8 @@ import java.util.*;
  * }
  * </pre>
  */
-public class ReqParam {
+public class ReqParam implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** 查询信息 */
     private ReqQuery query;

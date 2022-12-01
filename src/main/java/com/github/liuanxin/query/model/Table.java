@@ -3,11 +3,13 @@ package com.github.liuanxin.query.model;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 
 @SuppressWarnings("DuplicatedCode")
-public class Table {
+public class Table implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** table name */
     private String name;
@@ -282,8 +284,8 @@ public class Table {
                             int dataLen = QueryUtil.toString(obj).length();
                             int charLen = QueryUtil.toInt(column.getStrLen());
                             if (charLen > 0 && dataLen > charLen) {
-                                dataLengthMap.computeIfAbsent(index, (k) -> new LinkedHashMap<>())
-                                        .put(column.getAlias(), String.format("max(%s), current(%s)", charLen, dataLen));
+                                String msg = String.format("column(%s) max(%s) current(%s)", column.getName(), charLen, dataLen);
+                                dataLengthMap.computeIfAbsent(index, (k) -> new LinkedHashMap<>()).put(column.getAlias(), msg);
                             }
                         }
                         values.add("?");
@@ -333,7 +335,7 @@ public class Table {
                         int dataLen = QueryUtil.toString(fieldData).length();
                         int charLen = QueryUtil.toInt(column.getStrLen());
                         if (charLen > 0 && dataLen > charLen) {
-                            charLengthMap.put(column.getAlias(), String.format("max(%s) current(%s)", charLen, dataLen));
+                            charLengthMap.put(column.getAlias(), String.format("column(%s) max(%s) current(%s)", column.getName(), charLen, dataLen));
                         }
                     }
                     sj.add(QuerySqlUtil.toSqlField(column.getName()));
