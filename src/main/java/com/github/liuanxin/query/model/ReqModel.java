@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class RequestModel {
+public class ReqModel {
 
     /** 主表 */
     private String table;
@@ -18,8 +18,8 @@ public class RequestModel {
     /** 入参里用到的表的关系. 如: [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderLog" ] ] */
     private List<List<String>> relation;
 
-    public RequestModel() {}
-    public RequestModel(String table, ReqResult result, ResultType type, List<List<String>> relation) {
+    public ReqModel() {}
+    public ReqModel(String table, ReqResult result, ResultType type, List<List<String>> relation) {
         this.table = table;
         this.result = result;
         this.type = type;
@@ -57,8 +57,8 @@ public class RequestModel {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RequestModel)) return false;
-        RequestModel that = (RequestModel) o;
+        if (!(o instanceof ReqModel)) return false;
+        ReqModel that = (ReqModel) o;
         return Objects.equals(table, that.table) && Objects.equals(result, that.result)
                 && type == that.type && Objects.equals(relation, that.relation);
     }
@@ -70,7 +70,7 @@ public class RequestModel {
 
     @Override
     public String toString() {
-        return "RequestInfo{" +
+        return "ReqModel{" +
                 "table='" + table + '\'' +
                 ", result=" + result +
                 ", type=" + type +
@@ -79,8 +79,8 @@ public class RequestModel {
     }
 
 
-    protected void fillAlias(String alias, Map<String, RequestModel> requestAliasMap) {
-        RequestModel model = requestAliasMap.get(alias);
+    protected void fillAlias(String alias, Map<String, ReqModel> requestAliasMap) {
+        ReqModel model = requestAliasMap.get(alias);
         if (QueryUtil.isNotNull(model)) {
             this.table = model.getTable();
             this.result = model.getResult();

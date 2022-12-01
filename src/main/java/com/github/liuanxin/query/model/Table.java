@@ -1,6 +1,5 @@
 package com.github.liuanxin.query.model;
 
-import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
@@ -380,7 +379,6 @@ public class Table {
             List<String> countErrorList = new ArrayList<>();
             int ps = placeholderList.size();
             for (int i = 1; i < list.size(); i++) {
-                int index = i + 1;
                 T obj = list.get(i);
                 List<String> values = new ArrayList<>();
                 for (TableColumn column : columnMap.values()) {
@@ -390,22 +388,22 @@ public class Table {
                         if (QueryUtil.isNotNull(fieldData) || generateNullField) {
                             if (column.getFieldType() == String.class) {
                                 int dataLen = QueryUtil.toString(fieldData).length();
-                                int charLen = QueryUtil.toInt(column.getStrLen());
-                                if (charLen > 0 && dataLen > charLen) {
-                                    dataLengthMap.computeIfAbsent(index, (k) -> new LinkedHashMap<>())
-                                            .put(column.getAlias(), String.format("max(%s) current(%s)", charLen, dataLen));
+                                int maxLen = QueryUtil.toInt(column.getStrLen());
+                                if (maxLen > 0 && dataLen > maxLen) {
+                                    String msg = String.format("column(%s) max(%s) current(%s)", column.getName(), maxLen, dataLen);
+                                    dataLengthMap.computeIfAbsent(i, (k) -> new LinkedHashMap<>()).put(column.getAlias(), msg);
                                 }
                             }
                             values.add("?");
                             params.add(fieldData);
                         }
                     } catch (IllegalAccessException e) {
-                        errorMap.computeIfAbsent(index, (k) -> new ArrayList<>()).add(fieldName);
+                        errorMap.computeIfAbsent(i, (k) -> new ArrayList<>()).add(fieldName);
                     }
                 }
                 int vs = values.size();
                 if (vs != ps) {
-                    countErrorList.add(index + " : " + vs);
+                    countErrorList.add(i + " : " + vs);
                 }
                 if (QueryUtil.isNotEmpty(values)) {
                     sj.add("( " + String.join(", ", values) + " )");
@@ -418,7 +416,7 @@ public class Table {
                 throw new RuntimeException(String.format("table(%s) data length error -> %s", alias, QueryUtil.toStr(dataLengthMap)));
             }
             if (QueryUtil.isNotEmpty(countErrorList)) {
-                throw new RuntimeException("field number error. 1 : " + ps + " but " + QueryUtil.toStr(countErrorList));
+                throw new RuntimeException("field number error. 0 : " + ps + " but " + QueryUtil.toStr(countErrorList));
             }
         }
         if (sj.length() == 0) {
@@ -430,7 +428,7 @@ public class Table {
     }
 
 
-    public String generateDelete(ParamWhere query, TableColumnInfo tcInfo,
+    public String generateDelete(ReqQuery query, TableColumnInfo tcInfo,
                                  List<Object> params, StringBuilder printSql, boolean force) {
         StringBuilder wherePrint = new StringBuilder();
         String where = query.generateSql(name, tcInfo, false, params, wherePrint);
@@ -451,65 +449,65 @@ public class Table {
     }
 
 
-    public String generateCountQuery(ParamWhere query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
-                                     String groupBy, String having, String havingPrint, String orderBy,
-                                     List<Integer> pageList, boolean force) {
-        return generateQuery(query, tcInfo, params, printSql, "COUNT(*)", groupBy, having, havingPrint, orderBy, pageList, force);
-    }
-    public String generateQuery(ParamWhere query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
-                                String column, String groupBy, String having, String havingPrint, String orderBy,
-                                List<Integer> pageList, boolean force) {
-        if (QueryUtil.isEmpty(column)) {
-            return "";
-        }
-
-        StringBuilder wherePrint = new StringBuilder();
-        String where = query.generateSql(name, tcInfo, false, params, wherePrint);
-        if (QueryUtil.isEmpty(where)) {
-            return "";
-        }
-
-        StringBuilder limit = new StringBuilder();
-        StringBuilder limitPrint = new StringBuilder();
-        if (QueryUtil.isNotEmpty(pageList)) {
-            Integer page = pageList.get(0);
-            Integer limitSize = (pageList.size() > 1) ? pageList.get(1) : 0;
-
-            int index = (QueryUtil.isNull(page) || page <= 0) ? 1 : page;
-            int size = QueryConst.LIMIT_SET.contains(limitSize) ? limitSize : QueryConst.DEFAULT_LIMIT;
-            if (index == 1) {
-                params.add(size);
-                limit.append(" LIMIT ?");
-                limitPrint.append(" LIMIT ").append(size);
-            } else {
-                params.add((index - 1) * size);
-                params.add(size);
-                limit.append(" LIMIT ?, ?");
-                limitPrint.append(" LIMIT ").append((index - 1) * size).append(", ").append(size);
-            }
-        }
-        String logicDelete = logicDeleteCondition(force, false);
-        boolean emptyLogic = QueryUtil.isEmpty(logicDelete);
-
-        // 1. FROM: determine
-        // 2. WHERE: filters on the rows
-        // 3. GROUP BY: combines those rows into groups
-        // 4. HAVING: filters groups
-        // 5. ORDER BY: arranges the remaining rows/groups
-        // 6. LIMIT: filters on the remaining rows/groups
-        String table = QuerySqlUtil.toSqlField(name);
-        printSql.append("SELECT ").append(column).append(" FROM ").append(table).append(" WHERE ");
-        if (emptyLogic) {
-            printSql.append(wherePrint);
-        } else {
-            printSql.append("( ").append(wherePrint).append(" )").append(logicDelete);
-        }
-        printSql.append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
-                .append(QueryUtil.toStr(orderBy)).append(limitPrint);
-        return "SELECT " + column + " FROM " + table + " WHERE "
-                + (emptyLogic ? where : ("( " + where + " )" + logicDelete))
-                + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
-    }
+//    public String generateCountQuery(ReqQuery query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
+//                                     String groupBy, String having, String havingPrint, String orderBy,
+//                                     List<Integer> pageList, boolean force) {
+//        return generateQuery(query, tcInfo, params, printSql, "COUNT(*)", groupBy, having, havingPrint, orderBy, pageList, force);
+//    }
+//    public String generateQuery(ReqQuery query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
+//                                String column, String groupBy, String having, String havingPrint, String orderBy,
+//                                List<Integer> pageList, boolean force) {
+//        if (QueryUtil.isEmpty(column)) {
+//            return "";
+//        }
+//
+//        StringBuilder wherePrint = new StringBuilder();
+//        String where = query.generateSql(name, tcInfo, false, params, wherePrint);
+//        if (QueryUtil.isEmpty(where)) {
+//            return "";
+//        }
+//
+//        StringBuilder limit = new StringBuilder();
+//        StringBuilder limitPrint = new StringBuilder();
+//        if (QueryUtil.isNotEmpty(pageList)) {
+//            Integer page = pageList.get(0);
+//            Integer limitSize = (pageList.size() > 1) ? pageList.get(1) : 0;
+//
+//            int index = (QueryUtil.isNull(page) || page <= 0) ? 1 : page;
+//            int size = QueryConst.LIMIT_SET.contains(limitSize) ? limitSize : QueryConst.DEFAULT_LIMIT;
+//            if (index == 1) {
+//                params.add(size);
+//                limit.append(" LIMIT ?");
+//                limitPrint.append(" LIMIT ").append(size);
+//            } else {
+//                params.add((index - 1) * size);
+//                params.add(size);
+//                limit.append(" LIMIT ?, ?");
+//                limitPrint.append(" LIMIT ").append((index - 1) * size).append(", ").append(size);
+//            }
+//        }
+//        String logicDelete = logicDeleteCondition(force, false);
+//        boolean emptyLogic = QueryUtil.isEmpty(logicDelete);
+//
+//        // 1. FROM: determine
+//        // 2. WHERE: filters on the rows
+//        // 3. GROUP BY: combines those rows into groups
+//        // 4. HAVING: filters groups
+//        // 5. ORDER BY: arranges the remaining rows/groups
+//        // 6. LIMIT: filters on the remaining rows/groups
+//        String table = QuerySqlUtil.toSqlField(name);
+//        printSql.append("SELECT ").append(column).append(" FROM ").append(table).append(" WHERE ");
+//        if (emptyLogic) {
+//            printSql.append(wherePrint);
+//        } else {
+//            printSql.append("( ").append(wherePrint).append(" )").append(logicDelete);
+//        }
+//        printSql.append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
+//                .append(QueryUtil.toStr(orderBy)).append(limitPrint);
+//        return "SELECT " + column + " FROM " + table + " WHERE "
+//                + (emptyLogic ? where : ("( " + where + " )" + logicDelete))
+//                + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
+//    }
     public String logicDeleteCondition(boolean force, boolean needAlias) {
         if (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicValue)) {
             String tableAlias = needAlias ? (QuerySqlUtil.toSqlField(alias) + ".") : "";
@@ -521,7 +519,7 @@ public class Table {
     }
 
 
-    public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField, ParamWhere query,
+    public String generateUpdateMap(Map<String, Object> updateObj, boolean generateNullField, ReqQuery query,
                                     TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql) {
         List<String> setList = new ArrayList<>();
         List<String> setPrintList = new ArrayList<>();
@@ -537,7 +535,7 @@ public class Table {
         return update(query, tcInfo, params, printSql, setList, setPrintList);
     }
 
-    public <T> String generateUpdate(T updateObj, boolean generateNullField, ParamWhere query,
+    public <T> String generateUpdate(T updateObj, boolean generateNullField, ReqQuery query,
                                      TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql) {
         List<String> setList = new ArrayList<>();
         List<String> setPrintList = new ArrayList<>();
@@ -567,7 +565,7 @@ public class Table {
         return update(query, tcInfo, params, printSql, setList, setPrintList);
     }
 
-    private String update(ParamWhere query, TableColumnInfo tcInfo, List<Object> params,
+    private String update(ReqQuery query, TableColumnInfo tcInfo, List<Object> params,
                           StringBuilder printSql, List<String> setList, List<String> setPrintList) {
         if (QueryUtil.isEmpty(setList)) {
             return "";

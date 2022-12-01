@@ -22,7 +22,7 @@ import java.util.*;
 public class ReqParam {
 
     /** 查询信息 */
-    private ParamWhere query;
+    private ReqQuery query;
     /** 排序信息 */
     private Map<String, String> sort;
     /** 分页信息 ( 当前页, 每页行数 ), 每页行数在「10, 20, 50, 100, 200, 500, 1000」中, 省略则默认是 10 */
@@ -31,17 +31,17 @@ public class ReqParam {
     private Boolean notCount;
 
     public ReqParam() {}
-    public ReqParam(ParamWhere query, Map<String, String> sort, List<Integer> page, Boolean notCount) {
+    public ReqParam(ReqQuery query, Map<String, String> sort, List<Integer> page, Boolean notCount) {
         this.query = query;
         this.sort = sort;
         this.page = page;
         this.notCount = notCount;
     }
 
-    public ParamWhere getQuery() {
+    public ReqQuery getQuery() {
         return query;
     }
-    public void setQuery(ParamWhere query) {
+    public void setQuery(ReqQuery query) {
         this.query = query;
     }
 

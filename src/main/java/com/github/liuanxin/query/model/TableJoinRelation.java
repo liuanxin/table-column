@@ -64,16 +64,13 @@ public class TableJoinRelation {
 
 
     public String generateJoin(TableColumnInfo tcInfo) {
-        String masterTableName = masterTable.getName();
         String childTableName = childTable.getName();
-        TableColumnRelation relation = tcInfo.findRelationByMasterChild(masterTableName, childTableName);
-        String masterAlias = masterTable.getAlias();
+        TableColumnRelation relation = tcInfo.findRelationByMasterChild(masterTable.getName(), childTableName);
         String childAlias = QuerySqlUtil.toSqlField(childTable.getAlias());
-        return " " + joinType.name() +
-                " JOIN " + QuerySqlUtil.toSqlField(childTableName) +
+        return " " + joinType.getValue() + QuerySqlUtil.toSqlField(childTableName) +
                 " AS " + childAlias + " ON " + childAlias +
                 "." + QuerySqlUtil.toSqlField(relation.getOneOrManyColumn()) +
-                " = " + QuerySqlUtil.toSqlField(masterAlias) +
+                " = " + QuerySqlUtil.toSqlField(masterTable.getAlias()) +
                 "." + QuerySqlUtil.toSqlField(relation.getOneColumn());
     }
 }

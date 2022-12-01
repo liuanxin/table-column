@@ -101,15 +101,15 @@ import java.util.*;
  * }
  * </pre>
  */
-public class ParamWhere {
+public class ReqQuery {
 
     /** 条件拼接类型: 并且(and) 和 或者(or) 两种, 不设置则默认是 and */
     private OperateType operate;
     /** 条件 */
     private List<Object> conditions;
 
-    public ParamWhere() {}
-    public ParamWhere(OperateType operate, List<Object> conditions) {
+    public ReqQuery() {}
+    public ReqQuery(OperateType operate, List<Object> conditions) {
         this.operate = operate;
         this.conditions = conditions;
     }
@@ -131,8 +131,8 @@ public class ParamWhere {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ParamWhere)) return false;
-        ParamWhere that = (ParamWhere) o;
+        if (!(o instanceof ReqQuery)) return false;
+        ReqQuery that = (ReqQuery) o;
         return operate == that.operate && Objects.equals(conditions, that.conditions);
     }
 
@@ -143,7 +143,7 @@ public class ParamWhere {
 
     @Override
     public String toString() {
-        return "ReqParamOperate{operate=" + operate + ", conditions=" + conditions + '}';
+        return "ReqQuery{operate=" + operate + ", conditions=" + conditions + '}';
     }
 
 
@@ -188,7 +188,7 @@ public class ParamWhere {
                     type.checkTypeAndValue(tableColumn.getFieldType(), columnAlias,
                             list.get(standardSize ? 1 : 2), tableColumn.getStrLen(), maxListCount);
                 } else {
-                    ParamWhere compose = QueryJsonUtil.convert(condition, ParamWhere.class);
+                    ReqQuery compose = QueryJsonUtil.convert(condition, ReqQuery.class);
                     if (QueryUtil.isNull(compose)) {
                         throw new RuntimeException("param: compose condition(" + condition + ") error");
                     }
@@ -233,7 +233,7 @@ public class ParamWhere {
                         }
                     }
                 } else {
-                    ParamWhere compose = QueryJsonUtil.convert(condition, ParamWhere.class);
+                    ReqQuery compose = QueryJsonUtil.convert(condition, ReqQuery.class);
                     if (QueryUtil.isNotNull(compose)) {
                         StringBuilder print = new StringBuilder();
                         String innerWhereSql = compose.generateSql(mainTable, tcInfo, needAlias, params, print);
@@ -265,26 +265,30 @@ public class ParamWhere {
 
     public <T> void addCondition(FunctionSerialize<T,?> column, ConditionType type, Object value) {
         if (QueryUtil.isNotEmpty(conditions)) {
-            conditions.add(Arrays.asList(
-                    QueryLambdaUtil.toColumnName(column), type.name().toLowerCase(), value
-            ));
+            String c = QueryLambdaUtil.toTableName(column) + "." + QueryLambdaUtil.toColumnName(column);
+            conditions.add(Arrays.asList(c, type.name().toLowerCase(), value));
+        }
+    }
+    public <T> void addCondition(String column, ConditionType type, Object value) {
+        if (QueryUtil.isNotEmpty(conditions)) {
+            conditions.add(Arrays.asList(column, type.name().toLowerCase(), value));
         }
     }
 
-    public void addComposeCondition(ParamWhere composeCondition) {
+    public void addComposeCondition(ReqQuery composeCondition) {
         if (QueryUtil.isNotEmpty(conditions)) {
             conditions.add(composeCondition);
         }
     }
 
-    public static ParamWhere buildId(String idField, Serializable id) {
-        return new ParamWhere(null, Collections.singletonList(
+    public static ReqQuery buildId(String idField, Serializable id) {
+        return new ReqQuery(null, Collections.singletonList(
                 Arrays.asList(idField, id)
         ));
     }
 
-    public static ParamWhere buildIds(String idField, List<Serializable> ids) {
-        return new ParamWhere(null, Collections.singletonList(
+    public static ReqQuery buildIds(String idField, List<Serializable> ids) {
+        return new ReqQuery(null, Collections.singletonList(
                 Arrays.asList(idField, ConditionType.IN, ids)
         ));
     }

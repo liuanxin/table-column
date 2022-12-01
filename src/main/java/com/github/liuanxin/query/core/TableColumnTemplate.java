@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.util.*;
 
-@SuppressWarnings({"DuplicatedCode", "unchecked"})
+@SuppressWarnings("unchecked")
 public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
@@ -63,12 +63,12 @@ public class TableColumnTemplate implements InitializingBean {
     private TableColumnInfo tcInfo;
 
     private final List<TableColumnRelation> relationList;
-    private final Map<String, RequestModel> requestAliasMap;
+    private final Map<String, ReqModel> requestAliasMap;
 
     private final JdbcTemplate jdbcTemplate;
     public TableColumnTemplate(JdbcTemplate jdbcTemplate,
                                List<TableColumnRelation> relationList,
-                               Map<String, RequestModel> requestAliasMap) {
+                               Map<String, ReqModel> requestAliasMap) {
         this.jdbcTemplate = jdbcTemplate;
         this.relationList = QueryUtil.isEmpty(relationList) ? new ArrayList<>() : new ArrayList<>(relationList);
         this.requestAliasMap = requestAliasMap;
@@ -448,7 +448,7 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return doDelete(ParamWhere.buildId(tableInfo.idWhere(false), id), tableInfo, force);
+        return doDelete(ReqQuery.buildId(tableInfo.idWhere(false), id), tableInfo, force);
     }
     @Transactional
     public int deleteById(String table, Serializable id) {
@@ -471,7 +471,7 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return doDelete(ParamWhere.buildIds(tableInfo.idWhere(false), ids), tableInfo, force);
+        return doDelete(ReqQuery.buildIds(tableInfo.idWhere(false), ids), tableInfo, force);
     }
     @Transactional
     public int deleteByIds(String table, List<Serializable> ids) {
@@ -479,10 +479,10 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     @Transactional
-    public int forceDelete(String table, ParamWhere query) {
+    public int forceDelete(String table, ReqQuery query) {
         return delete(table, query, true);
     }
-    private int delete(String table, ParamWhere query, boolean force) {
+    private int delete(String table, ReqQuery query, boolean force) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
             return 0;
         }
@@ -497,7 +497,7 @@ public class TableColumnTemplate implements InitializingBean {
         return doDelete(query, tableInfo, force);
     }
     @Transactional
-    public int delete(String table, ParamWhere query) {
+    public int delete(String table, ReqQuery query) {
         return delete(table, query, false);
     }
 
@@ -517,7 +517,7 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return doDelete(ParamWhere.buildId(table.idWhere(false), id), table, force);
+        return doDelete(ReqQuery.buildId(table.idWhere(false), id), table, force);
     }
     @Transactional
     public <T> int deleteById(Class<T> clazz, Serializable id) {
@@ -540,7 +540,7 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return doDelete(ParamWhere.buildIds(table.idWhere(false), ids), table, force);
+        return doDelete(ReqQuery.buildIds(table.idWhere(false), ids), table, force);
     }
     @Transactional
     public <T> int deleteByIds(Class<T> clazz, List<Serializable> ids) {
@@ -548,10 +548,10 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     @Transactional
-    public <T> int forceDelete(Class<T> clazz, ParamWhere query) {
+    public <T> int forceDelete(Class<T> clazz, ReqQuery query) {
         return delete(clazz, query, true);
     }
-    private <T> int delete(Class<T> clazz, ParamWhere query, boolean force) {
+    private <T> int delete(Class<T> clazz, ReqQuery query, boolean force) {
         if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
             return 0;
         }
@@ -566,11 +566,11 @@ public class TableColumnTemplate implements InitializingBean {
         return doDelete(query, table, force);
     }
     @Transactional
-    public <T> int delete(Class<T> clazz, ParamWhere query) {
+    public <T> int delete(Class<T> clazz, ReqQuery query) {
         return delete(clazz, query, false);
     }
 
-    private int doDelete(ParamWhere query, Table table, boolean force) {
+    private int doDelete(ReqQuery query, Table table, boolean force) {
         StringBuilder printSql = new StringBuilder();
         List<Object> params = new ArrayList<>();
         String deleteSql = table.generateDelete(query, tcInfo, params, printSql, force);
@@ -598,7 +598,7 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return update(table, updateObj, ParamWhere.buildId(tableInfo.idWhere(false), id));
+        return update(table, updateObj, ReqQuery.buildId(tableInfo.idWhere(false), id));
     }
 
     @Transactional
@@ -614,16 +614,16 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return update(table, updateObj, ParamWhere.buildIds(tableInfo.idWhere(false), ids));
+        return update(table, updateObj, ReqQuery.buildIds(tableInfo.idWhere(false), ids));
     }
 
     @Transactional
-    public int update(String table, Map<String, Object> updateObj, ParamWhere query) {
+    public int update(String table, Map<String, Object> updateObj, ReqQuery query) {
         return update(table, updateObj, query, false);
     }
 
     @Transactional
-    public int update(String table, Map<String, Object> updateObj, ParamWhere query, boolean generateNullField) {
+    public int update(String table, Map<String, Object> updateObj, ReqQuery query, boolean generateNullField) {
         if (QueryUtil.isEmpty(table) || QueryUtil.isEmpty(updateObj) || QueryUtil.isNull(query)) {
             return 0;
         }
@@ -663,7 +663,7 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return update(updateObj, ParamWhere.buildId(table.idWhere(false), id));
+        return update(updateObj, ReqQuery.buildId(table.idWhere(false), id));
     }
 
     @Transactional
@@ -680,16 +680,16 @@ public class TableColumnTemplate implements InitializingBean {
             }
             return 0;
         }
-        return update(updateObj, ParamWhere.buildIds(table.idWhere(false), ids));
+        return update(updateObj, ReqQuery.buildIds(table.idWhere(false), ids));
     }
 
     @Transactional
-    public <T> int update(T updateObj, ParamWhere query) {
+    public <T> int update(T updateObj, ReqQuery query) {
         return update(updateObj, query, false);
     }
 
     @Transactional
-    public <T> int update(T updateObj, ParamWhere query, boolean generateNullField) {
+    public <T> int update(T updateObj, ReqQuery query, boolean generateNullField) {
         if (QueryUtil.isNull(updateObj) || QueryUtil.isNull(query)) {
             return 0;
         }
@@ -717,302 +717,345 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
-    public Map<String, Object> forceQueryById(String table, Serializable id) {
-        return queryById(table, id, true);
-    }
-    private Map<String, Object> queryById(String table, Serializable id, boolean force) {
-        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(id)) {
-            return Collections.emptyMap();
-        }
-
-        Table tableInfo = tcInfo.findTable(table.trim());
-        if (QueryUtil.isNull(tableInfo)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query-id: has no table({}) defined", table);
-            }
-            return Collections.emptyMap();
-        }
-
-        StringBuilder printSql = new StringBuilder();
-        List<Object> params = new ArrayList<>();
-        ParamWhere query = ParamWhere.buildId(tableInfo.idWhere(false), id);
-        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(true, force),
-                null, null, null, null, QueryConst.LIMIT_ONE, force);
-        if (QueryUtil.isEmpty(querySql)) {
-            return Collections.emptyMap();
-        }
-
-        if (LOG.isInfoEnabled()) {
-            LOG.info("query-id sql: [{}]", printSql);
-        }
-        return QueryUtil.first(jdbcTemplate.queryForList(querySql, params.toArray()));
-    }
-    public Map<String, Object> queryById(String table, Serializable id) {
-        return queryById(table, id, false);
-    }
-
-    public List<Map<String, Object>> forceQueryByIds(String table, List<Serializable> ids) {
-        return queryByIds(table, ids, true);
-    }
-    private List<Map<String, Object>> queryByIds(String table, List<Serializable> ids, boolean force) {
-        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalIdList(ids)) {
-            return Collections.emptyList();
-        }
-
-        Table tableInfo = tcInfo.findTable(table.trim());
-        if (QueryUtil.isNull(tableInfo)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query-ids: has no table({}) defined", table);
-            }
-            return Collections.emptyList();
-        }
-
-        String idField = tableInfo.idWhere(false);
-        String select = tableInfo.generateSelect(true, force);
-        List<Map<String, Object>> returnList = new ArrayList<>();
-        for (List<Serializable> lt : QueryUtil.split(ids, maxListCount)) {
-            StringBuilder printSql = new StringBuilder();
-            List<Object> params = new ArrayList<>();
-            ParamWhere query = ParamWhere.buildIds(idField, lt);
-            String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, select,
-                    null, null, null, null, null, force);
-            if (QueryUtil.isNotEmpty(querySql)) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("query-ids sql: [{}]", printSql);
-                }
-                List<Map<String, Object>> maps = jdbcTemplate.queryForList(querySql, params.toArray());
-                if (QueryUtil.isNotEmpty(maps)) {
-                    returnList.addAll(maps);
-                }
-            }
-        }
-        return returnList;
-    }
-    public List<Map<String, Object>> queryByIds(String table, List<Serializable> ids) {
-        return queryByIds(table, ids, false);
-    }
-
-    public List<Map<String, Object>> forceQuery(String table, ParamWhere query) {
-        return query(table, query, null, null, null, null, null, true);
-    }
-    public List<Map<String, Object>> query(String table, ParamWhere query) {
-        return query(table, query, null, null, null, null, null, false);
-    }
-    public List<Map<String, Object>> query(String table, ParamWhere query, String groupBy, String having,
-                                           String havingPrint, String orderBy, List<Integer> pageList, boolean force) {
-        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
-            return Collections.emptyList();
-        }
-
-        Table tableInfo = tcInfo.findTable(table);
-        if (QueryUtil.isNull(tableInfo)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query: has no table({}) defined", table);
-            }
-            return Collections.emptyList();
-        }
-
-        StringBuilder printSql = new StringBuilder();
-        List<Object> params = new ArrayList<>();
-        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(false, force),
-                groupBy, having, havingPrint, orderBy, pageList, force);
-        if (QueryUtil.isEmpty(querySql)) {
-            return Collections.emptyList();
-        }
-
-        if (LOG.isInfoEnabled()) {
-            LOG.info("query sql: [{}]", printSql);
-        }
-        return jdbcTemplate.queryForList(querySql, params.toArray());
-    }
-    public Map<String, Object> forceQueryOne(String table, ParamWhere query) {
-        return QueryUtil.first(query(table, query, null, null, null, null, QueryConst.LIMIT_ONE, true));
-    }
-    public Map<String, Object> queryOne(String table, ParamWhere query) {
-        return QueryUtil.first(query(table, query, null, null, null, null, QueryConst.LIMIT_ONE, false));
-    }
-
-    public long forceQueryCount(String table, ParamWhere query) {
-        return queryCount(table, query, true);
-    }
-    private long queryCount(String table, ParamWhere query, boolean force) {
-        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
-            return 0;
-        }
-
-        Table tableInfo = tcInfo.findTable(table);
-        if (QueryUtil.isNull(tableInfo)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query-count: has no table({}) defined", table);
-            }
-            return 0;
-        }
-        return handleCount(query, force, tableInfo);
-    }
-
-    private long handleCount(ParamWhere query, boolean force, Table tableInfo) {
-        StringBuilder printSql = new StringBuilder();
-        List<Object> params = new ArrayList<>();
-        String querySql = tableInfo.generateCountQuery(query, tcInfo, params, printSql, null, null, null, null, null, force);
-        if (QueryUtil.isEmpty(querySql)) {
-            return 0;
-        }
-
-        if (LOG.isInfoEnabled()) {
-            LOG.info("query-count sql: [{}]", printSql);
-        }
-        Long count = jdbcTemplate.queryForObject(querySql, Long.class, params.toArray());
-        return QueryUtil.isNull(count) ? 0 : count;
-    }
-
-    public long queryCount(String table, ParamWhere query) {
-        return queryCount(table, query, false);
-    }
-
-    public <T> T forceQueryById(Class<T> clazz, Serializable id) {
-        return queryById(clazz, id, true);
-    }
-    private <T> T queryById(Class<T> clazz, Serializable id, boolean force) {
-        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(id)) {
-            return null;
-        }
-
-        Table table = tcInfo.findTableByClass(clazz);
-        if (QueryUtil.isNull(table)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query-id: class({}) has no table defined", clazz.getName());
-            }
-            return null;
-        }
-
-        StringBuilder printSql = new StringBuilder();
-        List<Object> params = new ArrayList<>();
-        ParamWhere query = ParamWhere.buildId(table.idWhere(false), id);
-        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
-                null, null, null, null, QueryConst.LIMIT_ONE, force);
-        if (QueryUtil.isEmpty(querySql)) {
-            return null;
-        }
-
-        if (LOG.isInfoEnabled()) {
-            LOG.info("query-id sql: [{}]", printSql);
-        }
-        return QueryUtil.first(jdbcTemplate.queryForList(querySql, clazz, params.toArray()));
-    }
-    public <T> T queryById(Class<T> clazz, Serializable id) {
-        return queryById(clazz, id, false);
-    }
-
-    public <T> List<T> forceQueryByIds(Class<T> clazz, List<Serializable> ids) {
-        return queryByIds(clazz, ids, true);
-    }
-    private <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids, boolean force) {
-        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalIdList(ids)) {
-            return Collections.emptyList();
-        }
-
-        Table table = tcInfo.findTableByClass(clazz);
-        if (QueryUtil.isNull(table)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query-ids: class({}) no table defined", clazz.getName());
-            }
-            return Collections.emptyList();
-        }
-
-        StringBuilder printSql = new StringBuilder();
-        List<Object> params = new ArrayList<>();
-        ParamWhere query = ParamWhere.buildIds(table.idWhere(false), ids);
-        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
-                null, null, null, null, null, force);
-        if (QueryUtil.isEmpty(querySql)) {
-            return Collections.emptyList();
-        }
-
-        if (LOG.isInfoEnabled()) {
-            LOG.info("query-ids sql: [{}]", printSql);
-        }
-        return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
-    }
-    public <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids) {
-        return queryByIds(clazz, ids, false);
-    }
-
-    public <T> List<T> forceQuery(Class<T> clazz, ParamWhere query) {
-        return query(clazz, query, null, null, null, null, null, true);
-    }
-    public <T> List<T> query(Class<T> clazz, ParamWhere query) {
-        return query(clazz, query, null, null, null, null, null, false);
-    }
-    public <T> List<T> query(Class<T> clazz, ParamWhere query, String groupBy, String having, String havingPrint,
-                             String orderBy, List<Integer> pageList, boolean force) {
-        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
-            return Collections.emptyList();
-        }
-
-        Table table = tcInfo.findTableByClass(clazz);
-        if (QueryUtil.isNull(table)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query: class({}) has no table defined", clazz.getName());
-            }
-            return Collections.emptyList();
-        }
-
-        StringBuilder printSql = new StringBuilder();
-        List<Object> params = new ArrayList<>();
-        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
-                groupBy, having, havingPrint, orderBy, pageList, force);
-        if (QueryUtil.isEmpty(querySql)) {
-            return Collections.emptyList();
-        }
-
-        if (LOG.isInfoEnabled()) {
-            LOG.info("query sql: [{}]", printSql);
-        }
-        return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
-    }
-    public <T> T forceQueryOne(Class<T> clazz, ParamWhere query) {
-        return QueryUtil.first(query(clazz, query, null, null, null, null, QueryConst.LIMIT_ONE, true));
-    }
-    public <T> T queryOne(Class<T> clazz, ParamWhere query) {
-        return QueryUtil.first(query(clazz, query, null, null, null, null, QueryConst.LIMIT_ONE, false));
-    }
-
-    public <T> List<T> query(QueryData<T> req) {
-        return Collections.emptyList();
-    }
-
-    public <T> long forceQueryCount(Class<T> clazz, ParamWhere query) {
-        return queryCount(clazz, query, true);
-    }
-    private <T> long queryCount(Class<T> clazz, ParamWhere query, boolean force) {
-        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
-            return 0;
-        }
-
-        Table table = tcInfo.findTableByClass(clazz);
-        if (QueryUtil.isNull(table)) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("query: class({}) has no table defined", clazz.getName());
-            }
-            return 0;
-        }
-
-        return handleCount(query, force, table);
-    }
-    public <T> long queryCount(Class<T> clazz, ParamWhere query) {
-        return queryCount(clazz, query, false);
-    }
+//    public <T> List<T> forceQuery(QueryData req, Class<T> clazz) {
+//        return query(req, clazz, true);
+//    }
+//    private <T> List<T> query(QueryData req, Class<T> clazz, boolean force) {
+//        List<Object> params = new ArrayList<>();
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("QueryData sql: [{}]", req.toPrintSelectSql());
+//        }
+//        return QueryJsonUtil.convertList(jdbcTemplate.queryForList(req.toSelectSql(tcInfo, params, force)), clazz);
+//    }
+//    public <T> List<T> query(QueryData req, Class<T> clazz) {
+//        return query(req, clazz, false);
+//    }
+//
+//    public <T> T forceQueryOne(QueryData req, Class<T> clazz) {
+//        return QueryUtil.first(query(req.withOne(), clazz, true));
+//    }
+//    public <T> T queryOne(QueryData req, Class<T> clazz) {
+//        return QueryUtil.first(query(req.withOne(), clazz, false));
+//    }
+//
+//    public <T> long forceQueryCount(QueryData req, Class<T> clazz) {
+//        return queryCount(req, clazz, true);
+//    }
+//    private <T> long queryCount(QueryData req, Class<T> clazz, boolean force) {
+//        List<Object> params = new ArrayList<>();
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("QueryData count sql: [{}]", req.toPrintCountSql());
+//        }
+//        Long count = jdbcTemplate.queryForObject(req.toCountSql(tcInfo, params, force), Long.class);
+//        return QueryUtil.isNull(count) ? 0L : count;
+//    }
+//    private <T> long queryCount(QueryData req, Class<T> clazz) {
+//        return queryCount(req, clazz, false);
+//    }
+//
+//    public <T> PageInfo<T> forceQueryPage(QueryData req, Class<T> clazz) {
+//        return queryPage(req, clazz, true);
+//    }
+//    private <T> PageInfo<T> queryPage(QueryData req, Class<T> clazz, boolean force) {
+//        return PageInfo.page(queryCount(req, clazz, force), req::needQueryCurrentPage, () -> query(req, clazz, force));
+//    }
+//    public <T> PageInfo<T> queryPage(QueryData req, Class<T> clazz) {
+//        return queryPage(req, clazz, false);
+//    }
 
 
-    public Object forceDynamicQuery(RequestInfo req) {
+//    public Map<String, Object> forceQueryById(String table, Serializable id) {
+//        return queryById(table, id, true);
+//    }
+//    private Map<String, Object> queryById(String table, Serializable id, boolean force) {
+//        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(id)) {
+//            return Collections.emptyMap();
+//        }
+//
+//        Table tableInfo = tcInfo.findTable(table.trim());
+//        if (QueryUtil.isNull(tableInfo)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query-id: has no table({}) defined", table);
+//            }
+//            return Collections.emptyMap();
+//        }
+//
+//        StringBuilder printSql = new StringBuilder();
+//        List<Object> params = new ArrayList<>();
+//        ReqQuery query = ReqQuery.buildId(tableInfo.idWhere(false), id);
+//        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(true, force),
+//                null, null, null, null, QueryConst.LIMIT_ONE, force);
+//        if (QueryUtil.isEmpty(querySql)) {
+//            return Collections.emptyMap();
+//        }
+//
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("query-id sql: [{}]", printSql);
+//        }
+//        return QueryUtil.first(jdbcTemplate.queryForList(querySql, params.toArray()));
+//    }
+//    public Map<String, Object> queryById(String table, Serializable id) {
+//        return queryById(table, id, false);
+//    }
+//
+//    public List<Map<String, Object>> forceQueryByIds(String table, List<Serializable> ids) {
+//        return queryByIds(table, ids, true);
+//    }
+//    private List<Map<String, Object>> queryByIds(String table, List<Serializable> ids, boolean force) {
+//        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalIdList(ids)) {
+//            return Collections.emptyList();
+//        }
+//
+//        Table tableInfo = tcInfo.findTable(table.trim());
+//        if (QueryUtil.isNull(tableInfo)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query-ids: has no table({}) defined", table);
+//            }
+//            return Collections.emptyList();
+//        }
+//
+//        String idField = tableInfo.idWhere(false);
+//        String select = tableInfo.generateSelect(true, force);
+//        List<Map<String, Object>> returnList = new ArrayList<>();
+//        for (List<Serializable> lt : QueryUtil.split(ids, maxListCount)) {
+//            StringBuilder printSql = new StringBuilder();
+//            List<Object> params = new ArrayList<>();
+//            ReqQuery query = ReqQuery.buildIds(idField, lt);
+//            String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, select,
+//                    null, null, null, null, null, force);
+//            if (QueryUtil.isNotEmpty(querySql)) {
+//                if (LOG.isInfoEnabled()) {
+//                    LOG.info("query-ids sql: [{}]", printSql);
+//                }
+//                List<Map<String, Object>> maps = jdbcTemplate.queryForList(querySql, params.toArray());
+//                if (QueryUtil.isNotEmpty(maps)) {
+//                    returnList.addAll(maps);
+//                }
+//            }
+//        }
+//        return returnList;
+//    }
+//    public List<Map<String, Object>> queryByIds(String table, List<Serializable> ids) {
+//        return queryByIds(table, ids, false);
+//    }
+//
+//    public List<Map<String, Object>> forceQuery(String table, ReqQuery query) {
+//        return query(table, query, null, null, null, null, null, true);
+//    }
+//    public List<Map<String, Object>> query(String table, ReqQuery query) {
+//        return query(table, query, null, null, null, null, null, false);
+//    }
+//    public List<Map<String, Object>> query(String table, ReqQuery query, String groupBy, String having,
+//                                           String havingPrint, String orderBy, List<Integer> pageList, boolean force) {
+//        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
+//            return Collections.emptyList();
+//        }
+//
+//        Table tableInfo = tcInfo.findTable(table);
+//        if (QueryUtil.isNull(tableInfo)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query: has no table({}) defined", table);
+//            }
+//            return Collections.emptyList();
+//        }
+//
+//        StringBuilder printSql = new StringBuilder();
+//        List<Object> params = new ArrayList<>();
+//        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(false, force),
+//                groupBy, having, havingPrint, orderBy, pageList, force);
+//        if (QueryUtil.isEmpty(querySql)) {
+//            return Collections.emptyList();
+//        }
+//
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("query sql: [{}]", printSql);
+//        }
+//        return jdbcTemplate.queryForList(querySql, params.toArray());
+//    }
+//    public Map<String, Object> forceQueryOne(String table, ReqQuery query) {
+//        return QueryUtil.first(query(table, query, null, null, null, null, QueryConst.LIMIT_ONE, true));
+//    }
+//    public Map<String, Object> queryOne(String table, ReqQuery query) {
+//        return QueryUtil.first(query(table, query, null, null, null, null, QueryConst.LIMIT_ONE, false));
+//    }
+//
+//    public long forceQueryCount(String table, ReqQuery query) {
+//        return queryCount(table, query, true);
+//    }
+//    private long queryCount(String table, ReqQuery query, boolean force) {
+//        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
+//            return 0;
+//        }
+//
+//        Table tableInfo = tcInfo.findTable(table);
+//        if (QueryUtil.isNull(tableInfo)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query-count: has no table({}) defined", table);
+//            }
+//            return 0;
+//        }
+//        return handleCount(query, force, tableInfo);
+//    }
+//
+//    private long handleCount(ReqQuery query, boolean force, Table tableInfo) {
+//        StringBuilder printSql = new StringBuilder();
+//        List<Object> params = new ArrayList<>();
+//        String querySql = tableInfo.generateCountQuery(query, tcInfo, params, printSql, null, null, null, null, null, force);
+//        if (QueryUtil.isEmpty(querySql)) {
+//            return 0;
+//        }
+//
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("query-count sql: [{}]", printSql);
+//        }
+//        Long count = jdbcTemplate.queryForObject(querySql, Long.class, params.toArray());
+//        return QueryUtil.isNull(count) ? 0 : count;
+//    }
+//
+//    public long queryCount(String table, ReqQuery query) {
+//        return queryCount(table, query, false);
+//    }
+
+//    public <T> T forceQueryById(Class<T> clazz, Serializable id) {
+//        return queryById(clazz, id, true);
+//    }
+//    private <T> T queryById(Class<T> clazz, Serializable id, boolean force) {
+//        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(id)) {
+//            return null;
+//        }
+//
+//        Table table = tcInfo.findTableByClass(clazz);
+//        if (QueryUtil.isNull(table)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query-id: class({}) has no table defined", clazz.getName());
+//            }
+//            return null;
+//        }
+//
+//        StringBuilder printSql = new StringBuilder();
+//        List<Object> params = new ArrayList<>();
+//        ReqQuery query = ReqQuery.buildId(table.idWhere(false), id);
+//        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
+//                null, null, null, null, QueryConst.LIMIT_ONE, force);
+//        if (QueryUtil.isEmpty(querySql)) {
+//            return null;
+//        }
+//
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("query-id sql: [{}]", printSql);
+//        }
+//        return QueryUtil.first(jdbcTemplate.queryForList(querySql, clazz, params.toArray()));
+//    }
+//    public <T> T queryById(Class<T> clazz, Serializable id) {
+//        return queryById(clazz, id, false);
+//    }
+//
+//    public <T> List<T> forceQueryByIds(Class<T> clazz, List<Serializable> ids) {
+//        return queryByIds(clazz, ids, true);
+//    }
+//    private <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids, boolean force) {
+//        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalIdList(ids)) {
+//            return Collections.emptyList();
+//        }
+//
+//        Table table = tcInfo.findTableByClass(clazz);
+//        if (QueryUtil.isNull(table)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query-ids: class({}) no table defined", clazz.getName());
+//            }
+//            return Collections.emptyList();
+//        }
+//
+//        StringBuilder printSql = new StringBuilder();
+//        List<Object> params = new ArrayList<>();
+//        ReqQuery query = ReqQuery.buildIds(table.idWhere(false), ids);
+//        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
+//                null, null, null, null, null, force);
+//        if (QueryUtil.isEmpty(querySql)) {
+//            return Collections.emptyList();
+//        }
+//
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("query-ids sql: [{}]", printSql);
+//        }
+//        return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
+//    }
+//    public <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids) {
+//        return queryByIds(clazz, ids, false);
+//    }
+//
+//    public <T> List<T> forceQuery(Class<T> clazz, ReqQuery query) {
+//        return query(clazz, query, null, null, null, null, null, true);
+//    }
+//    public <T> List<T> query(Class<T> clazz, ReqQuery query) {
+//        return query(clazz, query, null, null, null, null, null, false);
+//    }
+//    public <T> List<T> query(Class<T> clazz, ReqQuery query, String groupBy, String having, String havingPrint,
+//                             String orderBy, List<Integer> pageList, boolean force) {
+//        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
+//            return Collections.emptyList();
+//        }
+//
+//        Table table = tcInfo.findTableByClass(clazz);
+//        if (QueryUtil.isNull(table)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query: class({}) has no table defined", clazz.getName());
+//            }
+//            return Collections.emptyList();
+//        }
+//
+//        StringBuilder printSql = new StringBuilder();
+//        List<Object> params = new ArrayList<>();
+//        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
+//                groupBy, having, havingPrint, orderBy, pageList, force);
+//        if (QueryUtil.isEmpty(querySql)) {
+//            return Collections.emptyList();
+//        }
+//
+//        if (LOG.isInfoEnabled()) {
+//            LOG.info("query sql: [{}]", printSql);
+//        }
+//        return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
+//    }
+//    public <T> T forceQueryOne(Class<T> clazz, ReqQuery query) {
+//        return QueryUtil.first(query(clazz, query, null, null, null, null, QueryConst.LIMIT_ONE, true));
+//    }
+//    public <T> T queryOne(Class<T> clazz, ReqQuery query) {
+//        return QueryUtil.first(query(clazz, query, null, null, null, null, QueryConst.LIMIT_ONE, false));
+//    }
+//
+//    public <T> long forceQueryCount(Class<T> clazz, ReqQuery query) {
+//        return queryCount(clazz, query, true);
+//    }
+//    private <T> long queryCount(Class<T> clazz, ReqQuery query, boolean force) {
+//        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
+//            return 0;
+//        }
+//
+//        Table table = tcInfo.findTableByClass(clazz);
+//        if (QueryUtil.isNull(table)) {
+//            if (LOG.isWarnEnabled()) {
+//                LOG.warn("query: class({}) has no table defined", clazz.getName());
+//            }
+//            return 0;
+//        }
+//
+//        return handleCount(query, force, table);
+//    }
+//    public <T> long queryCount(Class<T> clazz, ReqQuery query) {
+//        return queryCount(clazz, query, false);
+//    }
+
+
+    public Object forceDynamicQuery(ReqInfo req) {
         return dynamicQueryInfo(req, true);
     }
 
-    public Object dynamicQuery(RequestInfo req) {
+    public Object dynamicQuery(ReqInfo req) {
         return dynamicQueryInfo(req, false);
     }
 
-    private Object dynamicQueryInfo(RequestInfo req, boolean force) {
+    private Object dynamicQueryInfo(ReqInfo req, boolean force) {
         if (QueryUtil.isNull(req)) {
             return null;
         }
@@ -1033,10 +1076,10 @@ public class TableColumnTemplate implements InitializingBean {
 
         String fromSql = QuerySqlUtil.toFromSql(tcInfo, mainTable, useRelationSet);
         List<Object> params = new ArrayList<>();
-        StringBuilder wp = new StringBuilder();
-        String whereSql = param.generateWhereSql(mainTable, tcInfo, needAlias, params, useTableSet, force, wp);
+        StringBuilder wherePrintSbd = new StringBuilder();
+        String whereSql = param.generateWhereSql(mainTable, tcInfo, needAlias, params, useTableSet, force, wherePrintSbd);
         String fromAndWhere = fromSql + whereSql;
-        String wherePrint = wp.toString();
+        String wherePrint = wherePrintSbd.toString();
         String fromAndWherePrint = fromSql + wherePrint;
 
         /*

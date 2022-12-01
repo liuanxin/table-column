@@ -6,16 +6,16 @@ import com.github.liuanxin.query.util.QueryUtil;
 
 import java.util.*;
 
-public class RequestInfo extends RequestModel {
+public class ReqInfo extends ReqModel {
 
     /** 模板别名, 用这个值映射 RequestModel 的内容 */
     private String alias;
     /** 入参 */
     private ReqParam param;
 
-    public RequestInfo() {}
-    public RequestInfo(String alias, ReqParam param, String table, ReqResult result,
-                       ResultType type, List<List<String>> relation) {
+    public ReqInfo() {}
+    public ReqInfo(String alias, ReqParam param, String table, ReqResult result,
+                   ResultType type, List<List<String>> relation) {
         super(table, result, type, relation);
         this.alias = alias;
         this.param = param;
@@ -38,8 +38,8 @@ public class RequestInfo extends RequestModel {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RequestInfo)) return false;
-        RequestInfo that = (RequestInfo) o;
+        if (!(o instanceof ReqInfo)) return false;
+        ReqInfo that = (ReqInfo) o;
         return Objects.equals(alias, that.alias) && Objects.equals(param, that.param)
                 && Objects.equals(getTable(), that.getTable()) && Objects.equals(getResult(), that.getResult())
                 && getType() == that.getType() && Objects.equals(getRelation(), that.getRelation());
@@ -52,7 +52,7 @@ public class RequestInfo extends RequestModel {
 
     @Override
     public String toString() {
-        return "RequestInfo{" +
+        return "ReqInfo{" +
                 ", alias=" + alias +
                 ", param=" + param +
                 ", table='" + getTable() + '\'' +
@@ -63,7 +63,7 @@ public class RequestInfo extends RequestModel {
     }
 
 
-    public void handleAlias(Map<String, RequestModel> requestAliasMap) {
+    public void handleAlias(Map<String, ReqModel> requestAliasMap) {
         if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
             super.fillAlias(alias, requestAliasMap);
         }
