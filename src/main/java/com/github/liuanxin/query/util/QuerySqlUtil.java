@@ -118,6 +118,9 @@ public class QuerySqlUtil {
                                    String mainTable, ReqParam param, ReqResult result, boolean needAlias,
                                    List<Object> params, StringBuilder printSql) {
         String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
+        if (QueryUtil.isEmpty(selectColumn)) {
+            return "";
+        }
         // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
         return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, selectColumn, params, printSql);
     }

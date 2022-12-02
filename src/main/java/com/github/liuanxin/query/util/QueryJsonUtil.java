@@ -12,6 +12,8 @@ public class QueryJsonUtil {
 
     private static final TypeReference<Map<String, ReqResult>> INNER_RESULT_TYPE = new TypeReference<Map<String, ReqResult>>() {};
     private static final TypeReference<Map<String, List<String>>> DATE_FORMAT_RESULT_TYPE = new TypeReference<Map<String, List<String>>>() {};
+    private static final TypeReference<Map<String, Object>> DATA_RESULT_TYPE = new TypeReference<Map<String, Object>>() {};
+    private static final TypeReference<List<Map<String, Object>>> DATA_LIST_RESULT_TYPE = new TypeReference<List<Map<String, Object>>>() {};
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -43,6 +45,9 @@ public class QueryJsonUtil {
     }
 
     public static <S,T> List<T> convertList(S source, Class<T> clazz) {
+        if (QueryUtil.isNull(source)) {
+            return null;
+        }
         String json = toJson(source);
         if (QueryUtil.isEmpty(json)) {
             return null;
@@ -55,6 +60,9 @@ public class QueryJsonUtil {
     }
 
     public static <S,T> T convertType(S source, TypeReference<T> type) {
+        if (QueryUtil.isNull(source)) {
+            return null;
+        }
         String json = toJson(source);
         if (QueryUtil.isEmpty(json)) {
             return null;
@@ -72,5 +80,13 @@ public class QueryJsonUtil {
 
     public static Map<String, List<String>> convertDateResult(Object obj) {
         return convertType(obj, DATE_FORMAT_RESULT_TYPE);
+    }
+
+    public static Map<String, Object> convertData(Object obj) {
+        return convertType(obj, DATA_RESULT_TYPE);
+    }
+
+    public static List<Map<String, Object>> convertDateList(Object obj) {
+        return convertType(obj, DATA_LIST_RESULT_TYPE);
     }
 }

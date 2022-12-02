@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -37,14 +36,15 @@ public class PageReturn<T> implements Serializable {
     }
 
 
-    public static <T> PageReturn<T> page(long count, Predicate<Long> needQueryCurrentPage, Supplier<List<T>> supplier) {
+    public static <T> PageReturn<T> page(long count, int index, int limit, Supplier<List<T>> supplier) {
         if (count == 0) {
             return EMPTY;
         }
-        if (needQueryCurrentPage.test(count)) {
+        if ((index == 1) || ((long) index * limit <= count)) {
             return new PageReturn<>(count, supplier.get());
+        } else {
+            return new PageReturn<>(count, Collections.emptyList());
         }
-        return new PageReturn<>(count, Collections.emptyList());
     }
 
 

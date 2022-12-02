@@ -391,6 +391,20 @@ public class QueryUtil {
         }
     }
 
+    public static long toLong(Object obj) {
+        if (obj == null) {
+            return 0;
+        }
+        if (obj instanceof Number) {
+            return ((Number) obj).longValue();
+        }
+        try {
+            return Long.parseLong(obj.toString().trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     public static Long toLonger(Object obj) {
         if (obj == null) {
             return null;

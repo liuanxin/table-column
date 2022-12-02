@@ -42,6 +42,8 @@ public final class QueryConst {
     public static final String TABLE_PREFIX = "__table__";
     public static final String COLUMN_PREFIX = "__column__";
 
+    public static final String COUNT_ALIAS = "cnt";
+
     public static final Set<String> TRUE_SET = new HashSet<>(Arrays.asList(
             "true", "1", "on", "yes" // , "✓"/* \u2713 */, "✔"/* \u2714 */
     ));

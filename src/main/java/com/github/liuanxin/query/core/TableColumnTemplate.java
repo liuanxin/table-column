@@ -1,5 +1,6 @@
 package com.github.liuanxin.query.core;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.enums.AliasGenerateRule;
 import com.github.liuanxin.query.enums.OneToOneHasManyRule;
@@ -7,6 +8,7 @@ import com.github.liuanxin.query.enums.ResultType;
 import com.github.liuanxin.query.enums.TableRelationType;
 import com.github.liuanxin.query.model.*;
 import com.github.liuanxin.query.util.QueryInfoUtil;
+import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 import org.slf4j.Logger;
@@ -717,345 +719,259 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
-//    public <T> List<T> forceQuery(QueryData req, Class<T> clazz) {
-//        return query(req, clazz, true);
-//    }
-//    private <T> List<T> query(QueryData req, Class<T> clazz, boolean force) {
-//        List<Object> params = new ArrayList<>();
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("QueryData sql: [{}]", req.toPrintSelectSql());
-//        }
-//        return QueryJsonUtil.convertList(jdbcTemplate.queryForList(req.toSelectSql(tcInfo, params, force)), clazz);
-//    }
-//    public <T> List<T> query(QueryData req, Class<T> clazz) {
-//        return query(req, clazz, false);
-//    }
-//
-//    public <T> T forceQueryOne(QueryData req, Class<T> clazz) {
-//        return QueryUtil.first(query(req.withOne(), clazz, true));
-//    }
-//    public <T> T queryOne(QueryData req, Class<T> clazz) {
-//        return QueryUtil.first(query(req.withOne(), clazz, false));
-//    }
-//
-//    public <T> long forceQueryCount(QueryData req, Class<T> clazz) {
-//        return queryCount(req, clazz, true);
-//    }
-//    private <T> long queryCount(QueryData req, Class<T> clazz, boolean force) {
-//        List<Object> params = new ArrayList<>();
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("QueryData count sql: [{}]", req.toPrintCountSql());
-//        }
-//        Long count = jdbcTemplate.queryForObject(req.toCountSql(tcInfo, params, force), Long.class);
-//        return QueryUtil.isNull(count) ? 0L : count;
-//    }
-//    private <T> long queryCount(QueryData req, Class<T> clazz) {
-//        return queryCount(req, clazz, false);
-//    }
-//
-//    public <T> PageInfo<T> forceQueryPage(QueryData req, Class<T> clazz) {
-//        return queryPage(req, clazz, true);
-//    }
-//    private <T> PageInfo<T> queryPage(QueryData req, Class<T> clazz, boolean force) {
-//        return PageInfo.page(queryCount(req, clazz, force), req::needQueryCurrentPage, () -> query(req, clazz, force));
-//    }
-//    public <T> PageInfo<T> queryPage(QueryData req, Class<T> clazz) {
-//        return queryPage(req, clazz, false);
-//    }
+    public long forceQueryCount(QueryData req) {
+        return queryCount(req, true);
+    }
+    private long queryCount(QueryData req, boolean force) {
+        Map<String, Object> data = QueryJsonUtil.convertData(dynamicQuery(req.toQueryCount(tcInfo), force));
+        return QueryUtil.isEmpty(data) ? 0L : QueryUtil.toLong(data.get(QueryConst.COUNT_ALIAS));
+    }
+    private long queryCount(QueryData req) {
+        return queryCount(req, false);
+    }
+
+    public <T> List<T> forceQuery(QueryData req, Class<T> clazz) {
+        return query(req, clazz, true);
+    }
+    private <T> List<T> query(QueryData req, Class<T> clazz, boolean force) {
+        return QueryJsonUtil.convertList(dynamicQuery(req.toQueryList(tcInfo), force), clazz);
+    }
+    public <T> List<T> query(QueryData req, Class<T> clazz) {
+        return query(req, clazz, false);
+    }
+
+    public <T> T forceQueryOne(QueryData req, Class<T> clazz) {
+        return queryOne(req, clazz, true);
+    }
+    private <T> T queryOne(QueryData req, Class<T> clazz, boolean force) {
+        return QueryJsonUtil.convert(dynamicQuery(req.toQueryObj(tcInfo), force), clazz);
+    }
+    public <T> T queryOne(QueryData req, Class<T> clazz) {
+        return queryOne(req, clazz, false);
+    }
+
+    public <T> PageReturn<T> forceQueryPage(QueryData req, Class<T> clazz) {
+        return queryPage(req, clazz, true);
+    }
+    private <T> PageReturn<T> queryPage(QueryData req, Class<T> clazz, boolean force) {
+        return QueryJsonUtil.convertType(dynamicQuery(req.toQueryPage(tcInfo), force), new TypeReference<PageReturn<T>>() {});
+    }
+    public <T> PageReturn<T> queryPage(QueryData req, Class<T> clazz) {
+        return queryPage(req, clazz, false);
+    }
 
 
-//    public Map<String, Object> forceQueryById(String table, Serializable id) {
-//        return queryById(table, id, true);
-//    }
-//    private Map<String, Object> queryById(String table, Serializable id, boolean force) {
-//        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(id)) {
-//            return Collections.emptyMap();
-//        }
-//
-//        Table tableInfo = tcInfo.findTable(table.trim());
-//        if (QueryUtil.isNull(tableInfo)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query-id: has no table({}) defined", table);
-//            }
-//            return Collections.emptyMap();
-//        }
-//
-//        StringBuilder printSql = new StringBuilder();
-//        List<Object> params = new ArrayList<>();
-//        ReqQuery query = ReqQuery.buildId(tableInfo.idWhere(false), id);
-//        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(true, force),
-//                null, null, null, null, QueryConst.LIMIT_ONE, force);
-//        if (QueryUtil.isEmpty(querySql)) {
-//            return Collections.emptyMap();
-//        }
-//
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("query-id sql: [{}]", printSql);
-//        }
-//        return QueryUtil.first(jdbcTemplate.queryForList(querySql, params.toArray()));
-//    }
-//    public Map<String, Object> queryById(String table, Serializable id) {
-//        return queryById(table, id, false);
-//    }
-//
-//    public List<Map<String, Object>> forceQueryByIds(String table, List<Serializable> ids) {
-//        return queryByIds(table, ids, true);
-//    }
-//    private List<Map<String, Object>> queryByIds(String table, List<Serializable> ids, boolean force) {
-//        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalIdList(ids)) {
-//            return Collections.emptyList();
-//        }
-//
-//        Table tableInfo = tcInfo.findTable(table.trim());
-//        if (QueryUtil.isNull(tableInfo)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query-ids: has no table({}) defined", table);
-//            }
-//            return Collections.emptyList();
-//        }
-//
-//        String idField = tableInfo.idWhere(false);
-//        String select = tableInfo.generateSelect(true, force);
-//        List<Map<String, Object>> returnList = new ArrayList<>();
-//        for (List<Serializable> lt : QueryUtil.split(ids, maxListCount)) {
-//            StringBuilder printSql = new StringBuilder();
-//            List<Object> params = new ArrayList<>();
-//            ReqQuery query = ReqQuery.buildIds(idField, lt);
-//            String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, select,
-//                    null, null, null, null, null, force);
-//            if (QueryUtil.isNotEmpty(querySql)) {
-//                if (LOG.isInfoEnabled()) {
-//                    LOG.info("query-ids sql: [{}]", printSql);
-//                }
-//                List<Map<String, Object>> maps = jdbcTemplate.queryForList(querySql, params.toArray());
-//                if (QueryUtil.isNotEmpty(maps)) {
-//                    returnList.addAll(maps);
-//                }
-//            }
-//        }
-//        return returnList;
-//    }
-//    public List<Map<String, Object>> queryByIds(String table, List<Serializable> ids) {
-//        return queryByIds(table, ids, false);
-//    }
-//
-//    public List<Map<String, Object>> forceQuery(String table, ReqQuery query) {
-//        return query(table, query, null, null, null, null, null, true);
-//    }
-//    public List<Map<String, Object>> query(String table, ReqQuery query) {
-//        return query(table, query, null, null, null, null, null, false);
-//    }
-//    public List<Map<String, Object>> query(String table, ReqQuery query, String groupBy, String having,
-//                                           String havingPrint, String orderBy, List<Integer> pageList, boolean force) {
-//        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
-//            return Collections.emptyList();
-//        }
-//
-//        Table tableInfo = tcInfo.findTable(table);
-//        if (QueryUtil.isNull(tableInfo)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query: has no table({}) defined", table);
-//            }
-//            return Collections.emptyList();
-//        }
-//
-//        StringBuilder printSql = new StringBuilder();
-//        List<Object> params = new ArrayList<>();
-//        String querySql = tableInfo.generateQuery(query, tcInfo, params, printSql, tableInfo.generateSelect(false, force),
-//                groupBy, having, havingPrint, orderBy, pageList, force);
-//        if (QueryUtil.isEmpty(querySql)) {
-//            return Collections.emptyList();
-//        }
-//
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("query sql: [{}]", printSql);
-//        }
-//        return jdbcTemplate.queryForList(querySql, params.toArray());
-//    }
-//    public Map<String, Object> forceQueryOne(String table, ReqQuery query) {
-//        return QueryUtil.first(query(table, query, null, null, null, null, QueryConst.LIMIT_ONE, true));
-//    }
-//    public Map<String, Object> queryOne(String table, ReqQuery query) {
-//        return QueryUtil.first(query(table, query, null, null, null, null, QueryConst.LIMIT_ONE, false));
-//    }
-//
-//    public long forceQueryCount(String table, ReqQuery query) {
-//        return queryCount(table, query, true);
-//    }
-//    private long queryCount(String table, ReqQuery query, boolean force) {
-//        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
-//            return 0;
-//        }
-//
-//        Table tableInfo = tcInfo.findTable(table);
-//        if (QueryUtil.isNull(tableInfo)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query-count: has no table({}) defined", table);
-//            }
-//            return 0;
-//        }
-//        return handleCount(query, force, tableInfo);
-//    }
-//
-//    private long handleCount(ReqQuery query, boolean force, Table tableInfo) {
-//        StringBuilder printSql = new StringBuilder();
-//        List<Object> params = new ArrayList<>();
-//        String querySql = tableInfo.generateCountQuery(query, tcInfo, params, printSql, null, null, null, null, null, force);
-//        if (QueryUtil.isEmpty(querySql)) {
-//            return 0;
-//        }
-//
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("query-count sql: [{}]", printSql);
-//        }
-//        Long count = jdbcTemplate.queryForObject(querySql, Long.class, params.toArray());
-//        return QueryUtil.isNull(count) ? 0 : count;
-//    }
-//
-//    public long queryCount(String table, ReqQuery query) {
-//        return queryCount(table, query, false);
-//    }
 
-//    public <T> T forceQueryById(Class<T> clazz, Serializable id) {
-//        return queryById(clazz, id, true);
-//    }
-//    private <T> T queryById(Class<T> clazz, Serializable id, boolean force) {
-//        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(id)) {
-//            return null;
-//        }
-//
-//        Table table = tcInfo.findTableByClass(clazz);
-//        if (QueryUtil.isNull(table)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query-id: class({}) has no table defined", clazz.getName());
-//            }
-//            return null;
-//        }
-//
-//        StringBuilder printSql = new StringBuilder();
-//        List<Object> params = new ArrayList<>();
-//        ReqQuery query = ReqQuery.buildId(table.idWhere(false), id);
-//        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
-//                null, null, null, null, QueryConst.LIMIT_ONE, force);
-//        if (QueryUtil.isEmpty(querySql)) {
-//            return null;
-//        }
-//
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("query-id sql: [{}]", printSql);
-//        }
-//        return QueryUtil.first(jdbcTemplate.queryForList(querySql, clazz, params.toArray()));
-//    }
-//    public <T> T queryById(Class<T> clazz, Serializable id) {
-//        return queryById(clazz, id, false);
-//    }
-//
-//    public <T> List<T> forceQueryByIds(Class<T> clazz, List<Serializable> ids) {
-//        return queryByIds(clazz, ids, true);
-//    }
-//    private <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids, boolean force) {
-//        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalIdList(ids)) {
-//            return Collections.emptyList();
-//        }
-//
-//        Table table = tcInfo.findTableByClass(clazz);
-//        if (QueryUtil.isNull(table)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query-ids: class({}) no table defined", clazz.getName());
-//            }
-//            return Collections.emptyList();
-//        }
-//
-//        StringBuilder printSql = new StringBuilder();
-//        List<Object> params = new ArrayList<>();
-//        ReqQuery query = ReqQuery.buildIds(table.idWhere(false), ids);
-//        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
-//                null, null, null, null, null, force);
-//        if (QueryUtil.isEmpty(querySql)) {
-//            return Collections.emptyList();
-//        }
-//
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("query-ids sql: [{}]", printSql);
-//        }
-//        return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
-//    }
-//    public <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids) {
-//        return queryByIds(clazz, ids, false);
-//    }
-//
-//    public <T> List<T> forceQuery(Class<T> clazz, ReqQuery query) {
-//        return query(clazz, query, null, null, null, null, null, true);
-//    }
-//    public <T> List<T> query(Class<T> clazz, ReqQuery query) {
-//        return query(clazz, query, null, null, null, null, null, false);
-//    }
-//    public <T> List<T> query(Class<T> clazz, ReqQuery query, String groupBy, String having, String havingPrint,
-//                             String orderBy, List<Integer> pageList, boolean force) {
-//        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
-//            return Collections.emptyList();
-//        }
-//
-//        Table table = tcInfo.findTableByClass(clazz);
-//        if (QueryUtil.isNull(table)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query: class({}) has no table defined", clazz.getName());
-//            }
-//            return Collections.emptyList();
-//        }
-//
-//        StringBuilder printSql = new StringBuilder();
-//        List<Object> params = new ArrayList<>();
-//        String querySql = table.generateQuery(query, tcInfo, params, printSql, table.generateSelect(false, force),
-//                groupBy, having, havingPrint, orderBy, pageList, force);
-//        if (QueryUtil.isEmpty(querySql)) {
-//            return Collections.emptyList();
-//        }
-//
-//        if (LOG.isInfoEnabled()) {
-//            LOG.info("query sql: [{}]", printSql);
-//        }
-//        return jdbcTemplate.queryForList(querySql, clazz, params.toArray());
-//    }
-//    public <T> T forceQueryOne(Class<T> clazz, ReqQuery query) {
-//        return QueryUtil.first(query(clazz, query, null, null, null, null, QueryConst.LIMIT_ONE, true));
-//    }
-//    public <T> T queryOne(Class<T> clazz, ReqQuery query) {
-//        return QueryUtil.first(query(clazz, query, null, null, null, null, QueryConst.LIMIT_ONE, false));
-//    }
-//
-//    public <T> long forceQueryCount(Class<T> clazz, ReqQuery query) {
-//        return queryCount(clazz, query, true);
-//    }
-//    private <T> long queryCount(Class<T> clazz, ReqQuery query, boolean force) {
-//        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
-//            return 0;
-//        }
-//
-//        Table table = tcInfo.findTableByClass(clazz);
-//        if (QueryUtil.isNull(table)) {
-//            if (LOG.isWarnEnabled()) {
-//                LOG.warn("query: class({}) has no table defined", clazz.getName());
-//            }
-//            return 0;
-//        }
-//
-//        return handleCount(query, force, table);
-//    }
-//    public <T> long queryCount(Class<T> clazz, ReqQuery query) {
-//        return queryCount(clazz, query, false);
-//    }
+    public List<Map<String, Object>> forceQuery(QueryData req) {
+        return query(req, true);
+    }
+    private List<Map<String, Object>> query(QueryData req, boolean force) {
+        return QueryJsonUtil.convertDateList(dynamicQuery(req.toQueryList(tcInfo), force));
+    }
+    public List<Map<String, Object>> query(QueryData req) {
+        return query(req, false);
+    }
+
+    public Map<String, Object> forceQueryOne(QueryData req) {
+        return queryOne(req, false);
+    }
+    private Map<String, Object> queryOne(QueryData req, boolean force) {
+        return QueryJsonUtil.convertData(dynamicQuery(req.toQueryObj(tcInfo), force));
+    }
+    public Map<String, Object> queryOne(QueryData req) {
+        return queryOne(req, true);
+    }
+
+    public PageReturn<Map<String, Object>> forceQueryPage(QueryData req) {
+        return queryPage(req, true);
+    }
+    private PageReturn<Map<String, Object>> queryPage(QueryData req, boolean force) {
+        return QueryJsonUtil.convertType(dynamicQuery(req.toQueryPage(tcInfo), force), new TypeReference<PageReturn<Map<String, Object>>>() {});
+    }
+    public PageReturn<Map<String, Object>> queryPage(QueryData req) {
+        return queryPage(req, false);
+    }
+
+
+    public Map<String, Object> forceQueryById(String table, Serializable id) {
+        return queryById(table, id, true);
+    }
+    private Map<String, Object> queryById(String table, Serializable id, boolean force) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalId(id)) {
+            return Collections.emptyMap();
+        }
+
+        Table tableInfo = tcInfo.findTable(table.trim());
+        if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("query-id: has no table({}) defined", table);
+            }
+            return Collections.emptyMap();
+        }
+
+        ReqQuery query = ReqQuery.buildId(tableInfo.idWhere(false), id);
+        ReqInfo req = new ReqInfo(new ReqParam(query), tableInfo.getAlias(), ResultType.OBJ);
+        return QueryJsonUtil.convertData(dynamicQuery(req, force));
+    }
+    public Map<String, Object> queryById(String table, Serializable id) {
+        return queryById(table, id, false);
+    }
+
+    public List<Map<String, Object>> forceQueryByIds(String table, List<Serializable> ids) {
+        return queryByIds(table, ids, true);
+    }
+    private List<Map<String, Object>> queryByIds(String table, List<Serializable> ids, boolean force) {
+        if (QueryUtil.isNotEmpty(ids) && ids.size() > maxListCount) {
+            throw new RuntimeException(String.format("single query count max(%s) current(%s)", maxListCount, ids.size()));
+        }
+        if (QueryUtil.isEmpty(table) || QueryUtil.isIllegalIdList(ids)) {
+            return Collections.emptyList();
+        }
+
+        Table tableInfo = tcInfo.findTable(table.trim());
+        if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("query-ids: has no table({}) defined", table);
+            }
+            return Collections.emptyList();
+        }
+
+        ReqQuery query = ReqQuery.buildIds(tableInfo.idWhere(false), ids);
+        ReqInfo req = new ReqInfo(new ReqParam(query), tableInfo.getAlias());
+        return QueryJsonUtil.convertDateList(dynamicQuery(req, force));
+    }
+    public List<Map<String, Object>> queryByIds(String table, List<Serializable> ids) {
+        return queryByIds(table, ids, false);
+    }
+
+    public <T> T forceQueryById(Class<T> clazz, Serializable id) {
+        return queryById(clazz, id, true);
+    }
+    private <T> T queryById(Class<T> clazz, Serializable id, boolean force) {
+        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalId(id)) {
+            return null;
+        }
+
+        Table table = tcInfo.findTableByClass(clazz);
+        if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("query-id: class({}) has no table defined", clazz.getName());
+            }
+            return null;
+        }
+
+        ReqQuery query = ReqQuery.buildId(table.idWhere(false), id);
+        ReqInfo req = new ReqInfo(new ReqParam(query), table.getAlias(), ResultType.OBJ);
+        return QueryJsonUtil.convert(dynamicQuery(req, force), clazz);
+    }
+    public <T> T queryById(Class<T> clazz, Serializable id) {
+        return queryById(clazz, id, false);
+    }
+
+    public <T> List<T> forceQueryByIds(Class<T> clazz, List<Serializable> ids) {
+        return queryByIds(clazz, ids, true);
+    }
+    private <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids, boolean force) {
+        if (QueryUtil.isNull(clazz) || QueryUtil.isIllegalIdList(ids)) {
+            return Collections.emptyList();
+        }
+
+        Table table = tcInfo.findTableByClass(clazz);
+        if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("query-ids: class({}) no table defined", clazz.getName());
+            }
+            return Collections.emptyList();
+        }
+
+        ReqQuery query = ReqQuery.buildIds(table.idWhere(false), ids);
+        ReqInfo req = new ReqInfo(new ReqParam(query), table.getAlias());
+        return QueryJsonUtil.convertList(dynamicQuery(req, force), clazz);
+    }
+    public <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids) {
+        return queryByIds(clazz, ids, false);
+    }
+
+
+    public long forceQueryCount(String table, ReqQuery query) {
+        return queryCount(table, query, true);
+    }
+    private long queryCount(String table, ReqQuery query, boolean force) {
+        if (QueryUtil.isEmpty(table) || QueryUtil.isNull(query)) {
+            return 0;
+        }
+
+        Table tableInfo = tcInfo.findTable(table);
+        if (QueryUtil.isNull(tableInfo)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("query-count: has no table({}) defined", table);
+            }
+            return 0;
+        }
+
+        return handleCount(tableInfo, query, force);
+    }
+
+    private long handleCount(Table table, ReqQuery query, boolean force) {
+        ReqInfo req = new ReqInfo(new ReqParam(query), table.getAlias());
+        req.setResult(new ReqResult(Arrays.asList(QueryConst.COUNT_ALIAS, "count", "*")));
+        Map<String, Object> data = QueryUtil.first(QueryJsonUtil.convertDateList(dynamicQuery(req, force)));
+        return QueryUtil.isNotEmpty(data) ? QueryUtil.toLong(data.get(QueryConst.COUNT_ALIAS)) : 0;
+    }
+
+    public long queryCount(String table, ReqQuery query) {
+        return queryCount(table, query, false);
+    }
+
+    public <T> long forceQueryCount(Class<T> clazz, ReqQuery query) {
+        return queryCount(clazz, query, true);
+    }
+    private <T> long queryCount(Class<T> clazz, ReqQuery query, boolean force) {
+        if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
+            return 0;
+        }
+
+        Table table = tcInfo.findTableByClass(clazz);
+        if (QueryUtil.isNull(table)) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("query: class({}) has no table defined", clazz.getName());
+            }
+            return 0;
+        }
+
+        return handleCount(table, query, force);
+    }
+    public <T> long queryCount(Class<T> clazz, ReqQuery query) {
+        return queryCount(clazz, query, false);
+    }
+
+
+    public Object forceDynamicQueryAlias(ReqInfo req) {
+        return dynamicQueryAlias(req, true);
+    }
+
+    public Object dynamicQueryAlias(ReqInfo req) {
+        return dynamicQueryAlias(req, false);
+    }
+
+    private Object dynamicQueryAlias(ReqInfo req, boolean force) {
+        if (QueryUtil.isNull(req)) {
+            return null;
+        }
+        req.checkAlias(requestAliasMap);
+        return dynamicQuery(req, force);
+    }
 
 
     public Object forceDynamicQuery(ReqInfo req) {
-        return dynamicQueryInfo(req, true);
+        return dynamicQuery(req, true);
     }
 
     public Object dynamicQuery(ReqInfo req) {
-        return dynamicQueryInfo(req, false);
+        return dynamicQuery(req, false);
     }
 
-    private Object dynamicQueryInfo(ReqInfo req, boolean force) {
+    private Object dynamicQuery(ReqInfo req, boolean force) {
         if (QueryUtil.isNull(req)) {
             return null;
         }
@@ -1083,12 +999,13 @@ public class TableColumnTemplate implements InitializingBean {
         String fromAndWherePrint = fromSql + wherePrint;
 
         /*
+        plus sign indicate branch
+        number indicate steps
+
         + query page (include count)
           + group by
-            1. query count
-              1.1. SELECT COUNT(*) FROM ( SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ) TMP
-            2. query list
-              2.1. SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT ...
+            1. query count : SELECT COUNT(*) FROM ( SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ) TMP
+            2. query list : SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ... ORDER BY ... LIMIT ...
           + no group by
             1. query count
               - multiple table: SELECT COUNT(DISTINCT main-table.id) FROM main-table xxxx join other-table on ...
@@ -1188,7 +1105,9 @@ public class TableColumnTemplate implements InitializingBean {
         }
         Map<String, Object> pageInfo = new LinkedHashMap<>();
         pageInfo.put("count", count);
-        pageInfo.put("list", pageList);
+        if (QueryUtil.isNotNull(pageList)) {
+            pageInfo.put("list", pageList);
+        }
         return pageInfo;
     }
 
@@ -1225,7 +1144,7 @@ public class TableColumnTemplate implements InitializingBean {
             sql = QuerySqlUtil.toPageSql(tcInfo, fromAndWhere,
                     fromAndWherePrint, mainTable, param, result, needAlias, params, printSql);
         }
-        return assemblyResult(sql, needAlias, params, mainTable, result, force, printSql);
+        return QueryUtil.isEmpty(sql) ? null : assemblyResult(sql, needAlias, params, mainTable, result, force, printSql);
     }
 
     private List<Map<String, Object>> queryPageListWithGroup(String selectGroupSql, String mainTable,

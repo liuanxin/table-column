@@ -1,6 +1,7 @@
 package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.constant.QueryConst;
+import com.github.liuanxin.query.enums.QueryOrder;
 import com.github.liuanxin.query.util.QueryUtil;
 
 import java.io.Serializable;
@@ -33,6 +34,18 @@ public class ReqParam implements Serializable {
     private Boolean notCount;
 
     public ReqParam() {}
+    public ReqParam(ReqQuery query) {
+        this.query = query;
+    }
+    public ReqParam(ReqQuery query, Map<String, String> sort) {
+        this.query = query;
+        this.sort = sort;
+    }
+    public ReqParam(ReqQuery query, Map<String, String> sort, List<Integer> page) {
+        this.query = query;
+        this.sort = sort;
+        this.page = page;
+    }
     public ReqParam(ReqQuery query, Map<String, String> sort, List<Integer> page, Boolean notCount) {
         this.query = query;
         this.sort = sort;
@@ -98,9 +111,9 @@ public class ReqParam implements Serializable {
         if (QueryUtil.isNotNull(query)) {
             paramTableSet.addAll(query.checkCondition(mainTable, tcInfo, maxListCount));
         }
-        if (QueryUtil.isEmpty(paramTableSet) && QueryUtil.isEmpty(page)) {
+        /*if (QueryUtil.isEmpty(paramTableSet) && QueryUtil.isEmpty(page)) {
             throw new RuntimeException("param: required query or paging");
-        }
+        }*/
 
         if (QueryUtil.isNotEmpty(sort)) {
             List<String> noTableList = new ArrayList<>();
@@ -189,9 +202,7 @@ public class ReqParam implements Serializable {
         if (QueryUtil.isNotEmpty(sort)) {
             StringJoiner orderSj = new StringJoiner(", ");
             for (Map.Entry<String, String> entry : sort.entrySet()) {
-                String value = entry.getValue().toLowerCase();
-                String desc = ("asc".equals(value) || "a".equals(value)) ? "" : " DESC";
-                orderSj.add(QueryUtil.getColumnAlias(needAlias, entry.getKey(), mainTable, tcInfo) + desc);
+                orderSj.add(QueryUtil.getColumnAlias(needAlias, entry.getKey(), mainTable, tcInfo) + QueryOrder.toSql(entry.getValue()));
             }
             String orderBy = orderSj.toString();
             if (QueryUtil.isNotEmpty(orderBy)) {

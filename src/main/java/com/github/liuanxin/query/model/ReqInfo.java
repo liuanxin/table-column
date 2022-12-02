@@ -16,12 +16,26 @@ public class ReqInfo extends ReqModel implements Serializable {
     private ReqParam param;
 
     public ReqInfo() {}
+    public ReqInfo(ReqParam param, String table, ResultType type) {
+        super.setTable(table);
+        super.setType(type);
+        this.param = param;
+    }
+    public ReqInfo(ReqParam param, String table) {
+        super.setTable(table);
+        this.param = param;
+    }
     public ReqInfo(String alias, ReqParam param, String table, ReqResult result,
                    ResultType type, List<List<String>> relation) {
         super(table, result, type, relation);
         this.alias = alias;
         this.param = param;
     }
+    public ReqInfo(String table, ReqResult result, ResultType type, List<List<String>> relation, ReqParam param) {
+        super(table, result, type, relation);
+        this.param = param;
+    }
+
 
     public String getAlias() {
         return alias;
@@ -64,6 +78,19 @@ public class ReqInfo extends ReqModel implements Serializable {
                 '}';
     }
 
+
+    public void checkAlias(Map<String, ReqModel> requestAliasMap) {
+        if (QueryUtil.isEmpty(alias)) {
+            throw new RuntimeException("request: need alias");
+        }
+        if (QueryUtil.isEmpty(requestAliasMap)) {
+            throw new RuntimeException("request: no alias has defined");
+        }
+        ReqModel model = requestAliasMap.get(alias);
+        if (QueryUtil.isNull(model)) {
+            throw new RuntimeException(String.format("request: no alias(%s) has defined", alias));
+        }
+    }
 
     public void handleAlias(Map<String, ReqModel> requestAliasMap) {
         if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {

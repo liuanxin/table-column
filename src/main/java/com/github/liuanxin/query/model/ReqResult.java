@@ -56,13 +56,14 @@ import java.util.*;
  *     [ "def", "count_distinct", "name, name2" ],
  *     [ "ghi", "sum", "price", "gt", 100.5, "lt", 120.5 ],
  *     [ "jkl", "min", "id" ],
- *     [ "mno", "max", "create_time", [ "yyyy-MM-dd HH:mm", "GMT+8" ] ],
+ *     [ "mno", "max", "create_time", [ "yyyy-MM-dd HH:mm", "GMT+8" ] ],  -- format date [ "pattern", "timeZone" ]
  *     [ "pqr", "avg", "price" ],
  *     [ "stu", "group_concat", "name", "lks", "aaa" ]
  *   ]
  * }
  * 第一个参数表示接口响应回去时的属性, 第二个参数是函数(只支持 COUNT SUM MIN MAX AVG GROUP_CONCAT 这几种)
- * 第三个参数是函数中的列, 每四个和第五个参数表示 HAVING 过滤时的条件
+ * 第三个参数是函数中的列(多列用逗号隔开), 每四个和第五个参数表示 HAVING 过滤时的条件, 第六个和第七个也表示 HAVING 过滤时的条件, 依此类推
+ * 最后一个参数如果是数组, 则用于给 date 类型做转换: [ "格式", "时区" ], 时区可以省略
  * </pre>
  */
 public class ReqResult implements Serializable {
@@ -74,6 +75,9 @@ public class ReqResult implements Serializable {
     private List<Object> columns;
 
     public ReqResult() {}
+    public ReqResult(List<Object> columns) {
+        this.columns = columns;
+    }
     public ReqResult(String table, List<Object> columns) {
         this.table = table;
         this.columns = columns;
@@ -378,7 +382,11 @@ public class ReqResult implements Serializable {
             }
             columnInfo = funSj.toString();
         } else {
-            columnInfo = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
+            if (group.needCheckColumn(column)) {
+                columnInfo = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
+            } else {
+                columnInfo = column;
+            }
         }
         return group.generateColumn(columnInfo);
     }
@@ -538,7 +546,12 @@ public class ReqResult implements Serializable {
                     List<?> groups = (List<?>) obj;
                     ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
                     String column = QueryUtil.toStr(groups.get(2));
-                    String useColumn = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
+                    String useColumn;
+                    if (group.needCheckColumn(column)) {
+                        useColumn = QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo);
+                    } else {
+                        useColumn = column;
+                    }
                     Object groupInfo = data.remove(group.generateAlias(useColumn));
                     if (QueryUtil.isNotNull(groupInfo)) {
                         String returnColumn = QueryUtil.toStr(groups.get(0));

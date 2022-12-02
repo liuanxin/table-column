@@ -186,6 +186,10 @@ public enum ConditionType {
         return msg;
     }
 
+    public String value() {
+        return name().toLowerCase();
+    }
+
     @JsonCreator
     public static ConditionType deserializer(Object obj) {
         if (obj != null) {

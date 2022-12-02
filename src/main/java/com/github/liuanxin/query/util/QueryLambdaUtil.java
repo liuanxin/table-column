@@ -166,4 +166,10 @@ public final class QueryLambdaUtil {
     public static <T> String toColumnAndAlias(FunctionSerialize<T, ?> function) {
         return toColumnAndAlias(toField(function));
     }
+
+    public static <T> String toTableAndColumn(FunctionSerialize<T, ?> function) {
+        String table = toTableName(function);
+        String column = toColumnName(function);
+        return (QueryUtil.isNotEmpty(table) && QueryUtil.isNotEmpty(column)) ? (table + "." + column) : "";
+    }
 }
