@@ -22,7 +22,7 @@
       "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀."
     },
     {
-      "name": "query.needConditionOrPage",
+      "name": "query.need-condition-or-page",
       "type": "java.lang.Boolean",
       "defaultValue": "false",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",

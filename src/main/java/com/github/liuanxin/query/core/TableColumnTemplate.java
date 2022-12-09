@@ -35,7 +35,7 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
-    @Value("${query.needConditionOrPage:false}")
+    @Value("${query.need-condition-or-page:false}")
     private boolean needConditionOrPage;
 
     @Value("${query.alias-generate-rule:}")
