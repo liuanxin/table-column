@@ -181,7 +181,7 @@ public class TableColumnTemplate implements InitializingBean {
         for (Table table : tcInfo.allTable()) {
             String tableAlias = table.getAlias();
             if (QueryUtil.isEmpty(tableSet) || tableSet.contains(tableAlias.toLowerCase())) {
-                List<QueryInfo.QueryColumn> columnList = new ArrayList<>();
+                List<QueryColumn> columnList = new ArrayList<>();
                 for (TableColumn tc : table.getColumnMap().values()) {
                     String columnName = tc.getName();
                     if (!columnName.equals(table.getLogicColumn()) || force) {
@@ -198,7 +198,7 @@ public class TableColumnTemplate implements InitializingBean {
                             relationColumn = tb.getColumnMap().get(relation.getOneColumn()).getAlias();
                         }
                         boolean needValue = tc.isNotNull() && !tc.isHasDefault();
-                        columnList.add(new QueryInfo.QueryColumn(tc.getAlias(), tc.getDesc(), type,
+                        columnList.add(new QueryColumn(tc.getAlias(), tc.getDesc(), type,
                                 (needValue ? true : null), length, relationTable, relationColumn));
                     }
                 }
