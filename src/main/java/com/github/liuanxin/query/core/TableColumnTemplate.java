@@ -47,8 +47,8 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.max-list-count:1000}")
     private int maxListCount;
 
-    @Value("${query.one-to-one-has-many:}")
-    private OneToOneHasManyRule oneToOneHasMany;
+    @Value("${query.one-to-one-has-many-rule:}")
+    private OneToOneHasManyRule oneToOneHasManyRule;
 
     @Value("${query.logic-delete-column:}")
     private String logicDeleteColumn;
@@ -1334,7 +1334,7 @@ public class TableColumnTemplate implements InitializingBean {
                         innerDataMap.put(key, list);
                     } else {
                         if (QueryUtil.isNotNull(obj)) {
-                            switch (QueryUtil.defaultIfNull(oneToOneHasMany, OneToOneHasManyRule.Exception)) {
+                            switch (QueryUtil.defaultIfNull(oneToOneHasManyRule, OneToOneHasManyRule.Exception)) {
                                 case First: { break; }
                                 case Cover: {
                                     innerDataMap.put(key, data);
