@@ -128,7 +128,7 @@ public class ReqResult implements Serializable {
         }
     }
 
-    public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo) {
+    public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo, boolean force) {
         String currentTable;
         if (QueryUtil.isEmpty(table)) {
             currentTable = mainTable;
@@ -253,7 +253,8 @@ public class ReqResult implements Serializable {
                 if (QueryUtil.isNull(relation)) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
                 }
-                Set<String> innerTableSet = innerResult.checkResult(mainTable, tcInfo);
+                innerResult.handleInit(null, tcInfo, force);
+                Set<String> innerTableSet = innerResult.checkResult(mainTable, tcInfo, force);
                 if (innerTableSet.size() > 1) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") just has one Table to Query");
                 }
