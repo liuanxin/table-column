@@ -32,23 +32,32 @@ public class ReqParam implements Serializable {
     private List<Integer> page;
     /** 当上面的分页信息有值且当前值是 true 时表示不发起 SELECT COUNT(*) 查询 */
     private Boolean notCount;
+    /** 入参里用到的表的关系. 如: [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderLog" ] ] */
+    private List<List<String>> relation;
 
     public ReqParam() {}
     public ReqParam(ReqQuery query) {
         this.query = query;
     }
-    public ReqParam(ReqQuery query, Map<String, String> sort) {
+    public ReqParam(ReqQuery query, List<List<String>> relation) {
         this.query = query;
-        this.sort = sort;
+        this.relation = relation;
     }
-    public ReqParam(ReqQuery query, Map<String, String> sort, List<Integer> page) {
+    public ReqParam(ReqQuery query, Map<String, String> sort, List<List<String>> relation) {
         this.query = query;
         this.sort = sort;
+        this.relation = relation;
+    }
+    public ReqParam(ReqQuery query, Map<String, String> sort, List<List<String>> relation, List<Integer> page) {
+        this.query = query;
+        this.sort = sort;
+        this.relation = relation;
         this.page = page;
     }
-    public ReqParam(ReqQuery query, Map<String, String> sort, List<Integer> page, Boolean notCount) {
+    public ReqParam(ReqQuery query, Map<String, String> sort, List<List<String>> relation, List<Integer> page, Boolean notCount) {
         this.query = query;
         this.sort = sort;
+        this.relation = relation;
         this.page = page;
         this.notCount = notCount;
     }
@@ -81,18 +90,26 @@ public class ReqParam implements Serializable {
         this.notCount = notCount;
     }
 
+    public List<List<String>> getRelation() {
+        return relation;
+    }
+    public void setRelation(List<List<String>> relation) {
+        this.relation = relation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ReqParam)) return false;
         ReqParam reqParam = (ReqParam) o;
         return Objects.equals(query, reqParam.query) && Objects.equals(sort, reqParam.sort)
-                && Objects.equals(page, reqParam.page) && Objects.equals(notCount, reqParam.notCount);
+                && Objects.equals(page, reqParam.page) && Objects.equals(notCount, reqParam.notCount)
+                && Objects.equals(relation, reqParam.relation);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(query, sort, page, notCount);
+        return Objects.hash(query, sort, page, notCount, relation);
     }
 
     @Override
@@ -102,6 +119,7 @@ public class ReqParam implements Serializable {
                 ", sort=" + sort +
                 ", page=" + page +
                 ", notCount=" + notCount +
+                ", relation=" + relation +
                 '}';
     }
 

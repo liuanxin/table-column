@@ -25,14 +25,13 @@ public class ReqInfo extends ReqModel implements Serializable {
         super.setTable(table);
         this.param = param;
     }
-    public ReqInfo(String alias, ReqParam param, String table, ReqResult result,
-                   ResultType type, List<List<String>> relation) {
-        super(table, result, type, relation);
+    public ReqInfo(String alias, ReqParam param, String table, ReqResult result, ResultType type) {
+        super(table, result, type);
         this.alias = alias;
         this.param = param;
     }
-    public ReqInfo(String table, ReqResult result, ResultType type, List<List<String>> relation, ReqParam param) {
-        super(table, result, type, relation);
+    public ReqInfo(String table, ReqResult result, ResultType type, ReqParam param) {
+        super(table, result, type);
         this.param = param;
     }
 
@@ -58,12 +57,12 @@ public class ReqInfo extends ReqModel implements Serializable {
         ReqInfo that = (ReqInfo) o;
         return Objects.equals(alias, that.alias) && Objects.equals(param, that.param)
                 && Objects.equals(getTable(), that.getTable()) && Objects.equals(getResult(), that.getResult())
-                && getType() == that.getType() && Objects.equals(getRelation(), that.getRelation());
+                && getType() == that.getType();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, param, getTable(), getResult(), getType(), getRelation());
+        return Objects.hash(alias, param, getTable(), getResult(), getType());
     }
 
     @Override
@@ -74,7 +73,6 @@ public class ReqInfo extends ReqModel implements Serializable {
                 ", table='" + getTable() + '\'' +
                 ", result=" + getResult() +
                 ", type=" + getType() +
-                ", relation=" + getRelation() +
                 '}';
     }
 
@@ -92,7 +90,10 @@ public class ReqInfo extends ReqModel implements Serializable {
         }
     }
 
-    public void handleAlias(Map<String, ReqModel> requestAliasMap) {
+    public void handleAlias(boolean requiredAlias, Map<String, ReqModel> requestAliasMap) {
+        if (requiredAlias && QueryUtil.isEmpty(alias)) {
+            throw new RuntimeException("request: required alias");
+        }
         if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
             super.fillAlias(alias, requestAliasMap);
         }
@@ -117,17 +118,17 @@ public class ReqInfo extends ReqModel implements Serializable {
     }
 
 
-    public Set<String> checkResult(TableColumnInfo tcInfo, boolean force) {
+    public void checkResult(TableColumnInfo tcInfo, boolean force) {
         ReqResult result = getResult();
         if (QueryUtil.isNull(result)) {
             result = new ReqResult();
             setResult(result);
         }
-        return result.checkResult(getTable(), tcInfo, force);
+        result.checkResult(getTable(), tcInfo, force);
     }
 
-    public Set<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet, Set<String> resultTableSet) {
-        List<List<String>> relation = getRelation();
+    public Set<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet) {
+        List<List<String>> relation = param.getRelation();
         Map<String, Set<TableJoinRelation>> relationMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(relation)) {
             for (List<String> values : relation) {
@@ -138,8 +139,7 @@ public class ReqInfo extends ReqModel implements Serializable {
                 Table childTable = tcInfo.findTable(values.get(2));
                 String mn = masterTable.getName();
                 String cn = childTable.getName();
-                if ((paramTableSet.contains(mn) && paramTableSet.contains(cn))
-                        || (resultTableSet.contains(mn) && resultTableSet.contains(cn))) {
+                if (paramTableSet.contains(mn) && paramTableSet.contains(cn)) {
                     JoinType joinType = JoinType.deserializer(values.get(1));
                     TableJoinRelation joinRelation = new TableJoinRelation(masterTable, joinType, childTable);
                     relationMap.computeIfAbsent(masterTable.getName(), k -> new LinkedHashSet<>()).add(joinRelation);
@@ -149,13 +149,11 @@ public class ReqInfo extends ReqModel implements Serializable {
         return handleRelation(tcInfo.findTable(getTable()).getName(), relationMap);
     }
 
-    public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet,
-                              Set<String> paramTableSet, Set<String> resultTableSet) {
+    public void checkAllTable(TableColumnInfo tcInfo, Set<String> allTableSet, Set<String> paramTableSet) {
         Table tableInfo = tcInfo.findTable(getTable());
         paramTableSet.remove(tableInfo.getName());
-        resultTableSet.remove(tableInfo.getName());
-        if (QueryUtil.isEmpty(getRelation())) {
-            if (QueryUtil.isNotEmpty(paramTableSet) || QueryUtil.isNotEmpty(resultTableSet)) {
+        if (QueryUtil.isEmpty(param.getRelation())) {
+            if (QueryUtil.isNotEmpty(paramTableSet)) {
                 throw new RuntimeException("request: need relation");
             }
         }
@@ -166,14 +164,9 @@ public class ReqInfo extends ReqModel implements Serializable {
                 throw new RuntimeException("relation: need param table(" + tcInfo.findTable(paramTable).getAlias() + ")");
             }
         }
-        for (String resultTable : resultTableSet) {
-            if (!allTableSet.contains(resultTable)) {
-                throw new RuntimeException("relation: need result table(" + tcInfo.findTable(resultTable).getAlias() + ")");
-            }
-        }
     }
     private void checkRelation(TableColumnInfo tcInfo) {
-        List<List<String>> relation = getRelation();
+        List<List<String>> relation = param.getRelation();
         if (QueryUtil.isNotEmpty(relation)) {
             String append = "<->";
             Set<String> tableRelation = new HashSet<>();

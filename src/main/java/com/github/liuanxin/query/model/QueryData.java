@@ -293,23 +293,23 @@ public class QueryData implements Serializable {
     }
 
     public ReqInfo toQueryCount(TableColumnInfo tcInfo) {
-        ReqParam param = new ReqParam(query);
-        return new ReqInfo(toTableAlias(tcInfo), toCountResult(), ResultType.OBJ, toRelation(tcInfo), param);
+        ReqParam param = new ReqParam(query, toRelation(tcInfo));
+        return new ReqInfo(toTableAlias(tcInfo), toCountResult(), ResultType.OBJ, param);
     }
 
     public ReqInfo toQueryObj(TableColumnInfo tcInfo) {
-        ReqParam param = new ReqParam(query, sortMap);
-        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.OBJ, toRelation(tcInfo), param);
+        ReqParam param = new ReqParam(query, sortMap, toRelation(tcInfo));
+        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.OBJ, param);
     }
 
     public ReqInfo toQueryList(TableColumnInfo tcInfo) {
-        ReqParam param = new ReqParam(query, sortMap, pageList, true);
-        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.ARR, toRelation(tcInfo), param);
+        ReqParam param = new ReqParam(query, sortMap, toRelation(tcInfo), pageList, true);
+        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.ARR, param);
     }
 
     public ReqInfo toQueryPage(TableColumnInfo tcInfo) {
-        ReqParam param = new ReqParam(query, sortMap, pageList);
-        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.ARR, toRelation(tcInfo), param);
+        ReqParam param = new ReqParam(query, sortMap, toRelation(tcInfo), pageList);
+        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.ARR,  param);
     }
 
 

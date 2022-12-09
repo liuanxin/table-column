@@ -130,7 +130,7 @@ public class ReqResult implements Serializable {
         return Collections.emptyList();
     }
 
-    public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo, boolean force) {
+    public void checkResult(String mainTable, TableColumnInfo tcInfo, boolean force) {
         String currentTable;
         if (QueryUtil.isEmpty(table)) {
             currentTable = mainTable;
@@ -142,7 +142,6 @@ public class ReqResult implements Serializable {
             }
         }
 
-        Set<String> allTableSet = new LinkedHashSet<>();
         Set<String> columnCheckRepeatedSet = new HashSet<>();
         List<Object> innerList = new ArrayList<>();
         boolean hasColumnOrFunction = false;
@@ -150,7 +149,7 @@ public class ReqResult implements Serializable {
             if (QueryUtil.isNotNull(obj)) {
                 if (obj instanceof String) {
                     String column = (String) obj;
-                    allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getName());
+                    checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet);
                     hasColumnOrFunction = true;
                 } else if (obj instanceof List<?>) {
                     List<?> groups = (List<?>) obj;
@@ -172,11 +171,11 @@ public class ReqResult implements Serializable {
 
                     if (group == ResultGroup.COUNT_DISTINCT) {
                         for (String col : column.split(",")) {
-                            checkFunctionColumn(tcInfo, col, currentTable, groups, allTableSet);
+                            checkFunctionColumn(tcInfo, col, currentTable, groups);
                         }
                     } else {
                         if (group.needCheckColumn(column)) {
-                            checkFunctionColumn(tcInfo, column, currentTable, groups, allTableSet);
+                            checkFunctionColumn(tcInfo, column, currentTable, groups);
                         }
                     }
 
@@ -207,7 +206,7 @@ public class ReqResult implements Serializable {
                     Map<String, List<String>> dateColumn = QueryJsonUtil.convertDateResult(obj);
                     if (QueryUtil.isNotNull(dateColumn)) {
                         for (String column : dateColumn.keySet()) {
-                            allTableSet.add(checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet).getName());
+                            checkColumn(column, currentTable, tcInfo, columnCheckRepeatedSet);
                         }
                         hasColumnOrFunction = true;
                     } else {
@@ -252,17 +251,12 @@ public class ReqResult implements Serializable {
                 if (QueryUtil.isNull(relation)) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
                 }
-                Set<String> innerTableSet = innerResult.checkResult(mainTable, tcInfo, force);
-                if (innerTableSet.size() > 1) {
-                    throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") just has one Table to Query");
-                }
+                innerResult.checkResult(mainTable, tcInfo, force);
             }
         }
-        return allTableSet;
     }
 
-    private static void checkFunctionColumn(TableColumnInfo tcInfo, String column, String currentTable,
-                                            List<?> groups, Set<String> allTableSet) {
+    private static void checkFunctionColumn(TableColumnInfo tcInfo, String column, String currentTable, List<?> groups) {
         Table table = tcInfo.findTableWithAlias(QueryUtil.getTableName(column, currentTable));
         if (QueryUtil.isNull(table)) {
             throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined table");
@@ -270,10 +264,9 @@ public class ReqResult implements Serializable {
         if (QueryUtil.isNull(tcInfo.findTableColumnWithAlias(table, QueryUtil.getColumnName(column)))) {
             throw new RuntimeException("result: table(" + currentTable + ") function(" + groups + ") has no defined column");
         }
-        allTableSet.add(table.getName());
     }
 
-    private Table checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
+    private void checkColumn(String column, String currentTable, TableColumnInfo tcInfo, Set<String> columnSet) {
         if (QueryUtil.isEmpty(column)) {
             throw new RuntimeException("result: table(" + currentTable + ") column can't be blank");
         }
@@ -290,13 +283,12 @@ public class ReqResult implements Serializable {
             throw new RuntimeException("result: table(" + currentTable + ") column(" + column + ") has repeated");
         }
         columnSet.add(column);
-        return tableInfo;
     }
 
     public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, boolean force) {
         Set<String> columnNameSet = new LinkedHashSet<>();
         columnNameSet.addAll(selectColumn(mainTable, tcInfo, needAlias, force));
-        columnNameSet.addAll(innerColumn(mainTable, tcInfo, needAlias, force));
+        columnNameSet.addAll(innerColumn(mainTable, tcInfo, needAlias));
         return String.join(", ", columnNameSet);
     }
 
@@ -319,19 +311,31 @@ public class ReqResult implements Serializable {
         return columnNameSet;
     }
 
-    private Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias, boolean force) {
+    private Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        String currentTable = QueryUtil.isEmpty(table) ? mainTable : table;
-        for (ReqResult innerResult : innerResult(mainTable, tcInfo, force).values()) {
-            // child-master or master-child all need to query masterId
-            String innerTable = innerResult.getTable();
-            TableColumnRelation relation = tcInfo.findRelationByMasterChild(currentTable, innerTable);
-            if (QueryUtil.isNull(relation)) {
-                relation = tcInfo.findRelationByMasterChild(innerTable, currentTable);
+        if (QueryUtil.isNotEmpty(columns)) {
+            String currentTable = QueryUtil.isEmpty(table) ? mainTable : table;
+
+            Set<String> innerTableSet = new LinkedHashSet<>();
+            for (Object obj : columns) {
+                if (!(obj instanceof String) && !(obj instanceof List<?>)) {
+                    Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
+                    if (QueryUtil.isNotEmpty(inner)) {
+                        innerTableSet.addAll(inner.keySet());
+                    }
+                }
             }
-            if (QueryUtil.isNotNull(relation)) {
-                String column = relation.getOneColumn();
-                columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTable, tcInfo));
+
+            for (String innerTable : innerTableSet) {
+                // child-master or master-child all need to query masterId
+                TableColumnRelation relation = tcInfo.findRelationByMasterChild(currentTable, innerTable);
+                if (QueryUtil.isNull(relation)) {
+                    relation = tcInfo.findRelationByMasterChild(innerTable, currentTable);
+                }
+                if (QueryUtil.isNotNull(relation)) {
+                    String column = relation.getOneColumn();
+                    columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, column, currentTable, tcInfo));
+                }
             }
         }
         return columnNameSet;
@@ -340,7 +344,7 @@ public class ReqResult implements Serializable {
     public Set<String> needRemoveColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias, boolean force) {
         Set<String> selectColumnSet = selectColumn(mainTable, tcInfo, needAlias, force);
         Set<String> removeColumnSet = new HashSet<>();
-        for (String ic : innerColumn(mainTable, tcInfo, needAlias, force)) {
+        for (String ic : innerColumn(mainTable, tcInfo, needAlias)) {
             if (!selectColumnSet.contains(ic)) {
                 removeColumnSet.add(calcRemoveColumn(ic));
             }
@@ -348,13 +352,23 @@ public class ReqResult implements Serializable {
         return removeColumnSet;
     }
 
-    public Map<String, ReqResult> innerResult(String mainTable, TableColumnInfo tcInfo, boolean force) {
+    public Map<String, ReqResult> innerResult(TableColumnInfo tcInfo, boolean force) {
         Map<String, ReqResult> returnMap = new LinkedHashMap<>();
-        for (Object obj : handleColumn(mainTable, tcInfo, force)) {
-            if (!(obj instanceof String)  && !(obj instanceof List<?>)) {
-                Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
-                if (QueryUtil.isNotEmpty(inner)) {
-                    returnMap.putAll(inner);
+        if (QueryUtil.isNotEmpty(columns)) {
+            for (Object obj : columns) {
+                if (!(obj instanceof String) && !(obj instanceof List<?>)) {
+                    Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
+                    if (QueryUtil.isNotEmpty(inner)) {
+                        for (Map.Entry<String, ReqResult> entry : inner.entrySet()) {
+                            ReqResult innerResult = entry.getValue();
+                            if (QueryUtil.isNotNull(innerResult)) {
+                                if (QueryUtil.isEmpty(innerResult.getColumns())) {
+                                    innerResult.setColumns(innerResult.handleColumn(null, tcInfo, force));
+                                }
+                                returnMap.put(entry.getKey(), innerResult);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -393,15 +407,17 @@ public class ReqResult implements Serializable {
     public boolean needGroup() {
         boolean hasColumn = false;
         boolean hasGroup = false;
-        for (Object obj : columns) {
-            if (obj instanceof String) {
-                String column = (String) obj;
-                if (QueryUtil.isNotEmpty(column)) {
-                    hasColumn = true;
-                }
-            } else if (obj instanceof List<?>) {
-                if (QueryUtil.isNotEmpty((List<?>) obj)) {
-                    hasGroup = true;
+        if (QueryUtil.isNotEmpty(columns)) {
+            for (Object obj : columns) {
+                if (obj instanceof String) {
+                    String column = (String) obj;
+                    if (QueryUtil.isNotEmpty(column)) {
+                        hasColumn = true;
+                    }
+                } else if (obj instanceof List<?>) {
+                    if (QueryUtil.isNotEmpty((List<?>) obj)) {
+                        hasGroup = true;
+                    }
                 }
             }
         }
@@ -410,15 +426,17 @@ public class ReqResult implements Serializable {
     public String generateGroupSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
         StringJoiner sj = new StringJoiner(", ");
         boolean hasGroup = false;
-        for (Object obj : columns) {
-            if (obj instanceof String) {
-                String column = (String) obj;
-                if (QueryUtil.isNotEmpty(column)) {
-                    sj.add(QueryUtil.getColumnAlias(needAlias, column, mainTable, tcInfo));
-                }
-            } else if (obj instanceof List<?>) {
-                if (QueryUtil.isNotEmpty((List<?>) obj)) {
-                    hasGroup = true;
+        if (QueryUtil.isNotEmpty(columns)) {
+            for (Object obj : columns) {
+                if (obj instanceof String) {
+                    String column = (String) obj;
+                    if (QueryUtil.isNotEmpty(column)) {
+                        sj.add(QueryUtil.getColumnAlias(needAlias, column, mainTable, tcInfo));
+                    }
+                } else if (obj instanceof List<?>) {
+                    if (QueryUtil.isNotEmpty((List<?>) obj)) {
+                        hasGroup = true;
+                    }
                 }
             }
         }
@@ -429,27 +447,29 @@ public class ReqResult implements Serializable {
                                     List<Object> params, StringBuilder printSql) {
         // 只支持 AND 条件过滤, 复杂的嵌套暂没有想到好的抽象方式
         StringJoiner groupSj = new StringJoiner(" AND ");
-        for (Object obj : columns) {
-            if (obj instanceof List<?>) {
-                List<?> groups = (List<?>) obj;
-                int size = groups.size();
-                if (size > 4) {
-                    String column = QueryUtil.toStr(groups.get(2));
-                    ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
-                    String groupAlias = group.generateAlias(QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo));
+        if (QueryUtil.isNotEmpty(columns)) {
+            for (Object obj : columns) {
+                if (obj instanceof List<?>) {
+                    List<?> groups = (List<?>) obj;
+                    int size = groups.size();
+                    if (size > 4) {
+                        String column = QueryUtil.toStr(groups.get(2));
+                        ResultGroup group = ResultGroup.deserializer(QueryUtil.toStr(groups.get(1)));
+                        String groupAlias = group.generateAlias(QueryUtil.getQueryColumn(needAlias, column, mainTable, tcInfo));
 
-                    String tableName = QueryUtil.getTableName(column, mainTable);
-                    String columnName = QueryUtil.getColumnName(column);
-                    Class<?> fieldType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
-                    // 先右移 1 位除以 2, 再左移 1 位乘以 2, 变成偶数
-                    int evenSize = size >> 1 << 1;
-                    for (int i = 3; i < evenSize; i += 2) {
-                        ConditionType conditionType = ConditionType.deserializer(groups.get(i));
-                        Object value = groups.get(i + 1);
+                        String tableName = QueryUtil.getTableName(column, mainTable);
+                        String columnName = QueryUtil.getColumnName(column);
+                        Class<?> fieldType = tcInfo.findTableColumn(tableName, columnName).getFieldType();
+                        // 先右移 1 位除以 2, 再左移 1 位乘以 2, 变成偶数
+                        int evenSize = size >> 1 << 1;
+                        for (int i = 3; i < evenSize; i += 2) {
+                            ConditionType conditionType = ConditionType.deserializer(groups.get(i));
+                            Object value = groups.get(i + 1);
 
-                        String sql = conditionType.generateSql(groupAlias, fieldType, value, params, printSql);
-                        if (QueryUtil.isNotEmpty(sql)) {
-                            groupSj.add(sql);
+                            String sql = conditionType.generateSql(groupAlias, fieldType, value, params, printSql);
+                            if (QueryUtil.isNotEmpty(sql)) {
+                                groupSj.add(sql);
+                            }
                         }
                     }
                 }
@@ -521,9 +541,9 @@ public class ReqResult implements Serializable {
     }
 
 
-    public void handleData(String mainTable, boolean needAlias, Map<String, Object> data, TableColumnInfo tcInfo) {
+    public void handleData(String mainTable, boolean needAlias, Map<String, Object> data, TableColumnInfo tcInfo, boolean force) {
         String currentTable = QueryUtil.isEmpty(table) ? mainTable : table;
-        for (Object obj : columns) {
+        for (Object obj : handleColumn(mainTable, tcInfo, force)) {
             if (QueryUtil.isNotNull(obj)) {
                 if (obj instanceof String) {
                     String column = (String) obj;

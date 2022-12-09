@@ -35,6 +35,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
+    @Value("${query.required-alias:false}")
+    private boolean requiredAlias;
+
     @Value("${query.need-condition-or-page:false}")
     private boolean needConditionOrPage;
 
@@ -67,16 +70,15 @@ public class TableColumnTemplate implements InitializingBean {
 
     private TableColumnInfo tcInfo;
 
-    private final List<TableColumnRelation> relationList;
-    private final Map<String, ReqModel> requestAliasMap;
-
+    private final List<TableColumnRelation> tableRelationList;
+    private final Map<String, ReqModel> tableAliasMap;
     private final JdbcTemplate jdbcTemplate;
     public TableColumnTemplate(JdbcTemplate jdbcTemplate,
-                               List<TableColumnRelation> relationList,
-                               Map<String, ReqModel> requestAliasMap) {
+                               List<TableColumnRelation> tableRelationList,
+                               Map<String, ReqModel> tableAliasMap) {
         this.jdbcTemplate = jdbcTemplate;
-        this.relationList = QueryUtil.isEmpty(relationList) ? new ArrayList<>() : new ArrayList<>(relationList);
-        this.requestAliasMap = requestAliasMap;
+        this.tableRelationList = QueryUtil.isEmpty(tableRelationList) ? new ArrayList<>() : new ArrayList<>(tableRelationList);
+        this.tableAliasMap = tableAliasMap;
     }
 
     @Override
@@ -84,13 +86,13 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isEmpty(scanPackages)) {
             loadDatabase();
         } else {
-            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, aliasGenerateRule, scanPackages, relationList,
+            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, aliasGenerateRule, scanPackages, tableRelationList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
             if (QueryUtil.isNull(tcInfo)) {
                 throw new RuntimeException(String.format("class not found in(%s)", scanPackages));
             }
         }
-        QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
+        QueryInfoUtil.checkAndSetRelation(tableRelationList, tcInfo);
     }
     private void loadDatabase() {
         List<Map<String, Object>> tableList = new ArrayList<>();
@@ -122,7 +124,7 @@ public class TableColumnTemplate implements InitializingBean {
     public boolean refreshWithDatabase() {
         if (QueryUtil.isEmpty(scanPackages)) {
             loadDatabase();
-            QueryInfoUtil.checkAndSetRelation(relationList, tcInfo);
+            QueryInfoUtil.checkAndSetRelation(tableRelationList, tcInfo);
             return true;
         } else {
             return false;
@@ -961,7 +963,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isNull(req)) {
             return null;
         }
-        req.checkAlias(requestAliasMap);
+        req.checkAlias(tableAliasMap);
         return dynamicQuery(req, force);
     }
 
@@ -979,14 +981,14 @@ public class TableColumnTemplate implements InitializingBean {
             return null;
         }
 
-        req.handleAlias(requestAliasMap);
+        req.handleAlias(requiredAlias, tableAliasMap);
         req.checkTable(tcInfo);
 
         Set<String> paramTableSet = req.checkParam(needConditionOrPage, tcInfo, maxListCount);
-        Set<String> resultTableSet = req.checkResult(tcInfo, force);
-        Set<TableJoinRelation> useRelationSet = req.checkRelation(tcInfo, paramTableSet, resultTableSet);
+        req.checkResult(tcInfo, force);
+        Set<TableJoinRelation> useRelationSet = req.checkRelation(tcInfo, paramTableSet);
         Set<String> useTableSet = calcTableSet(useRelationSet);
-        req.checkAllTable(tcInfo, useTableSet, paramTableSet, resultTableSet);
+        req.checkAllTable(tcInfo, useTableSet, paramTableSet);
 
         String mainTable = req.getTable();
         ReqParam param = req.getParam();
@@ -1216,10 +1218,10 @@ public class TableColumnTemplate implements InitializingBean {
     private void handleData(List<Map<String, Object>> dataList, boolean needAlias,
                             String mainTableName, ReqResult result, boolean force) {
         for (Map<String, Object> data : dataList) {
-            result.handleData(mainTableName, needAlias, data, tcInfo);
+            result.handleData(mainTableName, needAlias, data, tcInfo, force);
         }
         // order_address.order_id : order.id    +    order_item.code : order.code
-        Map<String, ReqResult> innerResultMap = result.innerResult(mainTableName, tcInfo, force);
+        Map<String, ReqResult> innerResultMap = result.innerResult(tcInfo, force);
         if (QueryUtil.isNotEmpty(innerResultMap)) {
             // { address : id, items : code }
             Map<String, String> innerColumnMap = new LinkedHashMap<>();
