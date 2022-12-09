@@ -109,11 +109,11 @@ public class ReqInfo extends ReqModel implements Serializable {
         }
     }
 
-    public Set<String> checkParam(TableColumnInfo tcInfo, int maxListCount) {
+    public Set<String> checkParam(boolean needConditionOrPage, TableColumnInfo tcInfo, int maxListCount) {
         if (QueryUtil.isNull(param)) {
             throw new RuntimeException("request: need param");
         }
-        return param.checkParam(getTable(), tcInfo, maxListCount);
+        return param.checkParam(needConditionOrPage, getTable(), tcInfo, maxListCount);
     }
 
 

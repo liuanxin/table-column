@@ -106,14 +106,14 @@ public class ReqParam implements Serializable {
     }
 
 
-    public Set<String> checkParam(String mainTable, TableColumnInfo tcInfo, int maxListCount) {
+    public Set<String> checkParam(boolean needConditionOrPage, String mainTable, TableColumnInfo tcInfo, int maxListCount) {
         Set<String> paramTableSet = new LinkedHashSet<>();
         if (QueryUtil.isNotNull(query)) {
             paramTableSet.addAll(query.checkCondition(mainTable, tcInfo, maxListCount));
         }
-        /*if (QueryUtil.isEmpty(paramTableSet) && QueryUtil.isEmpty(page)) {
-            throw new RuntimeException("param: required query or paging");
-        }*/
+        if (needConditionOrPage && QueryUtil.isEmpty(paramTableSet) && QueryUtil.isEmpty(page)) {
+            throw new RuntimeException("param: required condition or page");
+        }
 
         if (QueryUtil.isNotEmpty(sort)) {
             List<String> noTableList = new ArrayList<>();

@@ -35,6 +35,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
+    @Value("${query.needConditionOrPage:false}")
+    private boolean needConditionOrPage;
+
     @Value("${query.alias-generate-rule:}")
     private AliasGenerateRule aliasGenerateRule;
 
@@ -979,7 +982,7 @@ public class TableColumnTemplate implements InitializingBean {
         req.handleAlias(requestAliasMap);
         req.checkTable(tcInfo);
 
-        Set<String> paramTableSet = req.checkParam(tcInfo, maxListCount);
+        Set<String> paramTableSet = req.checkParam(needConditionOrPage, tcInfo, maxListCount);
         Set<String> resultTableSet = req.checkResult(tcInfo, force);
         Set<TableJoinRelation> useRelationSet = req.checkRelation(tcInfo, paramTableSet, resultTableSet);
         Set<String> useTableSet = calcTableSet(useRelationSet);
