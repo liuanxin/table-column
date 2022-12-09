@@ -230,20 +230,20 @@ public class ReqResult implements Serializable {
                 String innerColumn = entry.getKey();
                 ReqResult innerResult = entry.getValue();
                 if (QueryUtil.isNull(innerResult)) {
-                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") error");
+                    throw new RuntimeException("result: table(" + mainTable + ") - " + innerColumn + " error");
                 }
                 if (columnCheckRepeatedSet.contains(innerColumn)) {
-                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") has repeated");
+                    throw new RuntimeException("result: table(" + mainTable + ") - " + innerColumn + " has repeated");
                 }
                 columnCheckRepeatedSet.add(innerColumn);
 
                 String innerTable = innerResult.getTable();
                 if (QueryUtil.isEmpty(innerTable)) {
-                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") need table");
+                    throw new RuntimeException("result: table(" + mainTable + ") - " + innerColumn + ") need table");
                 }
                 Table table = tcInfo.findTable(innerTable);
                 if (QueryUtil.isNull(table)) {
-                    throw new RuntimeException("result: table(" + mainTable + ") inner(" + innerColumn + ") has no defined table");
+                    throw new RuntimeException("result: table(" + mainTable + ") - " + innerColumn + "(" + innerTable + ") has no defined inner table");
                 }
 
                 TableColumnRelation relation = tcInfo.findRelationByMasterChildWithAlias(mainTable, innerTable);
