@@ -1085,7 +1085,7 @@ public class TableColumnTemplate implements InitializingBean {
             // SELECT a.xx, b.yy, COUNT(*) cnt, MAX(a.xxx) max_xxx  FROM a inner join b on ...
             // WHERE ...  GROUP BY a.xx, b.yy  HAVING cnt > 1 AND max_xxx > 10
             String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
-                    fromAndWherePrint, mainTable, result, needAlias, params, printSql);
+                    fromAndWherePrint, mainTable, result, needAlias, force, params, printSql);
             // SELECT COUNT(*) FROM ( ^^^ SELECT FROM WHERE GROUP BY HAVING ^^^ ) tmp
             String selectGroupCountSql = QuerySqlUtil.toCountGroupSql(selectGroupSql, printSql.toString(), countPrintSql);
             count = queryCount(selectGroupCountSql, params, countPrintSql);
@@ -1141,11 +1141,11 @@ public class TableColumnTemplate implements InitializingBean {
             // SELECT ... FROM .?. WHERE id IN (...)
             params.clear();
             printSql.setLength(0);
-            sql = QuerySqlUtil.toSelectWithIdSql(tcInfo, mainTable, fromSql, result, idList, needAlias, params, printSql);
+            sql = QuerySqlUtil.toSelectWithIdSql(tcInfo, mainTable, fromSql, result, idList, needAlias, force, params, printSql);
         } else {
             // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
-            sql = QuerySqlUtil.toPageSql(tcInfo, fromAndWhere,
-                    fromAndWherePrint, mainTable, param, result, needAlias, params, printSql);
+            sql = QuerySqlUtil.toPageSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable,
+                    param, result, needAlias, force, params, printSql);
         }
         return QueryUtil.isEmpty(sql) ? null : assemblyResult(sql, needAlias, params, mainTable, result, force, printSql);
     }
@@ -1164,7 +1164,7 @@ public class TableColumnTemplate implements InitializingBean {
                                                        List<Object> params, boolean force) {
         StringBuilder printSql = new StringBuilder();
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
-                fromAndWherePrint, mainTable, result, needAlias, params, printSql);
+                fromAndWherePrint, mainTable, result, needAlias, force, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         printSql.append(orderSql);
         String sql = selectGroupSql + orderSql + param.generatePageSql(params, printSql);
@@ -1176,7 +1176,7 @@ public class TableColumnTemplate implements InitializingBean {
                                                 List<Object> params, boolean force) {
         StringBuilder printSql = new StringBuilder();
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
-                fromAndWherePrint, mainTable, result, needAlias, params, printSql);
+                fromAndWherePrint, mainTable, result, needAlias, force, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql;
         return assemblyResult(sql, needAlias, params, mainTable, result, force, printSql);
@@ -1187,7 +1187,7 @@ public class TableColumnTemplate implements InitializingBean {
                                          List<Object> params, boolean force) {
         StringBuilder printSql = new StringBuilder();
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
-                mainTable, result, needAlias, params, printSql);
+                mainTable, result, needAlias, force, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql + param.generateArrToObjSql(params, printSql);
         Map<String, Object> obj = QueryUtil.first(assemblyResult(sql, needAlias, params, mainTable, result, force, printSql));
@@ -1205,7 +1205,7 @@ public class TableColumnTemplate implements InitializingBean {
             String mainTableName = tcInfo.findTable(mainTable).getName();
             handleData(dataList, needAlias, mainTableName, result, force);
 
-            Set<String> removeColumn = result.needRemoveColumn(mainTableName, tcInfo, needAlias);
+            Set<String> removeColumn = result.needRemoveColumn(mainTableName, tcInfo, needAlias, force);
             for (Map<String, Object> data : dataList) {
                 removeColumn.forEach(data::remove);
             }
@@ -1219,7 +1219,7 @@ public class TableColumnTemplate implements InitializingBean {
             result.handleData(mainTableName, needAlias, data, tcInfo);
         }
         // order_address.order_id : order.id    +    order_item.code : order.code
-        Map<String, ReqResult> innerResultMap = result.innerResult();
+        Map<String, ReqResult> innerResultMap = result.innerResult(mainTableName, tcInfo, force);
         if (QueryUtil.isNotEmpty(innerResultMap)) {
             // { address : id, items : code }
             Map<String, String> innerColumnMap = new LinkedHashMap<>();
@@ -1290,7 +1290,7 @@ public class TableColumnTemplate implements InitializingBean {
         List<Map<String, Object>> mapList = new ArrayList<>();
         String relationColumn = QuerySqlUtil.toSqlField(tableColumn.getName());
         Set<String> removeColumn = new HashSet<>();
-        String selectColumn = result.generateInnerSelect(relationColumn, tcInfo, removeColumn);
+        String selectColumn = result.generateInnerSelect(relationColumn, tcInfo, removeColumn, force);
         Table tableInfo = tcInfo.findTable(innerTable);
         String table = QuerySqlUtil.toSqlField(tableInfo.getName());
         String logicDelete = tableInfo.logicDeleteCondition(force, needAlias);

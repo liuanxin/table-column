@@ -116,16 +116,18 @@ public class ReqResult implements Serializable {
     }
 
 
-    public void handleInit(String mainTable, TableColumnInfo tcInfo, boolean force) {
-        if (QueryUtil.isEmpty(columns)) {
-            Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.defaultIfBlank(table, mainTable));
-            if (QueryUtil.isNotNull(tableInfo)) {
-                List<String> columnAliasList = tableInfo.allColumnAlias(force);
-                if (QueryUtil.isNotEmpty(columnAliasList)) {
-                    columns = new ArrayList<>(columnAliasList);
-                }
+    private List<Object> handleColumn(String mainTable, TableColumnInfo tcInfo, boolean force) {
+        if (QueryUtil.isNotEmpty(columns)) {
+            return columns;
+        }
+        Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.defaultIfBlank(table, mainTable));
+        if (QueryUtil.isNotNull(tableInfo)) {
+            List<String> columnAliasList = tableInfo.allColumnAlias(force);
+            if (QueryUtil.isNotEmpty(columnAliasList)) {
+                return new ArrayList<>(columnAliasList);
             }
         }
+        return Collections.emptyList();
     }
 
     public Set<String> checkResult(String mainTable, TableColumnInfo tcInfo, boolean force) {
@@ -139,15 +141,12 @@ public class ReqResult implements Serializable {
                 throw new RuntimeException("result: has no defined table(" + currentTable + ")");
             }
         }
-        if (QueryUtil.isEmpty(columns)) {
-            throw new RuntimeException("result: table(" + currentTable + ") need columns");
-        }
 
         Set<String> allTableSet = new LinkedHashSet<>();
         Set<String> columnCheckRepeatedSet = new HashSet<>();
         List<Object> innerList = new ArrayList<>();
         boolean hasColumnOrFunction = false;
-        for (Object obj : columns) {
+        for (Object obj : handleColumn(mainTable, tcInfo, force)) {
             if (QueryUtil.isNotNull(obj)) {
                 if (obj instanceof String) {
                     String column = (String) obj;
@@ -253,7 +252,6 @@ public class ReqResult implements Serializable {
                 if (QueryUtil.isNull(relation)) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") has no relation");
                 }
-                innerResult.handleInit(null, tcInfo, force);
                 Set<String> innerTableSet = innerResult.checkResult(mainTable, tcInfo, force);
                 if (innerTableSet.size() > 1) {
                     throw new RuntimeException("result: " + mainTable + " - " + innerColumn + "(" + innerTable + ") just has one Table to Query");
@@ -295,17 +293,17 @@ public class ReqResult implements Serializable {
         return tableInfo;
     }
 
-    public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
+    public String generateAllSelectSql(String mainTable, TableColumnInfo tcInfo, boolean needAlias, boolean force) {
         Set<String> columnNameSet = new LinkedHashSet<>();
-        columnNameSet.addAll(selectColumn(mainTable, tcInfo, needAlias));
-        columnNameSet.addAll(innerColumn(mainTable, tcInfo, needAlias));
+        columnNameSet.addAll(selectColumn(mainTable, tcInfo, needAlias, force));
+        columnNameSet.addAll(innerColumn(mainTable, tcInfo, needAlias, force));
         return String.join(", ", columnNameSet);
     }
 
-    private Set<String> selectColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
+    private Set<String> selectColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias, boolean force) {
         Set<String> columnNameSet = new LinkedHashSet<>();
         String currentTableName = QueryUtil.isEmpty(table) ? mainTable : table;
-        for (Object obj : columns) {
+        for (Object obj : handleColumn(mainTable, tcInfo, force)) {
             if (obj instanceof String) {
                 String col = (String) obj;
                 columnNameSet.add(QueryUtil.getQueryColumnAndAlias(needAlias, col, currentTableName, tcInfo));
@@ -321,10 +319,10 @@ public class ReqResult implements Serializable {
         return columnNameSet;
     }
 
-    private Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
+    private Set<String> innerColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias, boolean force) {
         Set<String> columnNameSet = new LinkedHashSet<>();
         String currentTable = QueryUtil.isEmpty(table) ? mainTable : table;
-        for (ReqResult innerResult : innerResult().values()) {
+        for (ReqResult innerResult : innerResult(mainTable, tcInfo, force).values()) {
             // child-master or master-child all need to query masterId
             String innerTable = innerResult.getTable();
             TableColumnRelation relation = tcInfo.findRelationByMasterChild(currentTable, innerTable);
@@ -339,10 +337,10 @@ public class ReqResult implements Serializable {
         return columnNameSet;
     }
 
-    public Set<String> needRemoveColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias) {
-        Set<String> selectColumnSet = selectColumn(mainTable, tcInfo, needAlias);
+    public Set<String> needRemoveColumn(String mainTable, TableColumnInfo tcInfo, boolean needAlias, boolean force) {
+        Set<String> selectColumnSet = selectColumn(mainTable, tcInfo, needAlias, force);
         Set<String> removeColumnSet = new HashSet<>();
-        for (String ic : innerColumn(mainTable, tcInfo, needAlias)) {
+        for (String ic : innerColumn(mainTable, tcInfo, needAlias, force)) {
             if (!selectColumnSet.contains(ic)) {
                 removeColumnSet.add(calcRemoveColumn(ic));
             }
@@ -350,9 +348,9 @@ public class ReqResult implements Serializable {
         return removeColumnSet;
     }
 
-    public Map<String, ReqResult> innerResult() {
+    public Map<String, ReqResult> innerResult(String mainTable, TableColumnInfo tcInfo, boolean force) {
         Map<String, ReqResult> returnMap = new LinkedHashMap<>();
-        for (Object obj : columns) {
+        for (Object obj : handleColumn(mainTable, tcInfo, force)) {
             if (!(obj instanceof String)  && !(obj instanceof List<?>)) {
                 Map<String, ReqResult> inner = QueryJsonUtil.convertInnerResult(obj);
                 if (QueryUtil.isNotEmpty(inner)) {
@@ -363,9 +361,9 @@ public class ReqResult implements Serializable {
         return returnMap;
     }
 
-    public String generateFunctionSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo) {
+    public String generateFunctionSql(String mainTable, boolean needAlias, TableColumnInfo tcInfo, boolean force) {
         StringJoiner sj = new StringJoiner(", ");
-        for (Object obj : columns) {
+        for (Object obj : handleColumn(mainTable, tcInfo, force)) {
             if (obj instanceof List<?>) {
                 sj.add(generateFunctionColumn((List<?>) obj, mainTable, needAlias, tcInfo));
             }
@@ -460,11 +458,11 @@ public class ReqResult implements Serializable {
         return (groupSj.length() == 0) ? "" : (" HAVING " + groupSj);
     }
 
-    public String generateInnerSelect(String relationColumn, TableColumnInfo tcInfo, Set<String> removeColumn) {
+    public String generateInnerSelect(String relationColumn, TableColumnInfo tcInfo, Set<String> removeColumn, boolean force) {
         String innerTableName = table;
 
         Set<String> columnSet = new LinkedHashSet<>();
-        for (Object obj : columns) {
+        for (Object obj : handleColumn(null, tcInfo, force)) {
             if (obj instanceof String) {
                 columnSet.add(QueryUtil.getQueryColumnAndAlias(false, (String) obj, innerTableName, tcInfo));
             } else if (obj instanceof List<?>) {

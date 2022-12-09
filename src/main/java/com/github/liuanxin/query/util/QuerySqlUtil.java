@@ -62,9 +62,9 @@ public class QuerySqlUtil {
     }
 
     public static String toSelectGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
-                                          String mainTable, ReqResult result, boolean needAlias,
+                                          String mainTable, ReqResult result, boolean needAlias, boolean force,
                                           List<Object> params, StringBuilder printSql) {
-        String selectField = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
+        String selectField = result.generateAllSelectSql(mainTable, tcInfo, needAlias, force);
         boolean emptySelect = QueryUtil.isEmpty(selectField);
 
         // SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ...
@@ -76,7 +76,7 @@ public class QuerySqlUtil {
             printSql.append(selectField);
         }
 
-        String functionSql = result.generateFunctionSql(mainTable, needAlias, tcInfo);
+        String functionSql = result.generateFunctionSql(mainTable, needAlias, tcInfo, force);
         if (QueryUtil.isNotEmpty(functionSql)) {
             if (!emptySelect) {
                 sbd.append(", ");
@@ -116,8 +116,8 @@ public class QuerySqlUtil {
 
     public static String toPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                    String mainTable, ReqParam param, ReqResult result, boolean needAlias,
-                                   List<Object> params, StringBuilder printSql) {
-        String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
+                                   boolean force, List<Object> params, StringBuilder printSql) {
+        String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias, force);
         if (QueryUtil.isEmpty(selectColumn)) {
             return "";
         }
@@ -142,10 +142,10 @@ public class QuerySqlUtil {
         return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, idSelect, params, printSql);
     }
     public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String tables,
-                                           ReqResult result, List<Map<String, Object>> idList,
-                                           boolean needAlias, List<Object> params, StringBuilder printSql) {
+                                           ReqResult result, List<Map<String, Object>> idList, boolean needAlias,
+                                           boolean force, List<Object> params, StringBuilder printSql) {
         // SELECT ... FROM ... WHERE id IN (x, y, z)
-        String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias);
+        String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias, force);
         Table table = tcInfo.findTable(mainTable);
         String idColumn = table.idWhere(needAlias);
         List<String> idKey = table.getIdKey();

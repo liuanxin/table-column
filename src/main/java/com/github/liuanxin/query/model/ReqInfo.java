@@ -123,10 +123,7 @@ public class ReqInfo extends ReqModel implements Serializable {
             result = new ReqResult();
             setResult(result);
         }
-
-        String table = getTable();
-        result.handleInit(table, tcInfo, force);
-        return result.checkResult(table, tcInfo, force);
+        return result.checkResult(getTable(), tcInfo, force);
     }
 
     public Set<TableJoinRelation> checkRelation(TableColumnInfo tcInfo, Set<String> paramTableSet, Set<String> resultTableSet) {
