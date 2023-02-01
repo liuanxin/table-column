@@ -82,21 +82,21 @@
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "用来做逻辑删除的字段是 tinyint(1) 时的删除值, 比如设置成 1, 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "用来做逻辑删除的字段类型是 tinyint(1) 时的删除值, 比如设置成 1, 表中有字段标了 @LogicDelete 则以注解为主."
     },
     {
       "name": "query.logic-delete-int-value",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "用来做逻辑删除的字段是 int 时的删除值, 比如设置成 UNIX_TIMESTAMP(), 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "用来做逻辑删除的字段类型是 int 时的删除值, 比如设置成 UNIX_TIMESTAMP(), 表中有字段标了 @LogicDelete 则以注解为主."
     },
     {
       "name": "query.logic-delete-long-value",
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "用来做逻辑删除的字段是 bigint 时的值, 比如设置成 id, 表中有字段标了 @LogicDelete 则以注解为主."
+      "description": "用来做逻辑删除的字段类型是 bigint 时的值, 比如设置成 id, 表中有字段标了 @LogicDelete 则以注解为主."
     }
   ]
 }
