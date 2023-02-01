@@ -18,6 +18,9 @@ public class ReqModel implements Serializable {
     private ResultType type;
 
     public ReqModel() {}
+    public ReqModel(String table) {
+        this.table = table;
+    }
     public ReqModel(String table, ReqResult result) {
         this.table = table;
         this.result = result;
