@@ -26,14 +26,14 @@ public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
 
-    @Value("${query.online:false}")
-    private boolean online;
-
     @Value("${query.scan-packages:}")
     private String scanPackages;
 
     @Value("${query.table-prefix:}")
     private String tablePrefix;
+
+    @Value("${query.has-return-info:false}")
+    private boolean hasReturnInfo;
 
     @Value("${query.required-alias:false}")
     private boolean requiredAlias;
@@ -174,7 +174,7 @@ public class TableColumnTemplate implements InitializingBean {
         return info(tables, false);
     }
     private List<QueryInfo> info(String tables, boolean force) {
-        if (online) {
+        if (hasReturnInfo) {
             return Collections.emptyList();
         }
 

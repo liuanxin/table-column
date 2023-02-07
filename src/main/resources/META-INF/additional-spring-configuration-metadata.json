@@ -1,13 +1,6 @@
 {
   "properties": [
     {
-      "name": "query.online",
-      "type": "java.lang.Boolean",
-      "defaultValue": "false",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "设置为 true 时查询关联信息将返回空."
-    },
-    {
       "name": "query.scan-packages",
       "type": "java.lang.String",
       "defaultValue": "",
@@ -20,6 +13,13 @@
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀."
+    },
+    {
+      "name": "query.has-return-info",
+      "type": "java.lang.Boolean",
+      "defaultValue": "false",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
+      "description": "设置为 true 时查询关联信息将返回空."
     },
     {
       "name": "query.required-alias",

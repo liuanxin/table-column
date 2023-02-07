@@ -22,9 +22,9 @@ public class TableColumnConfiguration {
         return new ArrayList<>();
     }
 
-    @Bean("tableAliasMap")
+    @Bean("queryAliasMap")
     @ConditionalOnMissingBean
-    public Map<String, ReqModel> tableAliasMap() {
+    public Map<String, ReqModel> queryAliasMap() {
         return new HashMap<>();
     }
 

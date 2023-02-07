@@ -1,14 +1,10 @@
 
-English Readme | [[README-cn.org][中文说明]]
+** 说明
+极大减少后端在实现查询 sql 时的代码量
 
------
+** 使用
 
-** Comment
-
-
-** Usage
-
-add maven
+添加引用
 #+BEGIN_SRC xml
 <dependency>
     <groupId>com.github.liuanxin</groupId>
@@ -17,5 +13,54 @@ add maven
 </dependency>
 #+END_SRC
 
-add config for this
+添加配置
+#+BEGIN_SRC java
+@Configuration
+public class TableColumnConfig {
+    // 表关联
+    @Bean("tableRelationList")
+    public List<TableColumnRelation> tableRelation() {
+        return List.of(
+                // 主表表名, 主表字段, 跟子表的关系(一对一, 一对多, 多对多), 子表表名, 子表字段
+                new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_ONE, "t_order_address", "order_no"),
+                new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_MANY, "t_order_log", "order_no")
+        );
+    }
 
+    // 查询别名
+    @Bean("queryAliasMap")
+    public Map<String, ReqModel> queryAlias() {
+        return Map.of(
+                // 查询
+                "all-order", new ReqModel("Order"),
+
+                "order-address-item-log", new ReqModel("Order", new ReqResult(List.of(
+                        "orderNo", "orderStatus", "amount", "desc", "createTime",
+                        Map.of("address", Map.of("table", "OrderAddress", "columns", Arrays.asList("contact", "phone", "address"))),
+                        Map.of("items", Map.of("table", "OrderItem", "columns", Arrays.asList("productName", "price", "number"))),
+                        Map.of("logs", Map.of("table", "OrderLog", "columns", Arrays.asList("operator", "message", "time")))
+                )))
+        );
+    }
+}
+#+END_SRC
+
+添加以下 mapping
+#+BEGIN_SRC java
+@RestController
+@RequiredArgsConstructor
+public class TableColumnController {
+
+    private final TableColumnTemplate tableColumnTemplate;
+
+    @GetMapping("/table-column")
+    public List<QueryInfo> info(String tables) {
+        return tableColumnTemplate.info(tables);
+    }
+
+    @PostMapping("/table-column")
+    public Object query(@RequestBody ReqInfo req) {
+        return tableColumnTemplate.dynamicQuery(req);
+    }
+}
+#+END_SRC
