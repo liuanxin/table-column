@@ -17,6 +17,7 @@
 #+BEGIN_SRC java
 @Configuration
 public class TableColumnConfig {
+
     // 表关联
     @Bean("tableRelationList")
     public List<TableColumnRelation> tableRelation() {
@@ -65,8 +66,8 @@ public class TableColumnController {
 }
 #+END_SRC
 
+相关的配置中下
 #+BEGIN_SRC yaml
-# 相关的配置中下
 query:
   # 存放关联表的类的包地址, 多个用英文逗号隔开.
   scan-packages:
