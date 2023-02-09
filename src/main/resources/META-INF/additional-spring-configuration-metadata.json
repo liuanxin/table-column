@@ -58,8 +58,8 @@
     },
     {
       "name": "query.one-to-one-has-many-rule",
-      "type": "java.lang.Integer",
-      "defaultValue": "0",
+      "type": "com.github.liuanxin.query.enums.OneToOneHasManyRule",
+      "defaultValue": "Exception",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
       "description": "当表与表之间是一对一关联, 但查询时数据却出现了多条时的处理: Exception(抛出异常, 此为默认), First(以前面的为准), Cover(后面覆盖前面)."
     },
