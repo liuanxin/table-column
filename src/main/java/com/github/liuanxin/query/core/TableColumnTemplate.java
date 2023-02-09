@@ -71,11 +71,11 @@ public class TableColumnTemplate implements InitializingBean {
     private TableColumnInfo tcInfo;
 
     private final List<TableColumnRelation> tableRelationList;
-    private final Map<String, ReqModel> queryAliasMap;
+    private final Map<String, ReqAlias> queryAliasMap;
     private final JdbcTemplate jdbcTemplate;
     public TableColumnTemplate(JdbcTemplate jdbcTemplate,
                                List<TableColumnRelation> tableRelationList,
-                               Map<String, ReqModel> queryAliasMap) {
+                               Map<String, ReqAlias> queryAliasMap) {
         this.jdbcTemplate = jdbcTemplate;
         this.tableRelationList = QueryUtil.isEmpty(tableRelationList) ? new ArrayList<>() : new ArrayList<>(tableRelationList);
         this.queryAliasMap = queryAliasMap;
@@ -1002,6 +1002,7 @@ public class TableColumnTemplate implements InitializingBean {
         String fromAndWhere = fromSql + whereSql;
         String wherePrint = wherePrintSbd.toString();
         String fromAndWherePrint = fromSql + wherePrint;
+        boolean hasDistinct = queryHasDistinct(useRelationSet) && QueryUtil.toBool(result.isDistinct());
 
         /*
         plus sign indicate branch
@@ -1036,16 +1037,15 @@ public class TableColumnTemplate implements InitializingBean {
 
         if (param.needQueryPage()) {
             if (param.needQueryCount()) {
-                boolean hasDistinct = queryHasDistinct(useRelationSet);
-                return queryCountPage(fromSql, whereSql, wherePrint, mainTable, param, result, hasDistinct, needAlias, params, force);
+                return queryCountPage(fromSql, whereSql, wherePrint, mainTable, param, result, needAlias, hasDistinct, params, force);
             } else {
-                return queryNoCountPage(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, force);
+                return queryNoCountPage(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, hasDistinct, params, force);
             }
         } else {
             if (req.getType() == ResultType.OBJ) {
-                return queryObj(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, force);
+                return queryObj(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, hasDistinct, params, force);
             } else {
-                return queryList(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, force);
+                return queryList(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, hasDistinct, params, force);
             }
         }
     }
@@ -1075,8 +1075,8 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private Map<String, Object> queryCountPage(String fromSql, String whereSql, String wherePrint, String mainTable,
-                                               ReqParam param, ReqResult result, boolean hasDistinct,
-                                               boolean needAlias, List<Object> params, boolean force) {
+                                               ReqParam param, ReqResult result, boolean needAlias,
+                                               boolean hasDistinct, List<Object> params, boolean force) {
         String fromAndWhere = fromSql + whereSql;
         String fromAndWherePrint = fromSql + wherePrint;
         long count;
@@ -1087,7 +1087,7 @@ public class TableColumnTemplate implements InitializingBean {
             // SELECT a.xx, b.yy, COUNT(*) cnt, MAX(a.xxx) max_xxx  FROM a inner join b on ...
             // WHERE ...  GROUP BY a.xx, b.yy  HAVING cnt > 1 AND max_xxx > 10
             String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
-                    fromAndWherePrint, mainTable, result, needAlias, force, params, printSql);
+                    fromAndWherePrint, mainTable, result, needAlias, force, hasDistinct, params, printSql);
             // SELECT COUNT(*) FROM ( ^^^ SELECT FROM WHERE GROUP BY HAVING ^^^ ) tmp
             String selectGroupCountSql = QuerySqlUtil.toCountGroupSql(selectGroupSql, printSql.toString(), countPrintSql);
             count = queryCount(selectGroupCountSql, params, countPrintSql);
@@ -1164,10 +1164,10 @@ public class TableColumnTemplate implements InitializingBean {
 
     private List<Map<String, Object>> queryNoCountPage(String fromAndWhere, String fromAndWherePrint, String mainTable,
                                                        ReqParam param, ReqResult result, boolean needAlias,
-                                                       List<Object> params, boolean force) {
+                                                       boolean hasDistinct, List<Object> params, boolean force) {
         StringBuilder printSql = new StringBuilder();
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
-                fromAndWherePrint, mainTable, result, needAlias, force, params, printSql);
+                fromAndWherePrint, mainTable, result, needAlias, force, hasDistinct, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         printSql.append(orderSql);
         String sql = selectGroupSql + orderSql + param.generatePageSql(params, printSql);
@@ -1176,10 +1176,10 @@ public class TableColumnTemplate implements InitializingBean {
 
     private List<Map<String, Object>> queryList(String fromAndWhere, String fromAndWherePrint, String mainTable,
                                                 ReqParam param, ReqResult result, boolean needAlias,
-                                                List<Object> params, boolean force) {
+                                                boolean hasDistinct, List<Object> params, boolean force) {
         StringBuilder printSql = new StringBuilder();
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere,
-                fromAndWherePrint, mainTable, result, needAlias, force, params, printSql);
+                fromAndWherePrint, mainTable, result, needAlias, force, hasDistinct, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql;
         return assemblyResult(sql, needAlias, params, mainTable, result, force, printSql);
@@ -1187,10 +1187,10 @@ public class TableColumnTemplate implements InitializingBean {
 
     private Map<String, Object> queryObj(String fromAndWhere, String fromAndWherePrint, String mainTable,
                                          ReqParam param, ReqResult result, boolean needAlias,
-                                         List<Object> params, boolean force) {
+                                         boolean hasDistinct, List<Object> params, boolean force) {
         StringBuilder printSql = new StringBuilder();
         String selectGroupSql = QuerySqlUtil.toSelectGroupSql(tcInfo, fromAndWhere, fromAndWherePrint,
-                mainTable, result, needAlias, force, params, printSql);
+                mainTable, result, needAlias, force, hasDistinct, params, printSql);
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         String sql = selectGroupSql + orderSql + param.generateArrToObjSql(params, printSql);
         Map<String, Object> obj = QueryUtil.first(assemblyResult(sql, needAlias, params, mainTable, result, force, printSql));

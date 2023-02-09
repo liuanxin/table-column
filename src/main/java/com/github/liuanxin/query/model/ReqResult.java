@@ -74,6 +74,8 @@ public class ReqResult implements Serializable {
     /** 表里的列 */
     private List<Object> columns;
 
+    private Boolean distinct;
+
     public ReqResult() {}
     public ReqResult(List<Object> columns) {
         this.columns = columns;
@@ -81,6 +83,11 @@ public class ReqResult implements Serializable {
     public ReqResult(String table, List<Object> columns) {
         this.table = table;
         this.columns = columns;
+    }
+    public ReqResult(String table, List<Object> columns, boolean distinct) {
+        this.table = table;
+        this.columns = columns;
+        this.distinct = distinct;
     }
 
     public String getTable() {
@@ -97,22 +104,30 @@ public class ReqResult implements Serializable {
         this.columns = columns;
     }
 
+    public Boolean isDistinct() {
+        return distinct;
+    }
+    public void setDistinct(Boolean distinct) {
+        this.distinct = distinct;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ReqResult)) return false;
         ReqResult reqResult = (ReqResult) o;
-        return Objects.equals(table, reqResult.table) && Objects.equals(columns, reqResult.columns);
+        return Objects.equals(table, reqResult.table) && Objects.equals(columns, reqResult.columns)
+                && Objects.equals(distinct, reqResult.distinct);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, columns);
+        return Objects.hash(table, columns, distinct);
     }
 
     @Override
     public String toString() {
-        return "ReqResult{table='" + table + "', columns=" + columns + '}';
+        return "ReqResult{table='" + table + "', columns=" + columns + ", distinct=" + distinct + "}";
     }
 
 

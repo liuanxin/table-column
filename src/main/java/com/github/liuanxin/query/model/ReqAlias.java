@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-public class ReqModel implements Serializable {
+public class ReqAlias implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 主表 */
@@ -16,25 +16,27 @@ public class ReqModel implements Serializable {
     /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
     private ResultType type;
 
+    private Boolean notCount;
     private List<List<String>> relationList;
 
-    public ReqModel() {}
-    public ReqModel(String table) {
+    public ReqAlias() {}
+    public ReqAlias(String table) {
         this.table = table;
     }
-    public ReqModel(String table, ReqResult result) {
-        this.table = table;
-        this.result = result;
-    }
-    public ReqModel(String table, ReqResult result, ResultType type) {
+    public ReqAlias(String table, ReqResult result) {
         this.table = table;
         this.result = result;
-        this.type = type;
     }
-    public ReqModel(String table, ReqResult result, ResultType type, List<List<String>> relationList) {
+    public ReqAlias(String table, ReqResult result, ResultType type) {
         this.table = table;
         this.result = result;
         this.type = type;
+    }
+    public ReqAlias(String table, ReqResult result, ResultType type, Boolean notCount, List<List<String>> relationList) {
+        this.table = table;
+        this.result = result;
+        this.type = type;
+        this.notCount = notCount;
         this.relationList = relationList;
     }
 
@@ -59,6 +61,13 @@ public class ReqModel implements Serializable {
         this.type = type;
     }
 
+    public Boolean getNotCount() {
+        return notCount;
+    }
+    public void setNotCount(Boolean notCount) {
+        this.notCount = notCount;
+    }
+
     public List<List<String>> getRelationList() {
         return relationList;
     }
@@ -69,23 +78,24 @@ public class ReqModel implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ReqModel)) return false;
-        ReqModel that = (ReqModel) o;
-        return Objects.equals(table, that.table) && Objects.equals(result, that.result)
-                && type == that.type && Objects.equals(relationList, that.relationList);
+        if (!(o instanceof ReqAlias)) return false;
+        ReqAlias that = (ReqAlias) o;
+        return Objects.equals(table, that.table) && Objects.equals(result, that.result) && type == that.type
+                && Objects.equals(notCount, that.notCount) && Objects.equals(relationList, that.relationList);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, result, type);
+        return Objects.hash(table, result, type, notCount, relationList);
     }
 
     @Override
     public String toString() {
-        return "ReqModel{" +
+        return "ReqAlias{" +
                 "table='" + table + '\'' +
                 ", result=" + result +
                 ", type=" + type +
+                ", notCount=" + notCount +
                 ", relationList=" + relationList +
                 '}';
     }

@@ -29,12 +29,12 @@ public class TableColumnConfig {
 
     // 查询别名
     @Bean("queryAliasMap")
-    public Map<String, ReqModel> queryAlias() {
+    public Map<String, ReqAlias> queryAlias() {
         return Map.of(
                 // 查询
-                "all-order", new ReqModel("Order"),
+                "all-order", new ReqAlias("Order"),
 
-                "order-address-item-log", new ReqModel("Order", new ReqResult(List.of(
+                "order-address-item-log", new ReqAlias("Order", new ReqResult(List.of(
                         "orderNo", "orderStatus", "amount", "desc", "createTime",
                         Map.of("address", Map.of("table", "OrderAddress", "columns", Arrays.asList("contact", "phone", "address"))),
                         Map.of("items", Map.of("table", "OrderItem", "columns", Arrays.asList("productName", "price", "number"))),

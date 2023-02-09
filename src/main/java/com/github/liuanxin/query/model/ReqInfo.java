@@ -7,7 +7,7 @@ import com.github.liuanxin.query.util.QueryUtil;
 import java.io.Serializable;
 import java.util.*;
 
-public class ReqInfo extends ReqModel implements Serializable {
+public class ReqInfo extends ReqAlias implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 模板别名, 用这个值映射 RequestModel 的内容 */
@@ -77,25 +77,25 @@ public class ReqInfo extends ReqModel implements Serializable {
     }
 
 
-    public void checkAlias(Map<String, ReqModel> requestAliasMap) {
+    public void checkAlias(Map<String, ReqAlias> requestAliasMap) {
         if (QueryUtil.isEmpty(alias)) {
             throw new RuntimeException("request: need alias");
         }
         if (QueryUtil.isEmpty(requestAliasMap)) {
             throw new RuntimeException("request: no alias has defined");
         }
-        ReqModel model = requestAliasMap.get(alias);
+        ReqAlias model = requestAliasMap.get(alias);
         if (QueryUtil.isNull(model)) {
             throw new RuntimeException(String.format("request: no alias(%s) has defined", alias));
         }
     }
 
-    public void handleAlias(boolean requiredAlias, Map<String, ReqModel> requestAliasMap) {
+    public void handleAlias(boolean requiredAlias, Map<String, ReqAlias> requestAliasMap) {
         if (requiredAlias && QueryUtil.isEmpty(alias)) {
             throw new RuntimeException("request: required alias");
         }
         if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
-            ReqModel model = requestAliasMap.get(alias);
+            ReqAlias model = requestAliasMap.get(alias);
             if (QueryUtil.isNull(model)) {
                 throw new RuntimeException("request: no alias(" + alias + ") info");
             }
@@ -104,6 +104,7 @@ public class ReqInfo extends ReqModel implements Serializable {
             setResult(model.getResult());
             setType(model.getType());
             if (QueryUtil.isNotNull(param)) {
+                param.setNotCount(model.getNotCount());
                 param.setRelation(model.getRelationList());
             }
         }

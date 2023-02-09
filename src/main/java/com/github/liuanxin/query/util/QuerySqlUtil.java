@@ -63,7 +63,7 @@ public class QuerySqlUtil {
 
     public static String toSelectGroupSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                           String mainTable, ReqResult result, boolean needAlias, boolean force,
-                                          List<Object> params, StringBuilder printSql) {
+                                          boolean hasDistinct, List<Object> params, StringBuilder printSql) {
         String selectField = result.generateAllSelectSql(mainTable, tcInfo, needAlias, force);
         boolean emptySelect = QueryUtil.isEmpty(selectField);
 
@@ -71,6 +71,10 @@ public class QuerySqlUtil {
         StringBuilder sbd = new StringBuilder();
         sbd.append("SELECT ");
         printSql.append("SELECT ");
+        if (hasDistinct) {
+            sbd.append("DISTINCT ");
+            printSql.append("DISTINCT ");
+        }
         if (!emptySelect) {
             sbd.append(selectField);
             printSql.append(selectField);
