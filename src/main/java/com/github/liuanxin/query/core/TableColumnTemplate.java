@@ -71,14 +71,14 @@ public class TableColumnTemplate implements InitializingBean {
     private TableColumnInfo tcInfo;
 
     private final List<TableColumnRelation> tableRelationList;
-    private final Map<String, ReqModel> tableAliasMap;
+    private final Map<String, ReqModel> queryAliasMap;
     private final JdbcTemplate jdbcTemplate;
     public TableColumnTemplate(JdbcTemplate jdbcTemplate,
                                List<TableColumnRelation> tableRelationList,
-                               Map<String, ReqModel> tableAliasMap) {
+                               Map<String, ReqModel> queryAliasMap) {
         this.jdbcTemplate = jdbcTemplate;
         this.tableRelationList = QueryUtil.isEmpty(tableRelationList) ? new ArrayList<>() : new ArrayList<>(tableRelationList);
-        this.tableAliasMap = tableAliasMap;
+        this.queryAliasMap = queryAliasMap;
     }
 
     @Override
@@ -963,7 +963,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isNull(req)) {
             return null;
         }
-        req.checkAlias(tableAliasMap);
+        req.checkAlias(queryAliasMap);
         return dynamicQuery(req, force);
     }
 
@@ -981,7 +981,7 @@ public class TableColumnTemplate implements InitializingBean {
             return null;
         }
 
-        req.handleAlias(requiredAlias, tableAliasMap);
+        req.handleAlias(requiredAlias, queryAliasMap);
         req.checkTable(tcInfo);
 
         Set<String> paramTableSet = req.checkParam(needConditionOrPage, tcInfo, maxListCount);

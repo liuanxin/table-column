@@ -16,13 +16,13 @@ import java.util.Map;
 @Configuration
 public class TableColumnConfiguration {
 
-    @Bean("tableRelationList")
+    @Bean
     @ConditionalOnMissingBean
     public List<TableColumnRelation> tableRelationList() {
         return new ArrayList<>();
     }
 
-    @Bean("queryAliasMap")
+    @Bean
     @ConditionalOnMissingBean
     public Map<String, ReqModel> queryAliasMap() {
         return new HashMap<>();
@@ -31,7 +31,7 @@ public class TableColumnConfiguration {
     @Bean
     public TableColumnTemplate tableColumnTemplate(JdbcTemplate jdbcTemplate,
                                                    List<TableColumnRelation> tableRelationList,
-                                                   Map<String, ReqModel> tableAliasMap) {
-        return new TableColumnTemplate(jdbcTemplate, tableRelationList, tableAliasMap);
+                                                   Map<String, ReqModel> queryAliasMap) {
+        return new TableColumnTemplate(jdbcTemplate, tableRelationList, queryAliasMap);
     }
 }
