@@ -102,8 +102,8 @@ public class QuerySqlUtil {
 
     public static String toCountWithoutGroupSql(TableColumnInfo tcInfo, String fromAndWhere,
                                                 String fromAndWherePrint, String mainTable, boolean needAlias,
-                                                boolean queryHasMany, StringBuilder printSql) {
-        if (queryHasMany) {
+                                                boolean hasDistinct, StringBuilder printSql) {
+        if (hasDistinct) {
             // SELECT COUNT(DISTINCT xx.id) FROM ...
             String select = tcInfo.findTable(mainTable).idSelect(needAlias);
             printSql.append(String.format("SELECT COUNT(DISTINCT %s)%s", select, fromAndWherePrint));
@@ -128,24 +128,23 @@ public class QuerySqlUtil {
 
     private static String toAppendSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                       String mainTable, ReqParam param, boolean needAlias, String selectColumn,
-                                      List<Object> params, boolean queryHasMany, StringBuilder printSql) {
+                                      List<Object> params, boolean hasDistinct, StringBuilder printSql) {
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
         printSql.append("SELECT ");
-        if (queryHasMany) {
+        if (hasDistinct) {
             printSql.append("DISTINCT ");
         }
         printSql.append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
-        return "SELECT " + (queryHasMany ? "DISTINCT " : "") + selectColumn + fromAndWhere + orderSql + pageSql;
+        return "SELECT " + (hasDistinct ? "DISTINCT " : "") + selectColumn + fromAndWhere + orderSql + pageSql;
     }
 
     public static String toIdPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint, String mainTable,
-                                     boolean needAlias, ReqParam param, List<Object> params,
-                                     boolean queryHasMany, StringBuilder printSql) {
+                                     boolean needAlias, ReqParam param, List<Object> params, boolean hasDistinct, StringBuilder printSql) {
         String idSelect = tcInfo.findTable(mainTable).idSelect(needAlias);
         // SELECT id FROM ... WHERE ... ORDER BY ... LIMIT ...
-        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, idSelect, params, queryHasMany, printSql);
+        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, idSelect, params, hasDistinct, printSql);
     }
     public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String tables,
                                            ReqResult result, List<Map<String, Object>> idList, boolean needAlias,

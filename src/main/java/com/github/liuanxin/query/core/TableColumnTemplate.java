@@ -1036,8 +1036,8 @@ public class TableColumnTemplate implements InitializingBean {
 
         if (param.needQueryPage()) {
             if (param.needQueryCount()) {
-                boolean queryHasMany = calcQueryHasMany(useRelationSet);
-                return queryCountPage(fromSql, whereSql, wherePrint, mainTable, param, result, queryHasMany, needAlias, params, force);
+                boolean hasDistinct = queryHasDistinct(useRelationSet);
+                return queryCountPage(fromSql, whereSql, wherePrint, mainTable, param, result, hasDistinct, needAlias, params, force);
             } else {
                 return queryNoCountPage(fromAndWhere, fromAndWherePrint, mainTable, param, result, needAlias, params, force);
             }
@@ -1060,7 +1060,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
         return tableSet;
     }
-    private boolean calcQueryHasMany(Set<TableJoinRelation> paramRelationSet) {
+    private boolean queryHasDistinct(Set<TableJoinRelation> paramRelationSet) {
         if (QueryUtil.isNotEmpty(paramRelationSet)) {
             for (TableJoinRelation joinRelation : paramRelationSet) {
                 String masterTableName = joinRelation.getMasterTable().getName();
@@ -1075,7 +1075,7 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private Map<String, Object> queryCountPage(String fromSql, String whereSql, String wherePrint, String mainTable,
-                                               ReqParam param, ReqResult result, boolean queryHasMany,
+                                               ReqParam param, ReqResult result, boolean hasDistinct,
                                                boolean needAlias, List<Object> params, boolean force) {
         String fromAndWhere = fromSql + whereSql;
         String fromAndWherePrint = fromSql + wherePrint;
@@ -1100,11 +1100,11 @@ public class TableColumnTemplate implements InitializingBean {
         } else {
             // SELECT COUNT(DISTINCT id) FROM ... WHERE ...
             String selectCountSql = QuerySqlUtil.toCountWithoutGroupSql(tcInfo, fromAndWhere,
-                    fromAndWherePrint, mainTable, needAlias, queryHasMany, countPrintSql);
+                    fromAndWherePrint, mainTable, needAlias, hasDistinct, countPrintSql);
             count = queryCount(selectCountSql, params, countPrintSql);
             if (param.needQueryCurrentPage(count)) {
                 pageList = queryLimitList(fromSql, whereSql, wherePrint, mainTable, param, result, needAlias,
-                        queryHasMany, params, force, printSql);
+                        hasDistinct, params, force, printSql);
             } else {
                 pageList = Collections.emptyList();
             }
@@ -1126,7 +1126,7 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private List<Map<String, Object>> queryLimitList(String fromSql, String whereSql, String wherePrint, String mainTable,
-                                                     ReqParam param, ReqResult result, boolean needAlias, boolean queryHasMany,
+                                                     ReqParam param, ReqResult result, boolean needAlias, boolean hasDistinct,
                                                      List<Object> params, boolean force, StringBuilder printSql) {
         String fromAndWhere = fromSql + whereSql;
         String fromAndWherePrint = fromSql + wherePrint;
@@ -1135,7 +1135,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (param.hasDeepPage(deepMaxPageSize)) {
             // SELECT id FROM ... WHERE .?. ORDER BY ... LIMIT ...
             String idPageSql = QuerySqlUtil.toIdPageSql(tcInfo, fromAndWhere,
-                    fromAndWherePrint, mainTable, needAlias, param, params, queryHasMany, printSql);
+                    fromAndWherePrint, mainTable, needAlias, param, params, hasDistinct, printSql);
             if (LOG.isInfoEnabled()) {
                 LOG.info("query condition sql: [{}]", printSql);
             }
@@ -1148,7 +1148,7 @@ public class TableColumnTemplate implements InitializingBean {
         } else {
             // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
             sql = QuerySqlUtil.toPageSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable,
-                    param, result, needAlias, force, params, queryHasMany, printSql);
+                    param, result, needAlias, force, params, hasDistinct, printSql);
         }
         return QueryUtil.isEmpty(sql) ? null : assemblyResult(sql, needAlias, params, mainTable, result, force, printSql);
     }
