@@ -120,7 +120,7 @@ public class ReqResult implements Serializable {
         if (QueryUtil.isNotEmpty(columns)) {
             return columns;
         }
-        Table tableInfo = tcInfo.findTableWithAlias(QueryUtil.defaultIfBlank(table, mainTable));
+        Table tableInfo = tcInfo.findTable(QueryUtil.defaultIfBlank(table, mainTable));
         if (QueryUtil.isNotNull(tableInfo)) {
             List<String> columnAliasList = tableInfo.allColumnAlias(force);
             if (QueryUtil.isNotEmpty(columnAliasList)) {
