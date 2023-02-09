@@ -32,8 +32,8 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
-    @Value("${query.has-return-info:false}")
-    private boolean hasReturnInfo;
+    @Value("${query.has-not-return-info:false}")
+    private boolean hasNotReturnInfo;
 
     @Value("${query.required-alias:false}")
     private boolean requiredAlias;
@@ -174,7 +174,7 @@ public class TableColumnTemplate implements InitializingBean {
         return info(tables, false);
     }
     private List<QueryInfo> info(String tables, boolean force) {
-        if (hasReturnInfo) {
+        if (hasNotReturnInfo) {
             return Collections.emptyList();
         }
 
