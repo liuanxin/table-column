@@ -95,7 +95,17 @@ public class ReqInfo extends ReqModel implements Serializable {
             throw new RuntimeException("request: required alias");
         }
         if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
-            super.fillAlias(alias, requestAliasMap);
+            ReqModel model = requestAliasMap.get(alias);
+            if (QueryUtil.isNull(model)) {
+                throw new RuntimeException("request: no alias(" + alias + ") info");
+            }
+
+            setTable(model.getTable());
+            setResult(model.getResult());
+            setType(model.getType());
+            if (QueryUtil.isNotNull(param)) {
+                param.setRelation(model.getRelationList());
+            }
         }
     }
 
@@ -106,7 +116,7 @@ public class ReqInfo extends ReqModel implements Serializable {
             throw new RuntimeException("request: need table");
         }
         if (QueryUtil.isNull(tcInfo.findTableWithAlias(table))) {
-            throw new RuntimeException("request: has no defined table(" + table + ")");
+            throw new RuntimeException("request: table(" + table + ") has no defined");
         }
     }
 

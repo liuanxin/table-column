@@ -1,10 +1,9 @@
 package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.ResultType;
-import com.github.liuanxin.query.util.QueryUtil;
 
 import java.io.Serializable;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 
 public class ReqModel implements Serializable {
@@ -16,6 +15,8 @@ public class ReqModel implements Serializable {
     private ReqResult result;
     /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
     private ResultType type;
+
+    private List<List<String>> relationList;
 
     public ReqModel() {}
     public ReqModel(String table) {
@@ -29,6 +30,12 @@ public class ReqModel implements Serializable {
         this.table = table;
         this.result = result;
         this.type = type;
+    }
+    public ReqModel(String table, ReqResult result, ResultType type, List<List<String>> relationList) {
+        this.table = table;
+        this.result = result;
+        this.type = type;
+        this.relationList = relationList;
     }
 
     public String getTable() {
@@ -52,12 +59,20 @@ public class ReqModel implements Serializable {
         this.type = type;
     }
 
+    public List<List<String>> getRelationList() {
+        return relationList;
+    }
+    public void setRelationList(List<List<String>> relationList) {
+        this.relationList = relationList;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ReqModel)) return false;
         ReqModel that = (ReqModel) o;
-        return Objects.equals(table, that.table) && Objects.equals(result, that.result) && type == that.type;
+        return Objects.equals(table, that.table) && Objects.equals(result, that.result)
+                && type == that.type && Objects.equals(relationList, that.relationList);
     }
 
     @Override
@@ -71,18 +86,7 @@ public class ReqModel implements Serializable {
                 "table='" + table + '\'' +
                 ", result=" + result +
                 ", type=" + type +
+                ", relationList=" + relationList +
                 '}';
-    }
-
-
-    protected void fillAlias(String alias, Map<String, ReqModel> requestAliasMap) {
-        ReqModel model = requestAliasMap.get(alias);
-        if (QueryUtil.isNull(model)) {
-            throw new RuntimeException("request: no alias(" + alias + ") info");
-        }
-
-        this.table = model.getTable();
-        this.result = model.getResult();
-        this.type = model.getType();
     }
 }
