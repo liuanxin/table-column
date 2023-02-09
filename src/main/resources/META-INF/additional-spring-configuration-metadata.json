@@ -29,11 +29,11 @@
       "description": "设置为 true 时, 查询只能使用别名."
     },
     {
-      "name": "query.need-condition-or-page",
+      "name": "query.not-required-condition-or-page",
       "type": "java.lang.Boolean",
       "defaultValue": "false",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "设置为 true 时, 查询必须要有条件或带有分页."
+      "description": "设置为 true 时, 查询可以不需要有条件或分页."
     },
     {
       "name": "query.alias-generate-rule",
