@@ -1103,7 +1103,8 @@ public class TableColumnTemplate implements InitializingBean {
                     fromAndWherePrint, mainTable, needAlias, queryHasMany, countPrintSql);
             count = queryCount(selectCountSql, params, countPrintSql);
             if (param.needQueryCurrentPage(count)) {
-                pageList = queryLimitList(fromSql, whereSql, wherePrint, mainTable, param, result, needAlias, params, force, printSql);
+                pageList = queryLimitList(fromSql, whereSql, wherePrint, mainTable, param, result, needAlias,
+                        queryHasMany, params, force, printSql);
             } else {
                 pageList = Collections.emptyList();
             }
@@ -1125,7 +1126,7 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private List<Map<String, Object>> queryLimitList(String fromSql, String whereSql, String wherePrint, String mainTable,
-                                                     ReqParam param, ReqResult result, boolean needAlias,
+                                                     ReqParam param, ReqResult result, boolean needAlias, boolean queryHasMany,
                                                      List<Object> params, boolean force, StringBuilder printSql) {
         String fromAndWhere = fromSql + whereSql;
         String fromAndWherePrint = fromSql + wherePrint;
@@ -1134,7 +1135,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (param.hasDeepPage(deepMaxPageSize)) {
             // SELECT id FROM ... WHERE .?. ORDER BY ... LIMIT ...
             String idPageSql = QuerySqlUtil.toIdPageSql(tcInfo, fromAndWhere,
-                    fromAndWherePrint, mainTable, needAlias, param, params, printSql);
+                    fromAndWherePrint, mainTable, needAlias, param, params, queryHasMany, printSql);
             if (LOG.isInfoEnabled()) {
                 LOG.info("query condition sql: [{}]", printSql);
             }
@@ -1147,7 +1148,7 @@ public class TableColumnTemplate implements InitializingBean {
         } else {
             // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
             sql = QuerySqlUtil.toPageSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable,
-                    param, result, needAlias, force, params, printSql);
+                    param, result, needAlias, force, params, queryHasMany, printSql);
         }
         return QueryUtil.isEmpty(sql) ? null : assemblyResult(sql, needAlias, params, mainTable, result, force, printSql);
     }

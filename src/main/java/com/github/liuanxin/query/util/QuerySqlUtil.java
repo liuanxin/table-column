@@ -116,30 +116,36 @@ public class QuerySqlUtil {
 
     public static String toPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                    String mainTable, ReqParam param, ReqResult result, boolean needAlias,
-                                   boolean force, List<Object> params, StringBuilder printSql) {
+                                   boolean force, List<Object> params, boolean queryHasMany, StringBuilder printSql) {
         String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias, force);
         if (QueryUtil.isEmpty(selectColumn)) {
             return "";
         }
         // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
-        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, selectColumn, params, printSql);
+        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias,
+                selectColumn, params, queryHasMany, printSql);
     }
 
     private static String toAppendSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                       String mainTable, ReqParam param, boolean needAlias, String selectColumn,
-                                      List<Object> params, StringBuilder printSql) {
+                                      List<Object> params, boolean queryHasMany, StringBuilder printSql) {
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
-        printSql.append("SELECT ").append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
-        return "SELECT " + selectColumn + fromAndWhere + orderSql + pageSql;
+        printSql.append("SELECT ");
+        if (queryHasMany) {
+            printSql.append("DISTINCT ");
+        }
+        printSql.append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
+        return "SELECT " + (queryHasMany ? "DISTINCT " : "") + selectColumn + fromAndWhere + orderSql + pageSql;
     }
 
     public static String toIdPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint, String mainTable,
-                                     boolean needAlias, ReqParam param, List<Object> params, StringBuilder printSql) {
+                                     boolean needAlias, ReqParam param, List<Object> params,
+                                     boolean queryHasMany, StringBuilder printSql) {
         String idSelect = tcInfo.findTable(mainTable).idSelect(needAlias);
         // SELECT id FROM ... WHERE ... ORDER BY ... LIMIT ...
-        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, idSelect, params, printSql);
+        return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, idSelect, params, queryHasMany, printSql);
     }
     public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String tables,
                                            ReqResult result, List<Map<String, Object>> idList, boolean needAlias,

@@ -69,7 +69,7 @@ public class TableJoinRelation implements Serializable {
         String childTableName = childTable.getName();
         TableColumnRelation relation = tcInfo.findRelationByMasterChild(masterTable.getName(), childTableName);
         String childAlias = QuerySqlUtil.toSqlField(childTable.getAlias());
-        return " " + joinType.getValue() + QuerySqlUtil.toSqlField(childTableName) +
+        return " " + joinType.getValue() + " " + QuerySqlUtil.toSqlField(childTableName) +
                 " AS " + childAlias + " ON " + childAlias +
                 "." + QuerySqlUtil.toSqlField(relation.getOneOrManyColumn()) +
                 " = " + QuerySqlUtil.toSqlField(masterTable.getAlias()) +
