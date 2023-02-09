@@ -503,7 +503,7 @@ public class QueryUtil {
             return true;
         }
         String trim = str.trim().toLowerCase();
-        return "undefined".equals(trim) || "null".equals(trim) /* || "nil".equals(trim) */ || "".equals(trim);
+        return "".equals(trim) || "null".equals(trim) /* || "nil".equals(trim) */ || "undefined".equals(trim);
     }
     public static boolean isNotEmpty(String obj) {
         return !isEmpty(obj);
