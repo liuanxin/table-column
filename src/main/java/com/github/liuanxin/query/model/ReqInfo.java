@@ -7,7 +7,7 @@ import com.github.liuanxin.query.util.QueryUtil;
 import java.io.Serializable;
 import java.util.*;
 
-public class ReqInfo extends ReqAlias implements Serializable {
+public class ReqInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 模板别名, 用这个值映射 RequestModel 的内容 */
@@ -15,24 +15,35 @@ public class ReqInfo extends ReqAlias implements Serializable {
     /** 入参 */
     private ReqParam param;
 
+    /** 主表 */
+    private String table;
+    /** 出参 */
+    private ReqResult result;
+    /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
+    private ResultType type;
+
     public ReqInfo() {}
     public ReqInfo(ReqParam param, String table, ResultType type) {
-        super.setTable(table);
-        super.setType(type);
+        this.table = table;
+        this.type = type;
         this.param = param;
     }
     public ReqInfo(ReqParam param, String table) {
-        super.setTable(table);
+        this.table = table;
         this.param = param;
     }
     public ReqInfo(String alias, ReqParam param, String table, ReqResult result, ResultType type) {
-        super(table, result, type);
         this.alias = alias;
         this.param = param;
+        this.table = table;
+        this.result = result;
+        this.type = type;
     }
     public ReqInfo(String table, ReqResult result, ResultType type, ReqParam param) {
-        super(table, result, type);
         this.param = param;
+        this.table = table;
+        this.result = result;
+        this.type = type;
     }
 
 
@@ -50,19 +61,40 @@ public class ReqInfo extends ReqAlias implements Serializable {
         this.param = param;
     }
 
+    public String getTable() {
+        return table;
+    }
+    public void setTable(String table) {
+        this.table = table;
+    }
+
+    public ReqResult getResult() {
+        return result;
+    }
+    public void setResult(ReqResult result) {
+        this.result = result;
+    }
+
+    public ResultType getType() {
+        return type;
+    }
+    public void setType(ResultType type) {
+        this.type = type;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ReqInfo)) return false;
         ReqInfo that = (ReqInfo) o;
         return Objects.equals(alias, that.alias) && Objects.equals(param, that.param)
-                && Objects.equals(getTable(), that.getTable()) && Objects.equals(getResult(), that.getResult())
-                && getType() == that.getType();
+                && Objects.equals(table, that.table) && Objects.equals(result, that.result)
+                && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, param, getTable(), getResult(), getType());
+        return Objects.hash(alias, param, table, result, type);
     }
 
     @Override
@@ -70,9 +102,9 @@ public class ReqInfo extends ReqAlias implements Serializable {
         return "ReqInfo{" +
                 ", alias=" + alias +
                 ", param=" + param +
-                ", table='" + getTable() + '\'' +
-                ", result=" + getResult() +
-                ", type=" + getType() +
+                ", table='" + table + '\'' +
+                ", result=" + result +
+                ", type=" + type +
                 '}';
     }
 
@@ -82,29 +114,29 @@ public class ReqInfo extends ReqAlias implements Serializable {
             throw new RuntimeException("request: required alias");
         }
         if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
-            ReqAlias model = requestAliasMap.get(alias);
-            if (QueryUtil.isNull(model)) {
+            ReqAlias reqAlias = requestAliasMap.get(alias);
+            if (QueryUtil.isNull(reqAlias)) {
                 throw new RuntimeException("request: no alias(" + alias + ") info");
             }
 
-            String table = model.getTable();
+            String table = reqAlias.getTable();
             if (QueryUtil.isNotEmpty(table)) {
-                setTable(table);
+                this.table = table;
             }
-            ReqResult result = model.getResult();
+            ReqResult result = reqAlias.getResult();
             if (QueryUtil.isNotNull(result)) {
-                setResult(result);
+                this.result = result;
             }
-            ResultType type = model.getType();
+            ResultType type = reqAlias.getType();
             if (QueryUtil.isNotNull(type)) {
-                setType(type);
+                this.type = type;
             }
             if (QueryUtil.isNotNull(param)) {
-                Boolean notCount = model.getNotCount();
+                Boolean notCount = reqAlias.getNotCount();
                 if (QueryUtil.isNotNull(notCount)) {
                     param.setNotCount(notCount);
                 }
-                List<List<String>> relationList = model.getRelationList();
+                List<List<String>> relationList = reqAlias.getRelationList();
                 if (QueryUtil.isNotEmpty(relationList)) {
                     param.setRelation(relationList);
                 }
