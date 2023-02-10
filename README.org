@@ -96,7 +96,7 @@ query:
   #   Lower(小写)
   #   Upper(大写)
   alias-generate-rule:
-  # 当要请求的数据页(page * limit)大于当前值时, sql 查询将会拆分成 2 条, 先只查 id 再用 id 查具体的数据, 默认是 10000.
+  # 当要请求的分页数据(page * limit)大于当前值时, sql 查询将会拆分成 2 条, 先只查 id 再用 id 查具体的数据, 默认是 10000.
   deep-max-page-size:
   # 查询条件是集合时的最大个数, 默认是 1000.
   max-list-count:
@@ -104,12 +104,12 @@ query:
   one-to-one-has-many-rule:
   # 用来做逻辑删除的字段名, 标了 @LogicInfo 注解则以注解所在字段为主.
   logic-delete-column:
-  # 用来做逻辑删除的默认值, 比如设置成 0, 表中有字段标了 @LogicDelete 则以注解为主.
+  # 用来做逻辑删除的默认值, 比如设置成 0, 实体上的字段标了 @LogicDelete 则以注解为主.
   logic-value:
-  # 用来做逻辑删除的字段类型是 tinyint(1) 时的删除值, 比如设置成 1, 表中有字段标了 @LogicDelete 则以注解为主.
+  # 用来做逻辑删除的字段类型是 tinyint(1) 时的删除值, 比如设置成 1, 实体上的字段标了 @LogicDelete 则以注解为主.
   logic-delete-boolean-value:
-  # 用来做逻辑删除的字段类型是 int 时的删除值, 比如设置成 UNIX_TIMESTAMP(), 表中有字段标了 @LogicDelete 则以注解为主.
+  # 用来做逻辑删除的字段类型是 int 时的删除值, 比如设置成 UNIX_TIMESTAMP(), 实体上的字段标了 @LogicDelete 则以注解为主.
   logic-delete-int-value:
-  # 用来做逻辑删除的字段类型是 bigint 时的值, 比如设置成 id, 表中有字段标了 @LogicDelete 则以注解为主.
+  # 用来做逻辑删除的字段类型是 bigint 时的值, 比如设置成 id, 实体上的字段标了 @LogicDelete 则以注解为主.
   logic-delete-long-value:
 #+END_SRC
