@@ -1,5 +1,6 @@
 
 ** 说明
+
 由前端定义要返回的表字段及查询参数, 减少后端处理 sql 查询组装数据的代码量
 
 ** 使用
@@ -32,15 +33,16 @@ public class TableColumnConfig {
     @Bean("queryAliasMap")
     public Map<String, ReqAlias> queryAlias() {
         return Map.of(
-                // 查询
+                // 用这个查询别名时, 只有订单表(所有字段)
                 "all-order", new ReqAlias("Order"),
 
+                // 用这个查询别名时, 指定 订单表 的字段, 指定 订单地址表 订单项表 订单日志表 的字段, 且在查询 Order 时 distinct
                 "order-address-item-log", new ReqAlias("Order", new ReqResult(List.of(
                         "orderNo", "orderStatus", "amount", "desc", "createTime",
-                        Map.of("address", Map.of("table", "OrderAddress", "columns", Arrays.asList("contact", "phone", "address"))),
-                        Map.of("items", Map.of("table", "OrderItem", "columns", Arrays.asList("productName", "price", "number"))),
-                        Map.of("logs", Map.of("table", "OrderLog", "columns", Arrays.asList("operator", "message", "time")))
-                )))
+                        Map.of("address", Map.of("table", "OrderAddress", "columns", List.of("contact", "phone", "address"))),
+                        Map.of("items", Map.of("table", "OrderItem", "columns", List.of("productName", "price", "number"))),
+                        Map.of("logs", Map.of("table", "OrderLog", "columns", List.of("operator", "message", "time")))
+                ), true))
         );
     }
 }
@@ -79,8 +81,14 @@ query:
   required-alias:
   # 设置为 true 时, 查询可以不需要有条件或分页, 默认是 false.
   not-required-condition-or-page:
-  # 别名生成的规则: Standard(表 UserInfo  字段 userName, 不设置则默认是此值), Horizontal(表 User-Info  字段 user-name),
-  # Under(表 User_Info  字段 user_name), Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz), Same(一致), Lower(小写), Upper(大写).
+  # 表名 字段名 别名生成的规则(比如表名是 t_user_info, 字段是 user_name):
+  #   Standard(表 UserInfo  字段 userName, 不设置则默认是此值)
+  #   Horizontal(表 User-Info  字段 user-name)
+  #   Under(表 User_Info  字段 user_name)
+  #   Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz)
+  #   Same(一致)
+  #   Lower(小写)
+  #   Upper(大写)
   alias-generate-rule:
   # 当要请求的数据页(page * limit)大于当前值时, sql 查询将会拆分成 2 条, 先只查 id 再用 id 查具体的数据, 默认是 10000.
   deep-max-page-size:

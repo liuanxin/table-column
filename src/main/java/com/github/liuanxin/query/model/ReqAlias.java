@@ -16,7 +16,9 @@ public class ReqAlias implements Serializable {
     /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
     private ResultType type;
 
+    /** 别名中入参里面设定不发起 SELECT COUNT(*) 查询. 别名中设定了此值将会覆盖入参上的值 */
     private Boolean notCount;
+    /** 别名中入参里用到的表的关系. 如: [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] ]. 别名中设定了此值将会覆盖入参上的值 */
     private List<List<String>> relationList;
 
     public ReqAlias() {}

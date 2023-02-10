@@ -24,8 +24,8 @@ import java.util.*;
  *   "columns": [
  *     "id",
  *     "orderNo",
- *     { "create_time" : [ "yyyy-MM-dd HH:mm", "GMT+8" ] },  -- format date [ "pattern", "timeZone" ]
- *     "update_time",  -- format pattern default: yyyy-MM-dd HH:mm:ss
+ *     { "create_time" : [ "yyyy-MM-dd HH:mm", "GMT+8" ] },  // format date [ "pattern", "timeZone" ]
+ *     "update_time",  // format pattern default: yyyy-MM-dd HH:mm:ss
  *     {
  *       "address": {
  *         "table": "orderAddress",
@@ -56,7 +56,7 @@ import java.util.*;
  *     [ "def", "count_distinct", "name, name2" ],
  *     [ "ghi", "sum", "price", "gt", 100.5, "lt", 120.5 ],
  *     [ "jkl", "min", "id" ],
- *     [ "mno", "max", "create_time", [ "yyyy-MM-dd HH:mm", "GMT+8" ] ],  -- format date [ "pattern", "timeZone" ]
+ *     [ "mno", "max", "create_time", [ "yyyy-MM-dd HH:mm", "GMT+8" ] ],  // format date [ "pattern", "timeZone" ]
  *     [ "pqr", "avg", "price" ],
  *     [ "stu", "group_concat", "name", "lks", "aaa" ]
  *   ]
@@ -79,6 +79,10 @@ public class ReqResult implements Serializable {
     public ReqResult() {}
     public ReqResult(List<Object> columns) {
         this.columns = columns;
+    }
+    public ReqResult(List<Object> columns, boolean distinct) {
+        this.columns = columns;
+        this.distinct = distinct;
     }
     public ReqResult(String table, List<Object> columns) {
         this.table = table;
