@@ -270,7 +270,7 @@ public class ReqQuery implements Serializable {
             conditions.add(Arrays.asList(c, type.name().toLowerCase(), value));
         }
     }
-    public <T> void addCondition(String column, ConditionType type, Object value) {
+    public void addCondition(String column, ConditionType type, Object value) {
         if (QueryUtil.isNotEmpty(conditions)) {
             conditions.add(Arrays.asList(column, type.name().toLowerCase(), value));
         }
