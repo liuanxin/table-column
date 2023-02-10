@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class QueryUtil {
 
@@ -261,17 +262,11 @@ public class QueryUtil {
         }
 
         Map<String, Field> returnMap = new LinkedHashMap<>();
-        Field[] declaredFields = clazz.getDeclaredFields();
-        if (declaredFields.length > 0) {
-            for (Field declaredField : declaredFields) {
-                returnMap.put(declaredField.getName(), declaredField);
-            }
+        for (Field declaredField : clazz.getDeclaredFields()) {
+            returnMap.put(declaredField.getName(), declaredField);
         }
-        Field[] fields = clazz.getFields();
-        if (fields.length > 0) {
-            for (Field field : fields) {
-                returnMap.put(field.getName(), field);
-            }
+        for (Field field : clazz.getFields()) {
+            returnMap.put(field.getName(), field);
         }
 
         Class<?> superclass = clazz.getSuperclass();
@@ -333,6 +328,17 @@ public class QueryUtil {
         StringJoiner sj = new StringJoiner(", ", "[", "]");
         for (Object obj : list) {
             sj.add(toStr(obj));
+        }
+        return sj.toString();
+    }
+
+    public static <T> String toStr(Collection<T> list, Function<T, String> func) {
+        if (isEmpty(list)) {
+            return "";
+        }
+        StringJoiner sj = new StringJoiner(",");
+        for (T obj : list) {
+            sj.add(func.apply(obj));
         }
         return sj.toString();
     }

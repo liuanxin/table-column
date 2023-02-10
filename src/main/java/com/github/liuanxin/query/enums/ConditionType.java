@@ -6,7 +6,6 @@ import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <pre>
@@ -313,7 +312,7 @@ public enum ConditionType {
             NEND
     ));
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
-            STRING_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
+            QueryUtil.toStr(STRING_TYPE_SET, ConditionType::info));
 
     /** number: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
@@ -329,7 +328,7 @@ public enum ConditionType {
             NBE
     ));
     private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
-            NUMBER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
+            QueryUtil.toStr(NUMBER_TYPE_SET, ConditionType::info));
 
     /** date: 大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> DATE_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
@@ -341,7 +340,7 @@ public enum ConditionType {
             NBE
     ));
     private static final String DATE_TYPE_INFO = String.format("Date type can only be used in 「%s」 conditions",
-            DATE_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
+            QueryUtil.toStr(DATE_TYPE_SET, ConditionType::info));
 
     /**  非 string/number/date 类型: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
     public static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
@@ -353,7 +352,7 @@ public enum ConditionType {
             NN
     ));
     private static final String OTHER_TYPE_INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
-            OTHER_TYPE_SET.stream().map(ConditionType::info).collect(Collectors.joining(", ")));
+            QueryUtil.toStr(OTHER_TYPE_SET, ConditionType::info));
 
 
     private void checkType(Class<?> type, String column) {
