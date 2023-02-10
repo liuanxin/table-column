@@ -29,6 +29,11 @@ public class ReqAlias implements Serializable {
         this.table = table;
         this.result = result;
     }
+    public ReqAlias(String table, ReqResult result, List<List<String>> relationList) {
+        this.table = table;
+        this.result = result;
+        this.relationList = relationList;
+    }
     public ReqAlias(String table, ReqResult result, ResultType type) {
         this.table = table;
         this.result = result;

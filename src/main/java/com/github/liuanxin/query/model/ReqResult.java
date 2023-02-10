@@ -450,7 +450,7 @@ public class ReqResult implements Serializable {
                 if (obj instanceof String) {
                     String column = (String) obj;
                     if (QueryUtil.isNotEmpty(column)) {
-                        sj.add(QueryUtil.getColumnAlias(needAlias, column, mainTable, tcInfo));
+                        sj.add(QueryUtil.getColumnGroup(needAlias, column, mainTable, tcInfo));
                     }
                 } else if (obj instanceof List<?>) {
                     if (QueryUtil.isNotEmpty((List<?>) obj)) {

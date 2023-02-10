@@ -26,7 +26,7 @@ public class ReqParam implements Serializable {
 
     /** 查询信息 */
     private ReqQuery query;
-    /** 排序信息 */
+    /** 排序信息. 如: { "字段": "asc", "关联表.字段", "desc" } */
     private Map<String, String> sort;
     /** 分页信息 ( 当前页, 每页行数 ), 每页行数在「10, 20, 50, 100, 200, 500, 1000」中, 省略则默认是 10 */
     private List<Integer> page;
@@ -220,7 +220,7 @@ public class ReqParam implements Serializable {
         if (QueryUtil.isNotEmpty(sort)) {
             StringJoiner orderSj = new StringJoiner(", ");
             for (Map.Entry<String, String> entry : sort.entrySet()) {
-                orderSj.add(QueryUtil.getColumnAlias(needAlias, entry.getKey(), mainTable, tcInfo) + QueryOrder.toSql(entry.getValue()));
+                orderSj.add(QueryUtil.getColumnOrder(needAlias, entry.getKey(), mainTable, tcInfo) + QueryOrder.toSql(entry.getValue()));
             }
             String orderBy = orderSj.toString();
             if (QueryUtil.isNotEmpty(orderBy)) {

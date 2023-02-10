@@ -628,7 +628,7 @@ public class QueryUtil {
         return alias + useColumnName + (tableColumnName.equals(tableColumnAlias) ? "" : (" AS " + tableColumnAlias));
     }
 
-    public static String getColumnAlias(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
+    public static String getColumnGroup(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
         Table table = tcInfo.findTable(getTableName(column, mainTable));
         TableColumn tableColumn = tcInfo.findTableColumn(table, getColumnName(column));
         String tableColumnName = tableColumn.getName();
@@ -639,6 +639,16 @@ public class QueryUtil {
             return QuerySqlUtil.toSqlField(tableColumnName);
         } else {
             return QuerySqlUtil.toSqlField(tableColumnAlias);
+        }
+    }
+
+    public static String getColumnOrder(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {
+        Table table = tcInfo.findTable(getTableName(column, mainTable));
+        String tableColumnName = tcInfo.findTableColumn(table, getColumnName(column)).getName();
+        if (needAlias) {
+            return QuerySqlUtil.toSqlField(table.getAlias()) + "." + QuerySqlUtil.toSqlField(tableColumnName);
+        } else {
+            return QuerySqlUtil.toSqlField(tableColumnName);
         }
     }
 }
