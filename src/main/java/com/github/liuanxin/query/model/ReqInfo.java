@@ -10,13 +10,13 @@ import java.util.*;
 public class ReqInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 模板别名, 用这个值映射 RequestModel 的内容 */
+    /** 查询别名 */
     private String alias;
-    /** 入参 */
-    private ReqParam param;
 
     /** 主表 */
     private String table;
+    /** 入参 */
+    private ReqParam param;
     /** 出参 */
     private ReqResult result;
     /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
