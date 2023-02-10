@@ -100,12 +100,27 @@ public class ReqInfo extends ReqAlias implements Serializable {
                 throw new RuntimeException("request: no alias(" + alias + ") info");
             }
 
-            setTable(model.getTable());
-            setResult(model.getResult());
-            setType(model.getType());
+            String table = model.getTable();
+            if (QueryUtil.isNotEmpty(table)) {
+                setTable(table);
+            }
+            ReqResult result = model.getResult();
+            if (QueryUtil.isNotNull(result)) {
+                setResult(result);
+            }
+            ResultType type = model.getType();
+            if (QueryUtil.isNotNull(type)) {
+                setType(type);
+            }
             if (QueryUtil.isNotNull(param)) {
-                param.setNotCount(model.getNotCount());
-                param.setRelation(model.getRelationList());
+                Boolean notCount = model.getNotCount();
+                if (QueryUtil.isNotNull(notCount)) {
+                    param.setNotCount(notCount);
+                }
+                List<List<String>> relationList = model.getRelationList();
+                if (QueryUtil.isNotEmpty(relationList)) {
+                    param.setRelation(relationList);
+                }
             }
         }
     }
