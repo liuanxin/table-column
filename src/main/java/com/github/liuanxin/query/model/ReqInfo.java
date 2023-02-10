@@ -77,19 +77,6 @@ public class ReqInfo extends ReqAlias implements Serializable {
     }
 
 
-    public void checkAlias(Map<String, ReqAlias> requestAliasMap) {
-        if (QueryUtil.isEmpty(alias)) {
-            throw new RuntimeException("request: need alias");
-        }
-        if (QueryUtil.isEmpty(requestAliasMap)) {
-            throw new RuntimeException("request: no alias has defined");
-        }
-        ReqAlias model = requestAliasMap.get(alias);
-        if (QueryUtil.isNull(model)) {
-            throw new RuntimeException(String.format("request: no alias(%s) has defined", alias));
-        }
-    }
-
     public void handleAlias(boolean requiredAlias, Map<String, ReqAlias> requestAliasMap) {
         if (requiredAlias && QueryUtil.isEmpty(alias)) {
             throw new RuntimeException("request: required alias");

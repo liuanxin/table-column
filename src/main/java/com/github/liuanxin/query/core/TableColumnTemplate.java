@@ -951,23 +951,6 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
-    public Object forceDynamicQueryAlias(ReqInfo req) {
-        return dynamicQueryAlias(req, true);
-    }
-
-    public Object dynamicQueryAlias(ReqInfo req) {
-        return dynamicQueryAlias(req, false);
-    }
-
-    private Object dynamicQueryAlias(ReqInfo req, boolean force) {
-        if (QueryUtil.isNull(req)) {
-            return null;
-        }
-        req.checkAlias(queryAliasMap);
-        return dynamicQuery(req, force);
-    }
-
-
     public Object forceDynamicQuery(ReqInfo req) {
         return dynamicQuery(req, true);
     }
