@@ -12,7 +12,7 @@ public final class QueryConst {
             " WHERE `TABLE_SCHEMA` = ?";
     public static final String COLUMN_SQL = "SELECT `TABLE_NAME` tn, `COLUMN_NAME` cn, `COLUMN_TYPE` ct," +
             " `COLUMN_COMMENT` cc, `COLUMN_KEY` ck, `CHARACTER_MAXIMUM_LENGTH` cml," +
-            " `IS_NULLABLE` ine, `EXTRA` ex, `COLUMN_DEFAULT` cd" +
+            " `IS_NULLABLE` ine, `EXTRA` ext, `COLUMN_DEFAULT` cd" +
             " FROM `information_schema`.`COLUMNS`" +
             " WHERE `TABLE_SCHEMA` = ?" +
             " ORDER BY `TABLE_NAME`, `ORDINAL_POSITION`";
