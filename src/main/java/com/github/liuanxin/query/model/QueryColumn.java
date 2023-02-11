@@ -98,6 +98,7 @@ public class QueryColumn implements Serializable {
         this.relationColumn = relationColumn;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
