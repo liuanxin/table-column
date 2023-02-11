@@ -19,7 +19,7 @@
 @Configuration
 public class TableColumnConfig {
 
-    // 表关联
+    /** 设置表关联关系 */
     @Bean("tableRelationList")
     public List<TableColumnRelation> tableRelation() {
         return List.of(
@@ -29,13 +29,11 @@ public class TableColumnConfig {
         );
     }
 
-    // 查询别名
+    /** 设置查询别名 */
     @Bean("queryAliasMap")
     public Map<String, ReqAlias> queryAlias() {
         return Map.of(
-                // 用这个查询别名时, 只有订单表(所有字段)
                 "all-order", new ReqAlias("Order"),
-
                 "order-address-item-log", orderAddressItemLogAlias()
         );
     }
