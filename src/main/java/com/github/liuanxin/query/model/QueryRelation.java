@@ -28,6 +28,7 @@ public class QueryRelation implements Serializable {
         return right;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -35,10 +36,12 @@ public class QueryRelation implements Serializable {
         QueryRelation that = (QueryRelation) o;
         return Objects.equals(left, that.left) && type == that.type && Objects.equals(right, that.right);
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(left, type, right);
     }
+
     @Override
     public String toString() {
         return "QueryRelation{" +

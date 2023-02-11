@@ -115,10 +115,11 @@ public class ReqResult implements Serializable {
         this.distinct = distinct;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ReqResult)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         ReqResult reqResult = (ReqResult) o;
         return Objects.equals(table, reqResult.table) && Objects.equals(columns, reqResult.columns)
                 && Objects.equals(distinct, reqResult.distinct);
@@ -131,7 +132,11 @@ public class ReqResult implements Serializable {
 
     @Override
     public String toString() {
-        return "ReqResult{table='" + table + "', columns=" + columns + ", distinct=" + distinct + "}";
+        return "ReqResult{" +
+                "table='" + table + '\'' +
+                ", columns=" + columns +
+                ", distinct=" + distinct +
+                '}';
     }
 
 

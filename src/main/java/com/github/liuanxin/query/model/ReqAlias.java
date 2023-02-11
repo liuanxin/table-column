@@ -83,14 +83,15 @@ public class ReqAlias implements Serializable {
         this.type = type;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ReqAlias reqAlias = (ReqAlias) o;
-        return Objects.equals(table, reqAlias.table)
-                && Objects.equals(notCount, reqAlias.notCount) && Objects.equals(relationList, reqAlias.relationList)
-                && Objects.equals(result, reqAlias.result) && type == reqAlias.type;
+        return Objects.equals(table, reqAlias.table) && Objects.equals(notCount, reqAlias.notCount)
+                && Objects.equals(relationList, reqAlias.relationList) && Objects.equals(result, reqAlias.result)
+                && type == reqAlias.type;
     }
 
     @Override

@@ -82,27 +82,28 @@ public class ReqInfo implements Serializable {
         this.type = type;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ReqInfo)) return false;
-        ReqInfo that = (ReqInfo) o;
-        return Objects.equals(alias, that.alias) && Objects.equals(param, that.param)
-                && Objects.equals(table, that.table) && Objects.equals(result, that.result)
-                && type == that.type;
+        if (o == null || getClass() != o.getClass()) return false;
+        ReqInfo reqInfo = (ReqInfo) o;
+        return Objects.equals(alias, reqInfo.alias) && Objects.equals(table, reqInfo.table)
+                && Objects.equals(param, reqInfo.param) && Objects.equals(result, reqInfo.result)
+                && type == reqInfo.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, param, table, result, type);
+        return Objects.hash(alias, table, param, result, type);
     }
 
     @Override
     public String toString() {
         return "ReqInfo{" +
-                ", alias=" + alias +
-                ", param=" + param +
+                "alias='" + alias + '\'' +
                 ", table='" + table + '\'' +
+                ", param=" + param +
                 ", result=" + result +
                 ", type=" + type +
                 '}';

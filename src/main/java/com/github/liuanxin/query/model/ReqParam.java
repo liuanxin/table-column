@@ -97,10 +97,11 @@ public class ReqParam implements Serializable {
         this.relation = relation;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ReqParam)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         ReqParam reqParam = (ReqParam) o;
         return Objects.equals(query, reqParam.query) && Objects.equals(sort, reqParam.sort)
                 && Objects.equals(page, reqParam.page) && Objects.equals(notCount, reqParam.notCount)

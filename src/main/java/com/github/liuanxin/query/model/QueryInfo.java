@@ -50,7 +50,7 @@ public class QueryInfo implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof QueryInfo)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         QueryInfo queryInfo = (QueryInfo) o;
         return Objects.equals(name, queryInfo.name) && Objects.equals(desc, queryInfo.desc)
                 && Objects.equals(columnList, queryInfo.columnList);
@@ -69,5 +69,4 @@ public class QueryInfo implements Serializable {
                 ", columnList=" + columnList +
                 '}';
     }
-
 }

@@ -114,15 +114,15 @@ public class Table implements Serializable {
         this.idKey = idKey;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Table)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         Table table = (Table) o;
         return Objects.equals(name, table.name) && Objects.equals(desc, table.desc)
                 && Objects.equals(alias, table.alias) && Objects.equals(logicColumn, table.logicColumn)
-                && Objects.equals(logicValue, table.logicValue)
-                && Objects.equals(logicDeleteValue, table.logicDeleteValue)
+                && Objects.equals(logicValue, table.logicValue) && Objects.equals(logicDeleteValue, table.logicDeleteValue)
                 && Objects.equals(columnMap, table.columnMap) && Objects.equals(idKey, table.idKey);
     }
 
@@ -451,65 +451,6 @@ public class Table implements Serializable {
     }
 
 
-//    public String generateCountQuery(ReqQuery query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
-//                                     String groupBy, String having, String havingPrint, String orderBy,
-//                                     List<Integer> pageList, boolean force) {
-//        return generateQuery(query, tcInfo, params, printSql, "COUNT(*)", groupBy, having, havingPrint, orderBy, pageList, force);
-//    }
-//    public String generateQuery(ReqQuery query, TableColumnInfo tcInfo, List<Object> params, StringBuilder printSql,
-//                                String column, String groupBy, String having, String havingPrint, String orderBy,
-//                                List<Integer> pageList, boolean force) {
-//        if (QueryUtil.isEmpty(column)) {
-//            return "";
-//        }
-//
-//        StringBuilder wherePrint = new StringBuilder();
-//        String where = query.generateSql(name, tcInfo, false, params, wherePrint);
-//        if (QueryUtil.isEmpty(where)) {
-//            return "";
-//        }
-//
-//        StringBuilder limit = new StringBuilder();
-//        StringBuilder limitPrint = new StringBuilder();
-//        if (QueryUtil.isNotEmpty(pageList)) {
-//            Integer page = pageList.get(0);
-//            Integer limitSize = (pageList.size() > 1) ? pageList.get(1) : 0;
-//
-//            int index = (QueryUtil.isNull(page) || page <= 0) ? 1 : page;
-//            int size = QueryConst.LIMIT_SET.contains(limitSize) ? limitSize : QueryConst.DEFAULT_LIMIT;
-//            if (index == 1) {
-//                params.add(size);
-//                limit.append(" LIMIT ?");
-//                limitPrint.append(" LIMIT ").append(size);
-//            } else {
-//                params.add((index - 1) * size);
-//                params.add(size);
-//                limit.append(" LIMIT ?, ?");
-//                limitPrint.append(" LIMIT ").append((index - 1) * size).append(", ").append(size);
-//            }
-//        }
-//        String logicDelete = logicDeleteCondition(force, false);
-//        boolean emptyLogic = QueryUtil.isEmpty(logicDelete);
-//
-//        // 1. FROM: determine
-//        // 2. WHERE: filters on the rows
-//        // 3. GROUP BY: combines those rows into groups
-//        // 4. HAVING: filters groups
-//        // 5. ORDER BY: arranges the remaining rows/groups
-//        // 6. LIMIT: filters on the remaining rows/groups
-//        String table = QuerySqlUtil.toSqlField(name);
-//        printSql.append("SELECT ").append(column).append(" FROM ").append(table).append(" WHERE ");
-//        if (emptyLogic) {
-//            printSql.append(wherePrint);
-//        } else {
-//            printSql.append("( ").append(wherePrint).append(" )").append(logicDelete);
-//        }
-//        printSql.append(QueryUtil.toStr(groupBy)).append(QueryUtil.toStr(havingPrint))
-//                .append(QueryUtil.toStr(orderBy)).append(limitPrint);
-//        return "SELECT " + column + " FROM " + table + " WHERE "
-//                + (emptyLogic ? where : ("( " + where + " )" + logicDelete))
-//                + QueryUtil.toStr(groupBy) + QueryUtil.toStr(having) + QueryUtil.toStr(orderBy) + limit;
-//    }
     public String logicDeleteCondition(boolean force, boolean needAlias) {
         if (!force && QueryUtil.isNotEmpty(logicColumn) && QueryUtil.isNotEmpty(logicValue)) {
             String tableAlias = needAlias ? (QuerySqlUtil.toSqlField(alias) + ".") : "";

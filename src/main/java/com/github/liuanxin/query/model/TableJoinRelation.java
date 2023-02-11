@@ -41,10 +41,11 @@ public class TableJoinRelation implements Serializable {
         this.childTable = childTable;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof TableJoinRelation)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         TableJoinRelation that = (TableJoinRelation) o;
         return Objects.equals(masterTable, that.masterTable) && joinType == that.joinType
                 && Objects.equals(childTable, that.childTable);

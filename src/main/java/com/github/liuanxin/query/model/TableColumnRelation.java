@@ -59,18 +59,20 @@ public class TableColumnRelation implements Serializable {
         this.oneOrManyColumn = oneOrManyColumn;
     }
 
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TableColumnRelation that = (TableColumnRelation) o;
-        return oneTable.equals(that.oneTable) && oneColumn.equals(that.oneColumn)
-                && oneOrManyTable.equals(that.oneOrManyTable) && oneOrManyColumn.equals(that.oneOrManyColumn);
+        return Objects.equals(oneTable, that.oneTable) && Objects.equals(oneColumn, that.oneColumn)
+                && type == that.type && Objects.equals(oneOrManyTable, that.oneOrManyTable)
+                && Objects.equals(oneOrManyColumn, that.oneOrManyColumn);
     }
+
     @Override
     public int hashCode() {
-        return Objects.hash(oneTable, oneColumn, oneOrManyTable, oneOrManyColumn);
+        return Objects.hash(oneTable, oneColumn, type, oneOrManyTable, oneOrManyColumn);
     }
 
     @Override

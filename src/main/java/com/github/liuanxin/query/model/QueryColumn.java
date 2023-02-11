@@ -9,44 +9,28 @@ import java.util.Objects;
 public class QueryColumn implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 列名
-     */
+    /** 列名 */
     private String name;
 
-    /**
-     * 列说明
-     */
+    /** 列说明 */
     private String desc;
 
-    /**
-     * 列类型
-     */
+    /** 列类型 */
     private String type;
 
-    /**
-     * 写入时需要有值
-     */
+    /** 写入时需要有值 */
     private Boolean writeNeedValue;
 
-    /**
-     * 列类型是字符串时的长度
-     */
+    /** 列类型是字符串时的长度 */
     private Integer length;
 
-    /**
-     * 关联表
-     */
+    /** 关联表 */
     private String relationTable;
 
-    /**
-     * 关联字段
-     */
+    /** 关联字段 */
     private String relationColumn;
 
-    public QueryColumn() {
-    }
-
+    public QueryColumn() {}
     public QueryColumn(String name, String desc, String type, Boolean writeNeedValue,
                        Integer length, String relationTable, String relationColumn) {
         this.name = name;
@@ -114,13 +98,14 @@ public class QueryColumn implements Serializable {
         this.relationColumn = relationColumn;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof QueryColumn)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         QueryColumn that = (QueryColumn) o;
         return Objects.equals(name, that.name) && Objects.equals(desc, that.desc)
-                && Objects.equals(type, that.type) && Objects.equals(writeNeedValue, that.writeNeedValue)
+                && Objects.equals(type, that.type) && Objects.equals(writeNeedValue, that.writeNeedValue
                 && Objects.equals(length, that.length) && Objects.equals(relationTable, that.relationTable)
                 && Objects.equals(relationColumn, that.relationColumn);
     }
@@ -136,7 +121,7 @@ public class QueryColumn implements Serializable {
                 "name='" + name + '\'' +
                 ", desc='" + desc + '\'' +
                 ", type='" + type + '\'' +
-                ", needValue='" + writeNeedValue + '\'' +
+                ", writeNeedValue=" + writeNeedValue +
                 ", length=" + length +
                 ", relationTable='" + relationTable + '\'' +
                 ", relationColumn='" + relationColumn + '\'' +

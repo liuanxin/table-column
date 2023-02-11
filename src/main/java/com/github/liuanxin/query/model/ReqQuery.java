@@ -129,12 +129,13 @@ public class ReqQuery implements Serializable {
         this.conditions = conditions;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ReqQuery)) return false;
-        ReqQuery that = (ReqQuery) o;
-        return operate == that.operate && Objects.equals(conditions, that.conditions);
+        if (o == null || getClass() != o.getClass()) return false;
+        ReqQuery reqQuery = (ReqQuery) o;
+        return operate == reqQuery.operate && Objects.equals(conditions, reqQuery.conditions);
     }
 
     @Override
@@ -144,7 +145,10 @@ public class ReqQuery implements Serializable {
 
     @Override
     public String toString() {
-        return "ReqQuery{operate=" + operate + ", conditions=" + conditions + '}';
+        return "ReqQuery{" +
+                "operate=" + operate +
+                ", conditions=" + conditions +
+                '}';
     }
 
 

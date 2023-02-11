@@ -108,15 +108,16 @@ public class TableColumn implements Serializable {
         this.fieldName = fieldName;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof TableColumn)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         TableColumn that = (TableColumn) o;
-        return primary == that.primary && Objects.equals(name, that.name)
+        return primary == that.primary && notNull == that.notNull
+                && hasDefault == that.hasDefault && Objects.equals(name, that.name)
                 && Objects.equals(desc, that.desc) && Objects.equals(alias, that.alias)
-                && Objects.equals(strLen, that.strLen) && Objects.equals(notNull, that.notNull)
-                && Objects.equals(hasDefault, that.hasDefault) && Objects.equals(fieldType, that.fieldType)
+                && Objects.equals(strLen, that.strLen) && Objects.equals(fieldType, that.fieldType)
                 && Objects.equals(fieldName, that.fieldName);
     }
 
