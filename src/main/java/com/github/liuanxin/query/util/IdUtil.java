@@ -101,14 +101,14 @@ public class IdUtil {
                     try {
                         wait(CLOCK_BACK_MS - offset);
                     } catch (Exception e) {
-                        throw new RuntimeException(String.format("时钟回拨. 等待 %d 毫秒时异常", (lastTimestamp - timestamp)), e);
+                        throw new RuntimeException(String.format("生成 id 时时钟回拨. 等待 %d 毫秒时异常", (lastTimestamp - timestamp)), e);
                     }
                     timestamp = getMs();
                     if (timestamp < lastTimestamp) {
-                        throw new RuntimeException(String.format("再次时钟回拨. %d 毫秒内拒绝生成 id", (lastTimestamp - timestamp)));
+                        throw new RuntimeException(String.format("生成 id 时再次时钟回拨. %d 毫秒内拒绝生成 id", (lastTimestamp - timestamp)));
                     }
                 } else {
-                    throw new RuntimeException(String.format("时钟回拨. %d 毫秒内拒绝生成 id", offset));
+                    throw new RuntimeException(String.format("生成 id 时时钟回拨. %d 毫秒内拒绝生成 id", offset));
                 }
             }
             if (lastTimestamp == timestamp) {
