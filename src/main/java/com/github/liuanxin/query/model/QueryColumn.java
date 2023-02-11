@@ -98,14 +98,13 @@ public class QueryColumn implements Serializable {
         this.relationColumn = relationColumn;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         QueryColumn that = (QueryColumn) o;
         return Objects.equals(name, that.name) && Objects.equals(desc, that.desc)
-                && Objects.equals(type, that.type) && Objects.equals(writeNeedValue, that.writeNeedValue
+                && Objects.equals(type, that.type) && Objects.equals(writeNeedValue, that.writeNeedValue)
                 && Objects.equals(length, that.length) && Objects.equals(relationTable, that.relationTable)
                 && Objects.equals(relationColumn, that.relationColumn);
     }
