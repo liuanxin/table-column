@@ -50,6 +50,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.max-list-count:1000}")
     private int maxListCount;
 
+    @Value("${query.max-single-limit-count:1000}")
+    private int maxSingleLimitCount;
+
     @Value("${query.one-to-one-has-many-rule:}")
     private OneToOneHasManyRule oneToOneHasManyRule;
 
@@ -967,7 +970,7 @@ public class TableColumnTemplate implements InitializingBean {
         req.handleAlias(requiredAlias, queryAliasMap);
         req.checkTable(tcInfo);
 
-        Set<String> paramTableSet = req.checkParam(notRequiredConditionOrPage, tcInfo, maxListCount);
+        Set<String> paramTableSet = req.checkParam(notRequiredConditionOrPage, tcInfo, maxListCount, maxSingleLimitCount);
         req.checkResult(tcInfo, force);
         Set<TableJoinRelation> useRelationSet = req.checkRelation(tcInfo, paramTableSet);
         Set<String> useTableSet = calcTableSet(useRelationSet);

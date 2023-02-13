@@ -28,8 +28,8 @@ public class ReqParam implements Serializable {
     private ReqQuery query;
     /** 排序信息. 如: { "字段": "asc", "关联表.字段", "desc" } */
     private Map<String, String> sort;
-    /** 分页信息 ( 当前页, 每页行数 ), 每页行数在「10, 20, 50, 100, 200, 500, 1000」中, 省略则默认是 10 */
-    private List<Integer> page;
+    /** 分页信息 [ 当前页, 每页行数 ]. 如: [ 1 ] 表示查询第 1 页且查 10 条; [ 2, 20 ] 表示查第 2 页且查 20 条 */
+    private List<String> page;
     /** 当上面的分页信息有值且当前值是 true 时表示不发起 SELECT COUNT(*) 查询 */
     private Boolean notCount;
     /** 入参里用到的表的关系. 如: [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] , [ "order", "right", "orderLog" ] ] */
@@ -40,25 +40,27 @@ public class ReqParam implements Serializable {
         this.query = query;
     }
     public ReqParam(ReqQuery query, List<List<String>> relation) {
-        this.query = query;
+        this(query);
         this.relation = relation;
     }
     public ReqParam(ReqQuery query, Map<String, String> sort, List<List<String>> relation) {
-        this.query = query;
+        this(query, relation);
         this.sort = sort;
-        this.relation = relation;
     }
     public ReqParam(ReqQuery query, Map<String, String> sort, List<List<String>> relation, List<Integer> page) {
-        this.query = query;
-        this.sort = sort;
-        this.relation = relation;
-        this.page = page;
+        this(query, sort, relation);
+        if (QueryUtil.isNotEmpty(page)) {
+            List<String> pages = new ArrayList<>();
+            for (Integer i : page) {
+                if (i != null) {
+                    pages.add(i.toString());
+                }
+            }
+            this.page = pages;
+        }
     }
     public ReqParam(ReqQuery query, Map<String, String> sort, List<List<String>> relation, List<Integer> page, Boolean notCount) {
-        this.query = query;
-        this.sort = sort;
-        this.relation = relation;
-        this.page = page;
+        this(query, sort, relation, page);
         this.notCount = notCount;
     }
 
@@ -76,10 +78,10 @@ public class ReqParam implements Serializable {
         this.sort = sort;
     }
 
-    public List<Integer> getPage() {
+    public List<String> getPage() {
         return page;
     }
-    public void setPage(List<Integer> page) {
+    public void setPage(List<String> page) {
         this.page = page;
     }
 
@@ -125,7 +127,8 @@ public class ReqParam implements Serializable {
     }
 
 
-    public Set<String> checkParam(boolean notRequiredConditionOrPage, String mainTable, TableColumnInfo tcInfo, int maxListCount) {
+    public Set<String> checkParam(boolean notRequiredConditionOrPage, String mainTable, TableColumnInfo tcInfo,
+                                  int maxListCount, int maxSingleLimitCount) {
         Set<String> paramTableSet = new LinkedHashSet<>();
         if (QueryUtil.isNotNull(query)) {
             paramTableSet.addAll(query.checkCondition(mainTable, tcInfo, maxListCount));
@@ -159,15 +162,15 @@ public class ReqParam implements Serializable {
         }
 
         if (needQueryPage()) {
-            Integer index = (page.size() > 0) ? page.get(0) : null;
-            if (QueryUtil.isNull(index) || index <= 0) {
-                throw new RuntimeException("param page-index error, required > 0");
+            String index = (page.size() > 0) ? page.get(0) : null;
+            if (QueryUtil.isNotLong(index) || QueryUtil.toInt(index) <= 0) {
+                throw new RuntimeException("param page: index error, int and required > 0");
             }
 
             if (page.size() > 1) {
                 Integer limit = QueryUtil.toInteger(page.get(1));
-                if (QueryUtil.isNull(limit) || !QueryConst.LIMIT_SET.contains(limit)) {
-                    throw new RuntimeException("param page-limit error, just in " + QueryConst.LIMIT_SET);
+                if (QueryUtil.isNull(limit) || limit <= 0 || limit > maxSingleLimitCount) {
+                    throw new RuntimeException("param page: limit error, int and required > 0 and <=" + maxSingleLimitCount);
                 }
             }
         }
@@ -250,10 +253,10 @@ public class ReqParam implements Serializable {
         return ((long) index * limit) <= count;
     }
     private int calcIndex() {
-        return page.get(0);
+        return QueryUtil.toInt(page.get(0));
     }
     private int calcLimit() {
-        return (page.size() > 1) ? page.get(1) : QueryConst.DEFAULT_LIMIT;
+        return (page.size() > 1) ? QueryUtil.toInt(page.get(1)) : QueryConst.DEFAULT_LIMIT;
     }
     public String generatePageSql(List<Object> params, StringBuilder printSql) {
         if (needQueryPage()) {

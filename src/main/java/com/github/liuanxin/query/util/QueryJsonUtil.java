@@ -32,6 +32,17 @@ public class QueryJsonUtil {
         }
     }
 
+    public static <T> T toObject(String json, Class<T> clazz) {
+        if (QueryUtil.isEmpty(json)) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readValue(json, clazz);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static <S,T> T convert(S source, Class<T> clazz) {
         String json = toJson(source);
         if (QueryUtil.isEmpty(json)) {

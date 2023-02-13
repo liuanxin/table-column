@@ -67,14 +67,11 @@ public class QuerySqlUtil {
         String selectField = result.generateAllSelectSql(mainTable, tcInfo, needAlias, force);
         boolean emptySelect = QueryUtil.isEmpty(selectField);
 
+        String distinct = hasDistinct ? "DISTINCT " : "";
         // SELECT ... FROM ... WHERE ... GROUP BY ... HAVING ...
         StringBuilder sbd = new StringBuilder();
-        sbd.append("SELECT ");
-        printSql.append("SELECT ");
-        if (hasDistinct) {
-            sbd.append("DISTINCT ");
-            printSql.append("DISTINCT ");
-        }
+        sbd.append("SELECT ").append(distinct);
+        printSql.append("SELECT ").append(distinct);
         if (!emptySelect) {
             sbd.append(selectField);
             printSql.append(selectField);
@@ -120,14 +117,14 @@ public class QuerySqlUtil {
 
     public static String toPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
                                    String mainTable, ReqParam param, ReqResult result, boolean needAlias,
-                                   boolean force, List<Object> params, boolean queryHasMany, StringBuilder printSql) {
+                                   boolean force, List<Object> params, boolean hasDistinct, StringBuilder printSql) {
         String selectColumn = result.generateAllSelectSql(mainTable, tcInfo, needAlias, force);
         if (QueryUtil.isEmpty(selectColumn)) {
             return "";
         }
         // SELECT ... FROM ... WHERE ... ORDER BY ... limit ...
         return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias,
-                selectColumn, params, queryHasMany, printSql);
+                selectColumn, params, hasDistinct, printSql);
     }
 
     private static String toAppendSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint,
@@ -136,12 +133,9 @@ public class QuerySqlUtil {
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
-        printSql.append("SELECT ");
-        if (hasDistinct) {
-            printSql.append("DISTINCT ");
-        }
-        printSql.append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
-        return "SELECT " + (hasDistinct ? "DISTINCT " : "") + selectColumn + fromAndWhere + orderSql + pageSql;
+        String distinct = hasDistinct ? "DISTINCT " : "";
+        printSql.append("SELECT ").append(distinct).append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
+        return "SELECT " + distinct + selectColumn + fromAndWhere + orderSql + pageSql;
     }
 
     public static String toIdPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint, String mainTable,
