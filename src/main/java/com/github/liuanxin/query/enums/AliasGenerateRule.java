@@ -15,6 +15,9 @@ public enum AliasGenerateRule {
     /** table alias: A-B...Z-AA...ZZ, column alias: a-b...z-aa...zz */
     Letter,
 
+    /** table alias: 100001-100002..., column alias: 1-2... */
+    Number,
+
     Same,
 
     /** table alias: user_info, column alias: user_name */

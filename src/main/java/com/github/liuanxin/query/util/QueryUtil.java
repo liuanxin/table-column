@@ -21,9 +21,11 @@ public class QueryUtil {
     private static final Map<String, Map<String, Field>> FIELDS_CACHE = new ConcurrentHashMap<>();
 
     private static final AtomicInteger TABLE_ALIAS = new AtomicInteger();
+    private static final Map<String, Integer> TABLE_ALIAS_INT_MAP = new ConcurrentHashMap<>();
     private static final Map<String, String> TABLE_ALIAS_MAP = new ConcurrentHashMap<>();
 
     private static final Map<String, AtomicInteger> COLUMN_ALIAS = new ConcurrentHashMap<>();
+    private static final Map<String, Integer> COLUMN_ALIAS_INT_MAP = new ConcurrentHashMap<>();
     private static final Map<String, String> COLUMN_ALIAS_MAP = new ConcurrentHashMap<>();
 
 
@@ -78,6 +80,15 @@ public class QueryUtil {
                 String ta = numTo26Radix(TABLE_ALIAS.incrementAndGet());
                 TABLE_ALIAS_MAP.put(tableName, ta);
                 return ta;
+            }
+        } else if (rule == AliasGenerateRule.Number) {
+            Integer tableAlias = TABLE_ALIAS_INT_MAP.get(tableName);
+            if (isNotNull(tableAlias)) {
+                return tableAlias.toString();
+            } else {
+                int ta = 100000 + TABLE_ALIAS.incrementAndGet();
+                TABLE_ALIAS_INT_MAP.put(tableName, ta);
+                return String.valueOf(ta);
             }
         }
 
@@ -209,6 +220,17 @@ public class QueryUtil {
                     String ca = numTo26Radix(increment).toLowerCase();
                     COLUMN_ALIAS_MAP.put(key, ca);
                     return ca;
+                }
+            }
+            case Number: {
+                String key = toStr(tableName) + "-_-" + columnName;
+                Integer columnAlias = COLUMN_ALIAS_INT_MAP.get(key);
+                if (isNotNull(columnAlias)) {
+                    return columnAlias.toString();
+                } else {
+                    int increment = COLUMN_ALIAS.computeIfAbsent(tableName, k -> new AtomicInteger()).incrementAndGet();
+                    COLUMN_ALIAS_INT_MAP.put(key, increment);
+                    return String.valueOf(increment);
                 }
             }
             default: {
@@ -631,7 +653,7 @@ public class QueryUtil {
         String tableColumnAlias = tableColumn.getAlias();
         String useColumnName = QuerySqlUtil.toSqlField(tableColumnName);
         String alias = needAlias ? (QuerySqlUtil.toSqlField(table.getAlias()) + ".") : "";
-        return alias + useColumnName + (tableColumnName.equals(tableColumnAlias) ? "" : (" AS " + tableColumnAlias));
+        return alias + useColumnName + (tableColumnName.equals(tableColumnAlias) ? "" : (" AS " + QuerySqlUtil.toSqlField(tableColumnAlias)));
     }
 
     public static String getColumnGroup(boolean needAlias, String column, String mainTable, TableColumnInfo tcInfo) {

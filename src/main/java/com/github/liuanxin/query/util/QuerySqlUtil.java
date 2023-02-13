@@ -8,7 +8,7 @@ import java.util.*;
 public class QuerySqlUtil {
 
     public static String toSqlField(String field) {
-        return MysqlKeyWordUtil.hasKeyWord(field) ? ("`" + field + "`") : field;
+        return MysqlKeyWordUtil.hasKeyWord(field) || QueryUtil.isLong(field) ? ("`" + field + "`") : field;
     }
 
     public static Object toValue(Class<?> type, Object value) {

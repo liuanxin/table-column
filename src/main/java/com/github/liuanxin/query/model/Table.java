@@ -171,38 +171,6 @@ public class Table implements Serializable {
         return sj.toString();
     }
 
-    public String generateSelect(boolean useAlias, boolean force) {
-        StringJoiner sj = new StringJoiner(", ");
-        for (TableColumn column : columnMap.values()) {
-            String columnName = column.getName();
-            if (!columnName.equals(logicColumn) || force) {
-                String alias = useAlias ? column.getAlias() : column.getFieldName();
-                if (columnName.equals(alias)) {
-                    sj.add(columnName);
-                } else {
-                    sj.add(columnName + " AS " + alias);
-                }
-            }
-        }
-        return sj.toString();
-    }
-
-    public List<String> allColumn(boolean force) {
-        List<String> columnList = new ArrayList<>();
-        for (TableColumn column : columnMap.values()) {
-            String columnName = column.getName();
-            if (!columnName.equals(logicColumn) || force) {
-                String fieldName = column.getFieldName();
-                if (columnName.equals(fieldName)) {
-                    columnList.add(columnName);
-                } else {
-                    columnList.add(columnName + " AS " + fieldName);
-                }
-            }
-        }
-        return columnList;
-    }
-
     public List<String> allColumnAlias(boolean force) {
         List<String> columnInfoList = new ArrayList<>();
         for (TableColumn column : columnMap.values()) {

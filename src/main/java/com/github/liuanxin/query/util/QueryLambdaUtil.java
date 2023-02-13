@@ -158,9 +158,10 @@ public final class QueryLambdaUtil {
         String columnName = toColumnName(field, columnInfo);
         if (QueryUtil.isNotNull(columnInfo)) {
             String fieldName = field.getName();
-            return fieldName.equals(columnName) ? columnName : (columnName + " AS " + fieldName);
+            return fieldName.equals(columnName) ? QuerySqlUtil.toSqlField(columnName)
+                    : (QuerySqlUtil.toSqlField(columnName) + " AS " + QuerySqlUtil.toSqlField(fieldName));
         } else {
-            return columnName;
+            return QuerySqlUtil.toSqlField(columnName);
         }
     }
     public static <T> String toColumnAndAlias(FunctionSerialize<T, ?> function) {

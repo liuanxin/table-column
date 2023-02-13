@@ -3,6 +3,7 @@ package com.github.liuanxin.query.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.github.liuanxin.query.constant.QueryConst;
+import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
 public enum ResultGroup {
@@ -56,11 +57,11 @@ public enum ResultGroup {
     }
 
     public String generateColumn(String column) {
-        return String.format(value, column) + " AS " + generateAlias(column);
+        return QuerySqlUtil.toSqlField(String.format(value, column)) + " AS " + QuerySqlUtil.toSqlField(generateAlias(column));
     }
     /** alias 不能用在占位, 否则会导致 sql 注入 */
     public String generateColumn(String column, String alias) {
-        return String.format(value, column) + " AS " + alias;
+        return QuerySqlUtil.toSqlField(String.format(value, column)) + " AS " + QuerySqlUtil.toSqlField(alias);
     }
     public String generateAlias(String column) {
         String args;

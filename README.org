@@ -90,6 +90,7 @@ query:
   #   Horizontal(表 User-Info  字段 user-name)
   #   Under(表 User_Info  字段 user_name)
   #   Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz)
+  #   Number(表 100001-100002..., 字段: 1-2..)
   #   Same(一致)
   #   Lower(小写)
   #   Upper(大写)
