@@ -333,28 +333,28 @@ WHERE order_no IN ( 'xxx', 'yyy' )
 #+END_SRC
 
 表达式说明
-#+BEGIN_EXAMPLE
-nu     : IS NULL      为空
-nn     : IS NOT NULL  不为空
-
-eq     : =            等于
-ne     : <>           不等于
-
-in     : IN           包含
-ni     : NOT IN       不包含
-
-bet    : BETWEEN      区间
-nbe    : NOT BETWEEN  不在区间
-
-gt     : >            大于
-ge     : >=           大于等于
-lt     : <            小于
-le     : <=           小于等于
-
-fuzzy  : LIKE '%x%'     模糊
-nfuzzy : NOT LIKE '%x%' 不模糊
-start  : LIKE 'x%'      开头
-nstart : NOT LIKE 'x%'  不开头
-end    : LIKE '%x'      结尾
-nend   : NOT LIKE '%x'  不结尾
-#+END_EXAMPLE
+| 表达式 | 说明     | 对应 sql       |
+|--------+----------+----------------|
+| nu     | 为空     | IS NULL        |
+| nn     | 不为空   | IS NOT NULL    |
+|        |          |                |
+| eq     | 等于     | =              |
+| ne     | 不等于   | <>             |
+|        |          |                |
+| in     | 包含     | IN             |
+| ni     | 不包含   | NOT IN         |
+|        |          |                |
+| bet    | 区间     | BETWEEN        |
+| nbe    | 不在区间 | NOT BETWEEN    |
+|        |          |                |
+| gt     | 大于     | >              |
+| ge     | 大于等于 | >=             |
+| lt     | 小于     | <              |
+| le     | 小于等于 | <=             |
+|        |          |                |
+| fuzzy  | 模糊     | LIKE '%x%'     |
+| nfuzzy | 不模糊   | NOT LIKE '%x%' |
+| start  | 开头     | LIKE 'x%'      |
+| nstart | 不开头   | NOT LIKE 'x%'  |
+| end    | 结尾     | LIKE '%x'      |
+| nend   | 不结尾   | NOT LIKE '%x'  |
