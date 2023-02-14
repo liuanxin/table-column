@@ -116,7 +116,7 @@ query:
 #+END_SRC
 
 请求 ~GET /table-column~ 将会返回表及字段的结构数据(如果想要此接口不返回数据, 配置 ~query.has-not-return-info = true~ 即可), 比如
-#+BEGIN_SRC json
+#+BEGIN_SRC json5
 [
   {
     "name": "Order",
@@ -200,7 +200,7 @@ query:
 #+END_SRC
 
 请求 ~POST /table-column~ 时, 将会自动处理数据查询并组装数据, 其入参示例如下
-#+BEGIN_SRC json
+#+BEGIN_SRC json5
 {
   "table": "Order", /* 表名 */
   "param": {
@@ -293,7 +293,7 @@ WHERE order_no IN ( 'xxx', 'yyy' )
 #+END_SRC
 
 返回数据如下
-#+BEGIN_SRC json
+#+BEGIN_SRC json5
 {
   "count": 123,
   "list": [
