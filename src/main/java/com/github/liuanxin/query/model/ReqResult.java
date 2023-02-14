@@ -73,7 +73,7 @@ public class ReqResult implements Serializable {
     private String table;
     /** 表里的列 */
     private List<Object> columns;
-
+    /** true 表示将查询数据去重, 不设置则默认是 false */
     private Boolean distinct;
 
     public ReqResult() {}

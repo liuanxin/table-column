@@ -127,8 +127,7 @@ public class ReqParam implements Serializable {
     }
 
 
-    public Set<String> checkParam(boolean notRequiredConditionOrPage, String mainTable, TableColumnInfo tcInfo,
-                                  int maxListCount, int maxSingleLimitCount) {
+    public Set<String> checkParam(boolean notRequiredConditionOrPage, String mainTable, TableColumnInfo tcInfo, int maxListCount) {
         Set<String> paramTableSet = new LinkedHashSet<>();
         if (QueryUtil.isNotNull(query)) {
             paramTableSet.addAll(query.checkCondition(mainTable, tcInfo, maxListCount));
@@ -169,8 +168,8 @@ public class ReqParam implements Serializable {
 
             if (page.size() > 1) {
                 Integer limit = QueryUtil.toInteger(page.get(1));
-                if (QueryUtil.isNull(limit) || limit <= 0 || limit > maxSingleLimitCount) {
-                    throw new RuntimeException("param page: limit error, int and required > 0 and <=" + maxSingleLimitCount);
+                if (QueryUtil.isNull(limit) || limit <= 0 || limit > maxListCount) {
+                    throw new RuntimeException("param page: limit error, int and required > 0 and <=" + maxListCount);
                 }
             }
         }

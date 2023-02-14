@@ -57,13 +57,6 @@
       "description": "查询条件是集合时的最大个数."
     },
     {
-      "name": "query.max-single-limit-count",
-      "type": "java.lang.Integer",
-      "defaultValue": "1000",
-      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "查询分页数据时的最大条数."
-    },
-    {
       "name": "query.one-to-one-has-many-rule",
       "type": "com.github.liuanxin.query.enums.OneToOneHasManyRule",
       "defaultValue": "Exception",

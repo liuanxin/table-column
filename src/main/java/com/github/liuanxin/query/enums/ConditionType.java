@@ -32,26 +32,25 @@ import java.util.*;
 public enum ConditionType {
 
     /*
-    nu  : IS NULL     为空
-    nn  : IS NOT NULL 不为空
+    nu     : IS NULL      为空
+    nn     : IS NOT NULL  不为空
+    eq     : =            等于
+    ne     : <>           不等于
+    in     : IN           包含
+    ni     : NOT IN       不包含
+    bet    : BETWEEN      区间
+    nbe    : NOT BETWEEN  不在区间
+    gt     : >            大于
+    ge     : >=           大于等于
+    lt     : <            小于
+    le     : <=           小于等于
 
-    eq  : =           等于
-    ne  : <>          不等于
-
-    in  : in          包含
-    ni  : NOT IN      不包含
-
-    bet : BETWEEN     区间
-    nbe : NOT BETWEEN 不在区间
-
-    gt  : >           大于
-    ge  : >=          大于等于
-    lt  : <           小于
-    le  : <=          小于等于
-
-    fuzzy : LIKE '%x%'  模糊
-    start : LIKE 'x%'   开头
-    end   : LIKE '%x'   结尾
+    fuzzy  : LIKE '%x%'     模糊
+    nfuzzy : NOT LIKE '%x%' 不模糊
+    start  : LIKE 'x%'      开头
+    nstart : NOT LIKE 'x%'  不开头
+    end    : LIKE '%x'      结尾
+    nend   : NOT LIKE '%x'  不结尾
     */
 
     NU("IS NULL", "为空") {
@@ -177,6 +176,12 @@ public enum ConditionType {
         this.msg = msg;
     }
 
+    public static void main(String[] args) {
+        for (ConditionType value : values()) {
+            System.out.printf("%5s : %10s  %s%n", value.name().toLowerCase(), value.getValue(), value.getMsg());
+        }
+    }
+
     public String getValue() {
         return value;
     }
@@ -222,8 +227,9 @@ public enum ConditionType {
     protected String generateCondition(String column, StringBuilder printSql) {
         String sqlField = QuerySqlUtil.toSqlField(column);
         String value = getValue();
-        printSql.append(sqlField).append(value);
-        return String.format("%s %s", sqlField, value);
+        String sql = String.format("%s %s", sqlField, value);
+        printSql.append(sql);
+        return sql;
     }
     protected String generateCondition(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
         if (QueryUtil.isNull(value)) {
@@ -298,8 +304,10 @@ public enum ConditionType {
             BET,
             NBE
     ));
-    /** string: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(fuzzy)、不包含(nfuzzy)、开头(start)、不开头(nstart)、结尾(end)、不结尾(nend) */
+    /** string: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(fuzzy)、不包含(nfuzzy)、开头(start)、不开头(nstart)、结尾(end)、不结尾(nend) */
     private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
+            NU,
+            NN,
             EQ,
             NE,
             IN,
@@ -314,8 +322,10 @@ public enum ConditionType {
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
             QueryUtil.toStr(STRING_TYPE_SET, ConditionType::info));
 
-    /** number: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
+    /** number: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
+            NU,
+            NN,
             EQ,
             NE,
             IN,
@@ -330,8 +340,10 @@ public enum ConditionType {
     private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
             QueryUtil.toStr(NUMBER_TYPE_SET, ConditionType::info));
 
-    /** date: 大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
+    /** date: 为空(nu)、不为空(NN)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
     private static final Set<ConditionType> DATE_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
+            NU,
+            NN,
             GT,
             GE,
             LT,
@@ -342,8 +354,10 @@ public enum ConditionType {
     private static final String DATE_TYPE_INFO = String.format("Date type can only be used in 「%s」 conditions",
             QueryUtil.toStr(DATE_TYPE_SET, ConditionType::info));
 
-    /**  非 string/number/date 类型: 等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
+    /**  非 string/number/date 类型: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
     public static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
+            NU,
+            NN,
             EQ,
             NE,
             IN,

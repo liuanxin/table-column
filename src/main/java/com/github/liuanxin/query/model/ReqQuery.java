@@ -22,7 +22,7 @@ import java.util.*;
  *   -- "operate": "and",    -- 并且(and) 和 或者(or) 两种, 不设置则默认是 and
  *   "conditions": [
  *     [ "name", "start", "abc" ],
- *     [ "gender", -- "eq", --  1 ],  -- eq 可以省略
+ *     [ "gender", "eq", 1 ],
  *     [ "age", "bet", [ 18, 40 ] ],
  *     [ "province", "in", [ "x", "y", "z" ] ],
  *     [ "city", "fuzzy", "xx" ],
@@ -180,8 +180,7 @@ public class ReqQuery implements Serializable {
                     }
                     queryTableSet.add(table.getName());
 
-                    boolean standardSize = (size == 2);
-                    ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
+                    ConditionType type = ConditionType.deserializer(list.get(1));
                     if (QueryUtil.isNull(type)) {
                         throw new RuntimeException(String.format("param: condition column(%s) type(%s) error", columnAlias, list.get(1)));
                     }
@@ -191,7 +190,7 @@ public class ReqQuery implements Serializable {
                         throw new RuntimeException(String.format("param: condition column(%s) has no column info", columnAlias));
                     }
                     type.checkTypeAndValue(tableColumn.getFieldType(), columnAlias,
-                            list.get(standardSize ? 1 : 2), tableColumn.getStrLen(), maxListCount);
+                            ((size > 2) ? list.get(2) : null), tableColumn.getStrLen(), maxListCount);
                 } else {
                     ReqQuery compose = QueryJsonUtil.convert(condition, ReqQuery.class);
                     if (QueryUtil.isNull(compose)) {
@@ -222,9 +221,8 @@ public class ReqQuery implements Serializable {
                         int size = list.size();
                         String column = QueryUtil.toStr(list.get(0));
 
-                        boolean standardSize = (size == 2);
-                        ConditionType type = standardSize ? ConditionType.EQ : ConditionType.deserializer(list.get(1));
-                        Object value = list.get(standardSize ? 1 : 2);
+                        ConditionType type = ConditionType.deserializer(list.get(1));
+                        Object value = (size > 2) ? list.get(2) : null;
 
                         String tableName = QueryUtil.getTableName(column, mainTable);
                         String columnName = QueryUtil.getColumnName(column);

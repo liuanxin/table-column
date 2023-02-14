@@ -26,6 +26,7 @@ public class TableColumnConfig {
         return Arrays.asList(
                 // 主表表名, 主表字段, 跟子表的关系(一对一, 一对多, 多对多), 子表表名, 子表字段
                 new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_ONE, "t_order_address", "order_no"),
+                new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_ONE, "t_order_item", "order_no"),
                 new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_MANY, "t_order_log", "order_no")
         );
     }
@@ -100,8 +101,6 @@ query:
   deep-max-page-size:
   # 查询条件是集合时的最大个数, 默认是 1000.
   max-list-count:
-  # 查询分页数据时的最大条数, 默认是 1000.
-  max-single-limit-count:
   # 当表与表之间是一对一关联, 但查询时数据却出现了多条时的处理: Exception(抛出异常, 此为默认), First(以前面的为准), Cover(后面覆盖前面).
   one-to-one-has-many-rule:
   # 用来做逻辑删除的字段名, 标了 @LogicInfo 注解则以注解所在字段为主.
@@ -199,3 +198,163 @@ query:
   }
 ]
 #+END_SRC
+
+请求 ~POST /table-column~ 时, 将会自动处理数据查询并组装数据, 其入参示例如下
+#+BEGIN_SRC json
+{
+  "table": "Order", /* 表名 */
+  "param": {
+    "query": {      /* 查询条件 */
+      /* "operate": "下面的条件拼接时的表达式, 并且(and) 和 或者(or) 两种, 不设置则默认是 and.", */
+      "conditions": [
+        [ "orderNo", "nn(表达式, 见下面的说明)" ],      /* 无值 */
+        [ "orderNo", "eq", "x" ],                    /* 单值(长度不能超过上面的 maxLength 值) */
+        [ "orderStatus", "in", [ "0", "1", "2" ] ],  /* 多值(长度不能超过 query.max-list-count 设置的值) */
+        [ "amount", "bet", [ "10", "1000.5" ] ],
+        [ "OrderItem.productName", "fuzzy", "xx" ],  /* 子表 */
+        [ "OrderLog.operator", "start", "xxx" ],     /* 子表 */
+        {
+          "operate": "or", /* 嵌套条件(用 AND 拼上面的条件, 用 OR 拼下面的条件) */
+          "conditions": [
+            [ "orderStatus", "eq", "3" ],
+            [ "OrderLog.time", "bet", [ "2020-01-01" ] ]
+          ]
+        },
+      ]
+    },
+    "sort": { "createTime": "desc",  "OrderLog.operator": "asc" },
+    "page": [ 2, 20 ] /* 分页查询, 如果省略第 2 个参数如 [ 2 ] 则等同于 [ 2, 10 ] */
+    "relation": [ [ "Order(主表)", "inner(连接类型, 有 left inner right 三种)", "OrderItem(子表)" ],  [ "Order", "inner", "OrderLog" ] ] # 当上面的 conditions 有多个表时需要
+  },
+  "result": {
+    "columns": [
+      "id", "orderNo", "orderStatus", "amount", "desc",
+      { "createTime" : [ "yyyy-MM-dd HH:mm", "GMT+8" ] },  /* 格式化: [ "pattern", "timeZone" ], 默认是 yyyy-MM-dd HH:mm:ss */
+      {
+        "address(子表数据返回时的自定义属性名)": {
+          "table": "OrderAddress",
+          "columns": [ "contact", "address" ]
+        }
+      },
+      {
+        "items": {
+          "table": "OrderItem",
+          "columns": [ "productName", "price", "number" ]
+        }
+      },
+      {
+        "logs": {
+          "table": "OrderLog",
+          "columns": [ "operator", "message", "time" ]
+        }
+      }
+    ],
+    "distinct": true /* true 表示将查询数据去重, 不设置则默认是 false */
+  }
+}
+#+END_SRC
+
+最终会生成如下 ~sql~
+#+BEGIN_SRC sql
+/* 如果没有分页查询入参(page)则不会生成此 sql */
+SELECT COUNT(DISTINCT `Order`.id)
+FROM t_order `Order` INNER JOIN t_order_item OrderItem ON ... INNER JOIN t_order_log OrderLog ON ...
+WHERE `Order`.orderNo IS NOT NULL AND `Order`.orderNo = 'x'
+AND `Order`.order_status IN ( 0, 1, 2 ) AND `Order`.amount BETWEEN 10 AND 1000.5
+AND OrderItem.product_name LIKE '%xx%' AND OrderLog.operator LIKE 'xx%'
+AND ( `Order`.order_status = 3 OR OrderLog.time >= '2020-01-01' )
+
+
+/* 如果没有分页查询入参(page)则不会有 LIMIT */
+SELECT DISTINCT `Order`.id, `Order`.order_no, `Order`.order_status, `Order`.amount, `Order`.`desc`
+FROM t_order `Order` INNER JOIN t_order_item OrderItem ON ... INNER JOIN t_order_log OrderLog ON ...
+WHERE `Order`.orderNo IS NOT NULL AND `Order`.orderNo = 'x'
+AND `Order`.order_status IN ( 0, 1, 2 ) AND `Order`.amount BETWEEN 10 AND 1000.5
+AND OrderItem.product_name LIKE '%xx%' AND OrderLog.operator LIKE 'xx%'
+AND ( `Order`.order_status = 3 OR OrderLog.time >= '2020-01-01' )
+ORDER BY `Order`.create_time DESC, OrderLog.operator
+LIMIT 10, 20
+
+
+/* 下面的 xxx 和 yyy 由上面的查询而来, 如果量很大会分批查询, 单次查询的个数由 query.max-list-count 控制 */
+SELECT order_no, contact, address
+FROM t_order_address
+WHERE order_no IN ( 'xxx', 'yyy' )
+
+
+SELECT order_no, productName, price, number
+FROM t_order_item
+WHERE order_no IN ( 'xxx', 'yyy' )
+
+
+SELECT order_no, operator, message, time
+FROM t_order_log
+WHERE order_no IN ( 'xxx', 'yyy' )
+#+END_SRC
+
+返回数据如下
+#+BEGIN_SRC json
+{
+  "count": 123,
+  "list": [
+    {
+      "id": 1234,
+      "orderNo": "xx",
+      "amount": "xxx",
+      "desc": "xxxxxx",
+      "createTime": "yyyy-MM-dd HH:mm",
+      "address": {
+        "contact": "y",
+        "address": "yy"
+      },
+      "items": [
+        {
+          "productName": "z",
+          "price": "10.5",
+          "number": 2
+        }
+      ],
+      "logs": [
+        {
+          "operator": "z",
+          "message": "zz",
+          "time": "yyyy-MM-dd HH:mm:ss"
+        },
+        {
+          "operator": "zzz",
+          "message": "zzzz",
+          "time": "yyyy-MM-dd HH:mm"
+        }
+      ]
+    },
+    { ... }
+  ]
+}
+#+END_SRC
+
+表达式说明
+#+BEGIN_EXAMPLE
+nu     : IS NULL      为空
+nn     : IS NOT NULL  不为空
+
+eq     : =            等于
+ne     : <>           不等于
+
+in     : IN           包含
+ni     : NOT IN       不包含
+
+bet    : BETWEEN      区间
+nbe    : NOT BETWEEN  不在区间
+
+gt     : >            大于
+ge     : >=           大于等于
+lt     : <            小于
+le     : <=           小于等于
+
+fuzzy  : LIKE '%x%'     模糊
+nfuzzy : NOT LIKE '%x%' 不模糊
+start  : LIKE 'x%'      开头
+nstart : NOT LIKE 'x%'  不开头
+end    : LIKE '%x'      结尾
+nend   : NOT LIKE '%x'  不结尾
+#+END_EXAMPLE
