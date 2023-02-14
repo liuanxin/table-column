@@ -1,7 +1,7 @@
 
 ** 说明
 
-由前端定义要返回的表字段及查询参数, 减少后端处理 sql 查询组装数据的代码量
+在接口入参中定义查询参数及返回结果, *无需编写后端代码*, 自动处理数据查询并组装数据
 
 ** 使用
 
@@ -20,9 +20,10 @@
 public class TableColumnConfig {
 
     /** 设置表关联关系 */
-    @Bean("tableRelationList")
-    public List<TableColumnRelation> tableRelation() {
-        return List.of(
+    @Bean
+    public List<TableColumnRelation> tableRelationList() {
+        // return new ArrayList<>();
+        return Arrays.asList(
                 // 主表表名, 主表字段, 跟子表的关系(一对一, 一对多, 多对多), 子表表名, 子表字段
                 new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_ONE, "t_order_address", "order_no"),
                 new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_MANY, "t_order_log", "order_no")
@@ -30,23 +31,23 @@ public class TableColumnConfig {
     }
 
     /** 设置查询别名 */
-    @Bean("queryAliasMap")
-    public Map<String, ReqAlias> queryAlias() {
-        return Map.of(
-                "all-order", new ReqAlias("Order"),
-                "order-address-item-log", orderAddressItemLogAlias()
-        );
+    @Bean
+    public Map<String, ReqAlias> queryAliasMap() {
+        Map<String, ReqAlias> aliasMap = new HashMap<>();
+        aliasMap.put("all-order", new ReqAlias("Order"));
+        aliasMap.put("order-address-item-log", orderAddressItemLogAlias());
+        return aliasMap;
     }
 
     private ReqAlias orderAddressItemLogAlias() {
         // 指定 订单表 的字段, 指定 订单地址表 订单项表 订单日志表 的字段, 查询 Order 时 distinct, 并指定查询时多张表之间的关联方式
-        ReqResult result = new ReqResult(List.of(
+        ReqResult result = new ReqResult(Arrays.asList(
                 "orderNo", "orderStatus", "amount", "desc", "createTime",
-                Map.of("address", Map.of("table", "OrderAddress", "columns", List.of("contact", "phone", "address"))),
-                Map.of("items", Map.of("table", "OrderItem", "columns", List.of("productName", "price", "number"))),
-                Map.of("logs", Map.of("table", "OrderLog", "columns", List.of("operator", "message", "time")))
+                Map.of("address", Map.of("table", "OrderAddress", "columns", Arrays.asList("contact", "phone", "address"))),
+                Map.of("items", Map.of("table", "OrderItem", "columns", Arrays.asList("productName", "price", "number"))),
+                Map.of("logs", Map.of("table", "OrderLog", "columns", Arrays.asList("operator", "message", "time")))
         ), true);
-        List<List<String>> relationList = List.of(List.of("Order", "inner", "OrderAddress"), List.of("Order", "left", "OrderItem"));
+        List<List<String>> relationList = Arrays.asList(Arrays.asList("Order", "inner", "OrderAddress"), Arrays.asList("Order", "left", "OrderItem"));
         return new ReqAlias("Order", result, relationList);
     }
 }
@@ -77,20 +78,20 @@ public class TableColumnController {
 query:
   # 存放关联表的类的包地址, 多个用英文逗号隔开.
   scan-packages:
-  # 当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀.
+  # 当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀(比如 t_ 开头).
   table-prefix:
-  # 设置为 true 时查询关联信息将返回空, 默认是 false.
+  # 设置为 true 时查询表及字段信息将返回空, 比如只在生产环境设置成 true, 默认是 false.
   has-not-return-info:
   # 设置为 true 时, 查询只能使用别名, 默认是 false.
   required-alias:
   # 设置为 true 时, 查询可以不需要有条件或分页, 默认是 false.
   not-required-condition-or-page:
-  # 表名 字段名 别名生成的规则(比如表名是 t_user_info, 字段是 user_name):
+  # 表名 字段名 生成别名的规则(比如表名是 t_user_info, 字段是 user_name):
   #   Standard(表 UserInfo  字段 userName, 不设置则默认是此值)
   #   Horizontal(表 User-Info  字段 user-name)
   #   Under(表 User_Info  字段 user_name)
   #   Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz)
-  #   Number(表 100001-100002..., 字段: 1-2..)
+  #   Number(表 100001-100002..., 字段: 1-2...)
   #   Same(一致)
   #   Lower(小写)
   #   Upper(大写)
@@ -113,4 +114,88 @@ query:
   logic-delete-int-value:
   # 用来做逻辑删除的字段类型是 bigint 时的值, 比如设置成 id, 实体上的字段标了 @LogicDelete 则以注解为主.
   logic-delete-long-value:
+#+END_SRC
+
+请求 ~GET /table-column~ 将会返回表及字段的结构数据(如果想要此接口不返回数据, 配置 ~query.has-not-return-info = true~ 即可), 比如
+#+BEGIN_SRC json
+[
+  {
+    "name": "Order",
+    "desc": "订单",
+    "columnList": [
+      {
+        "name": "id",
+        "type": "Long"
+      },
+      {
+        "name": "orderNo",
+        "desc": "订单号",
+        "type": "String",
+        "writeRequired": true,
+        "maxLength": 32
+      },
+      {
+        "name": "orderStatus",
+        "desc": "订单状态(0.用户已创建待支付, 1.用户已支付待商户发货, 2.商户已发货待用户签收, 3.用户已签收待确认完结, 4.已完结)",
+        "type": "Integer"
+      },
+      {
+        "name": "amount",
+        "desc": "订单金额",
+        "type": "BigDecimal"
+      },
+      {
+        "name": "desc",
+        "desc": "备注",
+        "type": "String",
+        "maxLength": 32
+      },
+      {
+        "name": "createTime",
+        "desc": "创建时间",
+        "type": "Date"
+      },
+      {
+        "name": "updateTime",
+        "desc": "更新时间",
+        "type": "Date"
+      }
+    ]
+  },
+  {
+    "name": "OrderLog",
+    "desc": "订单日志",
+    "columnList": [
+      {
+        "name": "id",
+        "type": "Long"
+      },
+      {
+        "name": "orderNo",
+        "desc": "订单号",
+        "type": "String",
+        "maxLength": 32,
+        "relationTable": "Order",
+        "relationColumn": "orderNo"
+      },
+      {
+        "name": "operator",
+        "desc": "操作人",
+        "type": "String",
+        "maxLength": 32
+      },
+      {
+        "name": "message",
+        "desc": "操作内容",
+        "type": "String",
+        "maxLength": 65535
+      },
+      {
+        "name": "time",
+        "desc": "创建时间",
+        "type": "Date"
+      }
+    ]
+  }
+]
 #+END_SRC

@@ -12,14 +12,14 @@
       "type": "java.lang.String",
       "defaultValue": "",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀."
+      "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀(比如 t_ 开头)."
     },
     {
       "name": "query.has-not-return-info",
       "type": "java.lang.Boolean",
       "defaultValue": "false",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "设置为 true 时查询关联信息将返回空."
+      "description": "设置为 true 时查询表及字段信息将返回空, 比如只在生产环境设置成 true, 默认是 false."
     },
     {
       "name": "query.required-alias",
@@ -40,7 +40,7 @@
       "type": "com.github.liuanxin.query.enums.AliasGenerateRule",
       "defaultValue": "Standard",
       "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
-      "description": "别名生成的规则: Standard(表 UserInfo  字段 userName, 不设置则默认是此值), Horizontal(表 User-Info  字段 user-name), Under(表 User_Info  字段 user_name), Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz), Same(一致), Lower(小写), Upper(大写)."
+      "description": "表名 字段名 生成别名的规则(比如表名是 t_user_info, 字段是 user_name): Standard(表 UserInfo  字段 userName, 不设置则默认是此值), Horizontal(表 User-Info  字段 user-name), Under(表 User_Info  字段 user_name), Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz), Number(表 100001-100002..., 字段: 1-2...), Same(一致), Lower(小写), Upper(大写)."
     },
     {
       "name": "query.deep-max-page-size",

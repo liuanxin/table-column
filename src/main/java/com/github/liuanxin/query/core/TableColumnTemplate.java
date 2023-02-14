@@ -191,7 +191,7 @@ public class TableColumnTemplate implements InitializingBean {
                     String columnName = tc.getName();
                     if (!columnName.equals(table.getLogicColumn()) || force) {
                         String type = tc.getFieldType().getSimpleName();
-                        Integer length = tc.getStrLen();
+                        Integer maxLength = tc.getStrLen();
                         TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), columnName);
                         String relationTable, relationColumn;
                         if (QueryUtil.isNull(relation)) {
@@ -204,7 +204,7 @@ public class TableColumnTemplate implements InitializingBean {
                         }
                         boolean needValue = tc.isNotNull() && !tc.isHasDefault();
                         columnList.add(new QueryColumn(tc.getAlias(), tc.getDesc(), type,
-                                (needValue ? true : null), length, relationTable, relationColumn));
+                                (needValue ? true : null), maxLength, relationTable, relationColumn));
                     }
                 }
                 queryList.add(new QueryInfo(tableAlias, table.getDesc(), columnList));

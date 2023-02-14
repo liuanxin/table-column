@@ -19,10 +19,10 @@ public class QueryColumn implements Serializable {
     private String type;
 
     /** 写入时需要有值 */
-    private Boolean writeNeedValue;
+    private Boolean writeRequired;
 
     /** 列类型是字符串时的长度 */
-    private Integer length;
+    private Integer maxLength;
 
     /** 关联表 */
     private String relationTable;
@@ -31,13 +31,13 @@ public class QueryColumn implements Serializable {
     private String relationColumn;
 
     public QueryColumn() {}
-    public QueryColumn(String name, String desc, String type, Boolean writeNeedValue,
-                       Integer length, String relationTable, String relationColumn) {
+    public QueryColumn(String name, String desc, String type, Boolean writeRequired,
+                       Integer maxLength, String relationTable, String relationColumn) {
         this.name = name;
         this.desc = desc;
         this.type = type;
-        this.writeNeedValue = writeNeedValue;
-        this.length = length;
+        this.writeRequired = writeRequired;
+        this.maxLength = maxLength;
         this.relationTable = relationTable;
         this.relationColumn = relationColumn;
     }
@@ -66,20 +66,20 @@ public class QueryColumn implements Serializable {
         this.type = type;
     }
 
-    public Boolean isWriteNeedValue() {
-        return writeNeedValue;
+    public Boolean isWriteRequired() {
+        return writeRequired;
     }
 
-    public void setWriteNeedValue(Boolean writeNeedValue) {
-        this.writeNeedValue = writeNeedValue;
+    public void setWriteRequired(Boolean writeRequired) {
+        this.writeRequired = writeRequired;
     }
 
-    public Integer getLength() {
-        return length;
+    public Integer getMaxLength() {
+        return maxLength;
     }
 
-    public void setLength(Integer length) {
-        this.length = length;
+    public void setMaxLength(Integer maxLength) {
+        this.maxLength = maxLength;
     }
 
     public String getRelationTable() {
@@ -105,14 +105,14 @@ public class QueryColumn implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         QueryColumn that = (QueryColumn) o;
         return Objects.equals(name, that.name) && Objects.equals(desc, that.desc)
-                && Objects.equals(type, that.type) && Objects.equals(writeNeedValue, that.writeNeedValue)
-                && Objects.equals(length, that.length) && Objects.equals(relationTable, that.relationTable)
+                && Objects.equals(type, that.type) && Objects.equals(writeRequired, that.writeRequired)
+                && Objects.equals(maxLength, that.maxLength) && Objects.equals(relationTable, that.relationTable)
                 && Objects.equals(relationColumn, that.relationColumn);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, desc, type, writeNeedValue, length, relationTable, relationColumn);
+        return Objects.hash(name, desc, type, writeRequired, maxLength, relationTable, relationColumn);
     }
 
     @Override
@@ -121,8 +121,8 @@ public class QueryColumn implements Serializable {
                 "name='" + name + '\'' +
                 ", desc='" + desc + '\'' +
                 ", type='" + type + '\'' +
-                ", writeNeedValue=" + writeNeedValue +
-                ", length=" + length +
+                ", writeRequired=" + writeRequired +
+                ", maxLength=" + maxLength +
                 ", relationTable='" + relationTable + '\'' +
                 ", relationColumn='" + relationColumn + '\'' +
                 '}';
