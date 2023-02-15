@@ -16,6 +16,7 @@
 
 添加配置
 #+BEGIN_SRC java
+/** 表关联关系及别名都没有, 可以无需此文件, 查询时就只能基于单表 */
 @Configuration
 public class TableColumnConfig {
 
