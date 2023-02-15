@@ -340,21 +340,16 @@ WHERE order_no IN ( 'xxx', 'yyy' )
 |--------+----------+----------------|
 | nu     | 为空     | IS NULL        |
 | nn     | 不为空   | IS NOT NULL    |
-|        |          |                |
 | eq     | 等于     | =              |
 | ne     | 不等于   | <>             |
-|        |          |                |
 | in     | 包含     | IN             |
 | ni     | 不包含   | NOT IN         |
-|        |          |                |
 | bet    | 区间     | BETWEEN        |
 | nbe    | 不在区间 | NOT BETWEEN    |
-|        |          |                |
 | gt     | 大于     | >              |
 | ge     | 大于等于 | >=             |
 | lt     | 小于     | <              |
 | le     | 小于等于 | <=             |
-|        |          |                |
 | fuzzy  | 模糊     | LIKE '%x%'     |
 | nfuzzy | 不模糊   | NOT LIKE '%x%' |
 | start  | 开头     | LIKE 'x%'      |
