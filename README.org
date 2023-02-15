@@ -1,7 +1,7 @@
 
 ** 说明
 
-在接口入参中定义查询参数及返回结果, *无需编写后端代码*, 自动处理数据查询并组装数据
+服务端只需要有数据源, 无需生成任何 model dao service 等, 前端在接口入参中定义查询参数及返回结果, 自动处理数据查询并组装数据
 
 ** 使用
 
@@ -48,7 +48,10 @@ public class TableColumnConfig {
                 Map.of("items", Map.of("table", "OrderItem", "columns", Arrays.asList("productName", "price", "number"))),
                 Map.of("logs", Map.of("table", "OrderLog", "columns", Arrays.asList("operator", "message", "time")))
         ), true);
-        List<List<String>> relationList = Arrays.asList(Arrays.asList("Order", "inner", "OrderAddress"), Arrays.asList("Order", "left", "OrderItem"));
+        List<List<String>> relationList = Arrays.asList(
+                Arrays.asList("Order", "inner", "OrderAddress"),
+                Arrays.asList("Order", "left", "OrderItem")
+        );
         return new ReqAlias("Order", result, relationList);
     }
 }
