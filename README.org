@@ -296,7 +296,7 @@ WHERE order_no IN ( 'xxx', 'yyy' )
 #+BEGIN_SRC json5
 {
   "count": 123,
-  "list": [
+  "list": [ /* 如果没有分页查询入参(page)则返回的是此数组 */
     {
       "id": 1234,
       "orderNo": "xx",
