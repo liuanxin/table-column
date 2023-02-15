@@ -229,7 +229,7 @@ query:
   "result": {
     "columns": [
       "id", "orderNo", "orderStatus", "amount", "desc",
-      { "createTime" : [ "yyyy-MM-dd HH:mm", "GMT+8" ] },  /* 格式化: [ "pattern", "timeZone" ], 默认是 yyyy-MM-dd HH:mm:ss */
+      { "createTime" : [ "yyyy-MM-dd", "GMT+8" ] },  /* 格式化: [ "pattern", "timeZone" ], 默认是 yyyy-MM-dd HH:mm:ss */
       {
         "address(子表数据返回时的自定义属性名)": {
           "table": "OrderAddress",
@@ -302,7 +302,7 @@ WHERE order_no IN ( 'xxx', 'yyy' )
       "orderNo": "xx",
       "amount": "xxx",
       "desc": "xxxxxx",
-      "createTime": "yyyy-MM-dd HH:mm",
+      "createTime": "yyyy-MM-dd",
       "address": {
         "contact": "y",
         "address": "yy"
@@ -323,7 +323,7 @@ WHERE order_no IN ( 'xxx', 'yyy' )
         {
           "operator": "zzz",
           "message": "zzzz",
-          "time": "yyyy-MM-dd HH:mm"
+          "time": "yyyy-MM-dd HH:mm:ss"
         }
       ]
     },
