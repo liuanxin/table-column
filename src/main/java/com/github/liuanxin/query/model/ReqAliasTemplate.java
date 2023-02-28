@@ -6,15 +6,15 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-/** 定义别名 */
-public class ReqAlias implements Serializable {
+/** 别名模板 */
+public class ReqAliasTemplate implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 主表 */
     private String table;
 
     /** 别名里的查询部分 */
-    private ReqAliasQuery query;
+    private ReqAliasTemplateQuery query;
 
     /** 别名中入参里面设定不发起 SELECT COUNT(*) 查询. 别名中设定了此值将会覆盖入参上的值 */
     private Boolean notCount;
@@ -28,31 +28,19 @@ public class ReqAlias implements Serializable {
     /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
     private ResultType type;
 
-    public ReqAlias() {}
-    public ReqAlias(String table) {
-        this.table = table;
+
+    public ReqAliasTemplate() {
     }
-    public ReqAlias(String table, ReqResult result) {
+    public ReqAliasTemplate(String table, ReqAliasTemplateQuery query, Boolean notCount,
+                            List<List<String>> relationList, ReqResult result, ResultType type) {
         this.table = table;
-        this.result = result;
-    }
-    public ReqAlias(String table, ReqResult result, List<List<String>> relationList) {
-        this.table = table;
-        this.result = result;
-        this.relationList = relationList;
-    }
-    public ReqAlias(String table, ReqResult result, ResultType type) {
-        this.table = table;
-        this.result = result;
-        this.type = type;
-    }
-    public ReqAlias(String table, ReqResult result, ResultType type, Boolean notCount, List<List<String>> relationList) {
-        this.table = table;
+        this.query = query;
         this.notCount = notCount;
         this.relationList = relationList;
         this.result = result;
         this.type = type;
     }
+
 
     public String getTable() {
         return table;
@@ -61,10 +49,10 @@ public class ReqAlias implements Serializable {
         this.table = table;
     }
 
-    public ReqAliasQuery getQuery() {
+    public ReqAliasTemplateQuery getQuery() {
         return query;
     }
-    public void setQuery(ReqAliasQuery query) {
+    public void setQuery(ReqAliasTemplateQuery query) {
         this.query = query;
     }
 
@@ -100,10 +88,10 @@ public class ReqAlias implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReqAlias reqAlias = (ReqAlias) o;
-        return Objects.equals(table, reqAlias.table) && Objects.equals(query, reqAlias.query)
-                && Objects.equals(notCount, reqAlias.notCount) && Objects.equals(relationList, reqAlias.relationList)
-                && Objects.equals(result, reqAlias.result) && type == reqAlias.type;
+        ReqAliasTemplate reqAliasTemplate = (ReqAliasTemplate) o;
+        return Objects.equals(table, reqAliasTemplate.table) && Objects.equals(query, reqAliasTemplate.query)
+                && Objects.equals(notCount, reqAliasTemplate.notCount) && Objects.equals(relationList, reqAliasTemplate.relationList)
+                && Objects.equals(result, reqAliasTemplate.result) && type == reqAliasTemplate.type;
     }
 
     @Override

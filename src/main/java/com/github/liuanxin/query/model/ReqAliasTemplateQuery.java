@@ -44,7 +44,7 @@ import java.util.Objects;
  * }
  * </pre>
  */
-public class ReqAliasQuery implements Serializable {
+public class ReqAliasTemplateQuery implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private OperateType operate;
@@ -76,7 +76,7 @@ public class ReqAliasQuery implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReqAliasQuery that = (ReqAliasQuery) o;
+        ReqAliasTemplateQuery that = (ReqAliasTemplateQuery) o;
         return operate == that.operate && Objects.equals(name, that.name) && Objects.equals(conditions, that.conditions);
     }
 

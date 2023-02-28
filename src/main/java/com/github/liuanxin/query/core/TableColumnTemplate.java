@@ -71,11 +71,11 @@ public class TableColumnTemplate implements InitializingBean {
     private TableColumnInfo tcInfo;
 
     private final List<TableColumnRelation> tableRelationList;
-    private final Map<String, ReqAlias> queryAliasMap;
+    private final Map<String, ReqAliasTemplate> queryAliasMap;
     private final JdbcTemplate jdbcTemplate;
     public TableColumnTemplate(JdbcTemplate jdbcTemplate,
                                List<TableColumnRelation> tableRelationList,
-                               Map<String, ReqAlias> queryAliasMap) {
+                               Map<String, ReqAliasTemplate> queryAliasMap) {
         this.jdbcTemplate = jdbcTemplate;
         this.tableRelationList = QueryUtil.isEmpty(tableRelationList) ? new ArrayList<>() : new ArrayList<>(tableRelationList);
         this.queryAliasMap = queryAliasMap;

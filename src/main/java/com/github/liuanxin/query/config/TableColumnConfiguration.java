@@ -1,7 +1,7 @@
 package com.github.liuanxin.query.config;
 
 import com.github.liuanxin.query.core.TableColumnTemplate;
-import com.github.liuanxin.query.model.ReqAlias;
+import com.github.liuanxin.query.model.ReqAliasTemplate;
 import com.github.liuanxin.query.model.TableColumnRelation;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -24,14 +24,14 @@ public class TableColumnConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Map<String, ReqAlias> queryAliasMap() {
+    public Map<String, ReqAliasTemplate> queryAliasMap() {
         return new HashMap<>();
     }
 
     @Bean
     public TableColumnTemplate tableColumnTemplate(JdbcTemplate jdbcTemplate,
                                                    List<TableColumnRelation> tableRelationList,
-                                                   Map<String, ReqAlias> queryAliasMap) {
+                                                   Map<String, ReqAliasTemplate> queryAliasMap) {
         return new TableColumnTemplate(jdbcTemplate, tableRelationList, queryAliasMap);
     }
 }

@@ -121,7 +121,7 @@ public class ReqInfo implements Serializable {
     }
 
 
-    public void handleAlias(boolean requiredAlias, Map<String, ReqAlias> requestAliasMap) {
+    public void handleAlias(boolean requiredAlias, Map<String, ReqAliasTemplate> requestAliasMap) {
         if (requiredAlias && QueryUtil.isEmpty(alias)) {
             throw new RuntimeException("request: required request alias");
         }
@@ -132,31 +132,31 @@ public class ReqInfo implements Serializable {
             if (QueryUtil.isEmpty(requestAliasMap)) {
                 throw new RuntimeException("request: no define request alias");
             }
-            ReqAlias aliasParam = requestAliasMap.get(alias);
-            if (QueryUtil.isNull(aliasParam)) {
+            ReqAliasTemplate aliasTemplate = requestAliasMap.get(alias);
+            if (QueryUtil.isNull(aliasTemplate)) {
                 throw new RuntimeException("request: no request alias(" + alias + ") info");
             }
 
-            String table = aliasParam.getTable();
+            String table = aliasTemplate.getTable();
             if (QueryUtil.isNotEmpty(table)) {
                 this.table = table;
             }
-            ReqResult result = aliasParam.getResult();
+            ReqResult result = aliasTemplate.getResult();
             if (QueryUtil.isNotNull(result)) {
                 this.result = result;
             }
-            ResultType type = aliasParam.getType();
+            ResultType type = aliasTemplate.getType();
             if (QueryUtil.isNotNull(type)) {
                 this.type = type;
             }
 
 
             param = new ReqParam();
-            Boolean notCount = aliasParam.getNotCount();
+            Boolean notCount = aliasTemplate.getNotCount();
             if (QueryUtil.isNotNull(notCount)) {
                 param.setNotCount(notCount);
             }
-            List<List<String>> relationList = aliasParam.getRelationList();
+            List<List<String>> relationList = aliasTemplate.getRelationList();
             if (QueryUtil.isNotEmpty(relationList)) {
                 param.setRelation(relationList);
             }
@@ -170,9 +170,9 @@ public class ReqInfo implements Serializable {
                     param.setPage(page);
                 }
                 Map<String, Object> paramMap = aliasQuery.getQuery();
-                ReqAliasQuery aliasQuery = aliasParam.getQuery();
-                if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(aliasQuery)) {
-                    param.setQuery(handleAliasQuery(paramMap, aliasQuery));
+                ReqAliasTemplateQuery aliasTemplateQuery = aliasTemplate.getQuery();
+                if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(aliasTemplateQuery)) {
+                    param.setQuery(handleAliasQuery(paramMap, aliasTemplateQuery));
                 }
             }
         }
@@ -252,7 +252,7 @@ public class ReqInfo implements Serializable {
      * and status = 1
      * </pre>
      */
-    private ReqQuery handleAliasQuery(Map<String, Object> paramMap, ReqAliasQuery aliasQuery) {
+    private ReqQuery handleAliasQuery(Map<String, Object> paramMap, ReqAliasTemplateQuery aliasTemplateQuery) {
         ReqQuery query = new ReqQuery();
         for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
             String key = entry.getKey();
