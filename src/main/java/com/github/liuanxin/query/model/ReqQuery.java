@@ -21,12 +21,12 @@ import java.util.*;
  * {
  *   -- "operate": "and",    -- 并且(and) 和 或者(or) 两种, 不设置则默认是 and
  *   "conditions": [
- *     [ "name", "start", "abc" ],
- *     [ "gender", "eq", 1 ],
- *     [ "age", "bet", [ 18, 40 ] ],
- *     [ "province", "in", [ "x", "y", "z" ] ],
- *     [ "city", "fuzzy", "xx" ],
- *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
+ *     [ "name", "$start", "abc" ],
+ *     [ "gender", "$eq", 1 ],
+ *     [ "age", "$bet", [ 18, 40 ] ],
+ *     [ "province", "$in", [ "x", "y", "z" ] ],
+ *     [ "city", "$fuzzy", "xx" ],
+ *     [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
  *
@@ -37,22 +37,22 @@ import java.util.*;
  * and time >= 'xxxx-xx-xx xx:xx:xx'
  * {
  *   "conditions": [
- *     [ "name", "start", "abc" ],
+ *     [ "name", "$start", "abc" ],
  *     {
  *       "operate": "or",
  *       "conditions": [
- *         [ "gender", 1 ],
- *         [ "age", "bet", [ 18, 40 ] ]
+ *         [ "gender", "$eq", 1 ],
+ *         [ "age", "$bet", [ 18, 40 ] ]
  *       ]
  *     },
  *     {
  *       "operate": "or",
  *       "conditions": [
- *         [ "province", "in", [ "x", "y", "z" ] ],
- *         [ "city", "fuzzy", "xx" ]
+ *         [ "province", "$in", [ "x", "y", "z" ] ],
+ *         [ "city", "$fuzzy", "xx" ]
  *       ]
  *     },
- *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
+ *     [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
  *
@@ -66,12 +66,12 @@ import java.util.*;
  * {
  *   "operate": "or",
  *   "conditions": [
- *     [ "name", "end", "abc" ],
- *     [ "gender", 1 ],
- *     [ "age", "bet", [ 18, 40 ] ],
- *     [ "province", "in", [ "x", "y", "z" ] ],
- *     [ "city", "fuzzy", "xx" ],
- *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
+ *     [ "name", "$end", "abc" ],
+ *     [ "gender", "$eq", 1 ],
+ *     [ "age", "$bet", [ 18, 40 ] ],
+ *     [ "province", "$in", [ "x", "y", "z" ] ],
+ *     [ "city", "$fuzzy", "xx" ],
+ *     [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
  *
@@ -83,20 +83,20 @@ import java.util.*;
  * {
  *   "operate": "or",
  *   "conditions": [
- *     [ "name", "start", "abc" ],
+ *     [ "name", "$start", "abc" ],
  *     {
  *       "conditions": [
- *         [ "gender", 1 ],
- *         [ "age", "bet", [ 18, 40 ] ]
+ *         [ "gender", "$eq", 1 ],
+ *         [ "age", "$bet", [ 18, 40 ] ]
  *       ]
  *     },
  *     {
  *       "conditions": [
- *         [ "province", "in", [ "x", "y", "z" ] ],
- *         [ "city", "fuzzy", "xx" ]
+ *         [ "province", "$in", [ "x", "y", "z" ] ],
+ *         [ "city", "$fuzzy", "xx" ]
  *       ]
  *     },
- *     [ "time", "ge", "xxxx-xx-xx xx:xx:xx" ]
+ *     [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ]
  *   ]
  * }
  * </pre>
@@ -292,7 +292,7 @@ public class ReqQuery implements Serializable {
 
     public static ReqQuery buildIds(String idField, List<Serializable> ids) {
         return new ReqQuery(null, Collections.singletonList(
-                Arrays.asList(idField, ConditionType.IN, ids)
+                Arrays.asList(idField, ConditionType.$IN, ids)
         ));
     }
 }

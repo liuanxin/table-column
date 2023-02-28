@@ -10,8 +10,12 @@ import java.util.*;
 public class ReqInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 查询别名 */
+    /** 查询别名(如果使用, 下面的 table param result type 将不再生效) */
     private String alias;
+    /** 使用别名时的查询条件 */
+    private ReqParamAlias aliasQuery;
+
+    // 如果使用别名只需要上面的两个参数, 如果不用别名则使用下面的四个参数
 
     /** 主表 */
     private String table;
@@ -54,11 +58,11 @@ public class ReqInfo implements Serializable {
         this.alias = alias;
     }
 
-    public ReqParam getParam() {
-        return param;
+    public ReqParamAlias getAliasQuery() {
+        return aliasQuery;
     }
-    public void setParam(ReqParam param) {
-        this.param = param;
+    public void setAliasQuery(ReqParamAlias aliasQuery) {
+        this.aliasQuery = aliasQuery;
     }
 
     public String getTable() {
@@ -66,6 +70,13 @@ public class ReqInfo implements Serializable {
     }
     public void setTable(String table) {
         this.table = table;
+    }
+
+    public ReqParam getParam() {
+        return param;
+    }
+    public void setParam(ReqParam param) {
+        this.param = param;
     }
 
     public ReqResult getResult() {
@@ -82,26 +93,26 @@ public class ReqInfo implements Serializable {
         this.type = type;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ReqInfo reqInfo = (ReqInfo) o;
-        return Objects.equals(alias, reqInfo.alias) && Objects.equals(table, reqInfo.table)
-                && Objects.equals(param, reqInfo.param) && Objects.equals(result, reqInfo.result)
-                && type == reqInfo.type;
+        return Objects.equals(alias, reqInfo.alias) && Objects.equals(aliasQuery, reqInfo.aliasQuery)
+                && Objects.equals(table, reqInfo.table) && Objects.equals(param, reqInfo.param)
+                && Objects.equals(result, reqInfo.result) && type == reqInfo.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, table, param, result, type);
+        return Objects.hash(alias, aliasQuery, table, param, result, type);
     }
 
     @Override
     public String toString() {
         return "ReqInfo{" +
                 "alias='" + alias + '\'' +
+                ", aliasQuery=" + aliasQuery +
                 ", table='" + table + '\'' +
                 ", param=" + param +
                 ", result=" + result +
@@ -112,37 +123,132 @@ public class ReqInfo implements Serializable {
 
     public void handleAlias(boolean requiredAlias, Map<String, ReqAlias> requestAliasMap) {
         if (requiredAlias && QueryUtil.isEmpty(alias)) {
-            throw new RuntimeException("request: required alias");
+            throw new RuntimeException("request: required request alias");
         }
-        if (QueryUtil.isNotEmpty(alias) && QueryUtil.isNotEmpty(requestAliasMap)) {
-            ReqAlias reqAlias = requestAliasMap.get(alias);
-            if (QueryUtil.isNull(reqAlias)) {
-                throw new RuntimeException("request: no alias(" + alias + ") info");
+        if (QueryUtil.isNotEmpty(alias)) {
+            if (QueryUtil.isNotEmpty(table) || QueryUtil.isNotNull(param) || QueryUtil.isNotNull(result) || QueryUtil.isNotNull(type)) {
+                throw new RuntimeException("request: if use alias, just need alias + aliasQuery");
+            }
+            if (QueryUtil.isEmpty(requestAliasMap)) {
+                throw new RuntimeException("request: no define request alias");
+            }
+            ReqAlias aliasParam = requestAliasMap.get(alias);
+            if (QueryUtil.isNull(aliasParam)) {
+                throw new RuntimeException("request: no request alias(" + alias + ") info");
             }
 
-            String table = reqAlias.getTable();
+            String table = aliasParam.getTable();
             if (QueryUtil.isNotEmpty(table)) {
                 this.table = table;
             }
-            ReqResult result = reqAlias.getResult();
+            ReqResult result = aliasParam.getResult();
             if (QueryUtil.isNotNull(result)) {
                 this.result = result;
             }
-            ResultType type = reqAlias.getType();
+            ResultType type = aliasParam.getType();
             if (QueryUtil.isNotNull(type)) {
                 this.type = type;
             }
-            if (QueryUtil.isNotNull(param)) {
-                Boolean notCount = reqAlias.getNotCount();
-                if (QueryUtil.isNotNull(notCount)) {
-                    param.setNotCount(notCount);
+
+
+            param = new ReqParam();
+            Boolean notCount = aliasParam.getNotCount();
+            if (QueryUtil.isNotNull(notCount)) {
+                param.setNotCount(notCount);
+            }
+            List<List<String>> relationList = aliasParam.getRelationList();
+            if (QueryUtil.isNotEmpty(relationList)) {
+                param.setRelation(relationList);
+            }
+            if (QueryUtil.isNotNull(aliasQuery)) {
+                Map<String, String> sort = aliasQuery.getSort();
+                if (QueryUtil.isNotEmpty(sort)) {
+                    param.setSort(sort);
                 }
-                List<List<String>> relationList = reqAlias.getRelationList();
-                if (QueryUtil.isNotEmpty(relationList)) {
-                    param.setRelation(relationList);
+                List<String> page = aliasQuery.getPage();
+                if (QueryUtil.isNotEmpty(page)) {
+                    param.setPage(page);
+                }
+                Map<String, Object> paramMap = aliasQuery.getQuery();
+                if (QueryUtil.isNotEmpty(paramMap)) {
+                    param.setQuery(handleAliasQuery(paramMap, aliasParam.getQuery()));
                 }
             }
         }
+    }
+
+    /**
+     * <pre>
+     * 如果数据是下面这样
+     * {
+     *   "name": "abc",
+     *   "x": { "gender": 1, "age": [ 18, 40 ] },
+     *   "y": { "province": [ "x", "y", "z" ], "city": "xx" },
+     *   "time": "$ge"
+     * }
+     *
+     * 模板是下面这样
+     * {
+     *   "operate": "and",
+     *   "conditions": [
+     *     { "name": "$start" },
+     *     {
+     *       "operate": "or",
+     *       "name": "x",
+     *       "conditions": [
+     *         { "gender": "$eq" },
+     *         { "age": "$bet" }
+     *       ]
+     *     },
+     *     {
+     *       "operate": "or",
+     *       "name": "y",
+     *       "conditions": [
+     *         { "province": "$in" },
+     *         { "city": "$fuzzy" }
+     *       ]
+     *     },
+     *     { "time": "$ge" }
+     *   ]
+     * }
+     *
+     * 最终生成下面这样
+     * {
+     *   "operate": "and",
+     *   "conditions": [
+     *     [ "name", "$start", "abc" ],
+     *     {
+     *       "operate": "or",
+     *       "conditions": [
+     *         [ "gender", "$eq", 1 ],
+     *         [ "age", "$bet", [ 18, 40 ] ]
+     *       ]
+     *     },
+     *     {
+     *       "operate": "or",
+     *       "conditions": [
+     *         [ "province", "$in", [ "x", "y", "z" ] ],
+     *         [ "city", "$fuzzy", "xx" ]
+     *       ]
+     *     },
+     *     [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ]
+     *   ]
+     * }
+     * 其对应的条件如下
+     * name like 'abc%'
+     * and ( gender = 1 or age between 18 and 40 )
+     * and ( province in ( 'x', 'y', 'z' ) or city like '%xx%' )
+     * and time >= 'xxxx-xx-xx xx:xx:xx'
+     * </pre>
+     */
+    private ReqQuery handleAliasQuery(Map<String, Object> paramMap, ReqAliasQuery aliasQuery) {
+        ReqQuery query = new ReqQuery();
+        for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+        }
+        // todo
+        return query;
     }
 
 

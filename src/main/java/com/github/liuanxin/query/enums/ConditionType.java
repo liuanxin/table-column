@@ -32,134 +32,134 @@ import java.util.*;
 public enum ConditionType {
 
     /*
-    nu     : IS NULL      为空
-    nn     : IS NOT NULL  不为空
-    eq     : =            等于
-    ne     : <>           不等于
-    in     : IN           包含
-    ni     : NOT IN       不包含
-    bet    : BETWEEN      区间
-    nbe    : NOT BETWEEN  不在区间
-    gt     : >            大于
-    ge     : >=           大于等于
-    lt     : <            小于
-    le     : <=           小于等于
+    $nu     : IS NULL      为空
+    $nn     : IS NOT NULL  不为空
+    $eq     : =            等于
+    $ne     : <>           不等于
+    $in     : IN           包含
+    $ni     : NOT IN       不包含
+    $bet    : BETWEEN      区间
+    $nbe    : NOT BETWEEN  不在区间
+    $gt     : >            大于
+    $ge     : >=           大于等于
+    $lt     : <            小于
+    $le     : <=           小于等于
 
-    fuzzy  : LIKE '%x%'     模糊
-    nfuzzy : NOT LIKE '%x%' 不模糊
-    start  : LIKE 'x%'      开头
-    nstart : NOT LIKE 'x%'  不开头
-    end    : LIKE '%x'      结尾
-    nend   : NOT LIKE '%x'  不结尾
+    $fuzzy  : LIKE '%x%'     模糊
+    $nfuzzy : NOT LIKE '%x%' 不模糊
+    $start  : LIKE 'x%'      开头
+    $nstart : NOT LIKE 'x%'  不开头
+    $end    : LIKE '%x'      结尾
+    $nend   : NOT LIKE '%x'  不结尾
     */
 
-    NU("IS NULL", "为空") {
+    $NU("IS NULL", "为空") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, printSql);
         }
     },
-    NN("IS NOT NULL", "不为空") {
+    $NN("IS NOT NULL", "不为空") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, printSql);
         }
     },
 
-    EQ("=", "等于") {
+    $EQ("=", "等于") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, value, params, printSql);
         }
     },
-    NE("<>", "不等于") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateCondition(column, type, value, params, printSql);
-        }
-    },
-
-    IN("IN", "包含") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateMulti(column, type, value, params, printSql);
-        }
-    },
-    NI("NOT IN", "不包含") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateMulti(column, type, value, params, printSql);
-        }
-    },
-
-    BET("BETWEEN", "区间") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateMulti(column, type, value, params, printSql);
-        }
-    },
-    NBE("NOT BETWEEN", "不在区间") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateMulti(column, type, value, params, printSql);
-        }
-    },
-    GT(">", "大于") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateCondition(column, type, value, params, printSql);
-        }
-    },
-    GE(">=", "大于等于") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateCondition(column, type, value, params, printSql);
-        }
-    },
-    LT("<", "小于") {
-        @Override
-        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-            return generateCondition(column, type, value, params, printSql);
-        }
-    },
-    LE("<=", "小于等于") {
+    $NE("<>", "不等于") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, value, params, printSql);
         }
     },
 
-    FUZZY("LIKE", "模糊") {
+    $IN("IN", "包含") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
+        }
+    },
+    $NI("NOT IN", "不包含") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
+        }
+    },
+
+    $BET("BETWEEN", "区间") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
+        }
+    },
+    $NBE("NOT BETWEEN", "不在区间") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateMulti(column, type, value, params, printSql);
+        }
+    },
+    $GT(">", "大于") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
+        }
+    },
+    $GE(">=", "大于等于") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
+        }
+    },
+    $LT("<", "小于") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
+        }
+    },
+    $LE("<=", "小于等于") {
+        @Override
+        public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
+            return generateCondition(column, type, value, params, printSql);
+        }
+    },
+
+    $FUZZY("LIKE", "模糊") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, ("%" + value + "%"), params, printSql);
         }
     },
-    NFUZZY("NOT LIKE", "不模糊") {
+    $NFUZZY("NOT LIKE", "不模糊") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, ("%" + value + "%"), params, printSql);
         }
     },
-    START("LIKE", "开头") {
+    $START("LIKE", "开头") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, (value + "%"), params, printSql);
         }
     },
-    NSTART("NOT LIKE", "不开头") {
+    $NSTART("NOT LIKE", "不开头") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, (value + "%"), params, printSql);
         }
     },
-    END("LIKE", "结尾") {
+    $END("LIKE", "结尾") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, ("%" + value), params, printSql);
         }
     },
-    NEND("NOT LIKE", "不结尾") {
+    $NEND("NOT LIKE", "不结尾") {
         @Override
         public String generateSql(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
             return generateCondition(column, type, ("%" + value), params, printSql);
@@ -241,7 +241,7 @@ public enum ConditionType {
         }
     }
     protected String generateMulti(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-        if (QueryUtil.isNull(value) || !MULTI_TYPE.contains(this) || !(value instanceof Collection<?>)) {
+        if (QueryUtil.isNull(value) || !MULTI$TYPE.contains(this) || !(value instanceof Collection<?>)) {
             return "";
         }
         Collection<?> c = (Collection<?>) value;
@@ -249,7 +249,7 @@ public enum ConditionType {
             return "";
         }
 
-        if (this == BET || this == NBE) {
+        if (this == $BET || this == $NBE) {
             Object[] arr = c.toArray();
             Object start = arr[0];
             Object end = arr.length > 1 ? arr[1] : null;
@@ -298,100 +298,100 @@ public enum ConditionType {
     }
 
 
-    private static final Set<ConditionType> MULTI_TYPE = new HashSet<>(Arrays.asList(
-            IN,
-            NI,
-            BET,
-            NBE
+    private static final Set<ConditionType> MULTI$TYPE = new HashSet<>(Arrays.asList(
+            $IN,
+            $NI,
+            $BET,
+            $NBE
     ));
     /** string: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(fuzzy)、不包含(nfuzzy)、开头(start)、不开头(nstart)、结尾(end)、不结尾(nend) */
-    private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
-            NU,
-            NN,
-            EQ,
-            NE,
-            IN,
-            NI,
-            FUZZY,
-            NFUZZY,
-            START,
-            NSTART,
-            END,
-            NEND
+    private static final Set<ConditionType> STRING$TYPE$SET = new LinkedHashSet<>(Arrays.asList(
+            $NU,
+            $NN,
+            $EQ,
+            $NE,
+            $IN,
+            $NI,
+            $FUZZY,
+            $NFUZZY,
+            $START,
+            $NSTART,
+            $END,
+            $NEND
     ));
-    private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(STRING_TYPE_SET, ConditionType::info));
+    private static final String STRING$TYPE$INFO = String.format("String type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(STRING$TYPE$SET, ConditionType::info));
 
     /** number: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
-    private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
-            NU,
-            NN,
-            EQ,
-            NE,
-            IN,
-            NI,
-            GT,
-            GE,
-            LT,
-            LE,
-            BET,
-            NBE
+    private static final Set<ConditionType> NUMBER$TYPE$SET = new LinkedHashSet<>(Arrays.asList(
+            $NU,
+            $NN,
+            $EQ,
+            $NE,
+            $IN,
+            $NI,
+            $GT,
+            $GE,
+            $LT,
+            $LE,
+            $BET,
+            $NBE
     ));
-    private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(NUMBER_TYPE_SET, ConditionType::info));
+    private static final String NUMBER$TYPE$INFO = String.format("Number type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(NUMBER$TYPE$SET, ConditionType::info));
 
     /** date: 为空(nu)、不为空(NN)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
-    private static final Set<ConditionType> DATE_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
-            NU,
-            NN,
-            GT,
-            GE,
-            LT,
-            LE,
-            BET,
-            NBE
+    private static final Set<ConditionType> DATE$TYPE$SET = new LinkedHashSet<>(Arrays.asList(
+            $NU,
+            $NN,
+            $GT,
+            $GE,
+            $LT,
+            $LE,
+            $BET,
+            $NBE
     ));
-    private static final String DATE_TYPE_INFO = String.format("Date type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(DATE_TYPE_SET, ConditionType::info));
+    private static final String DATE$TYPE$INFO = String.format("Date type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(DATE$TYPE$SET, ConditionType::info));
 
     /**  非 string/number/date 类型: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
-    public static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
-            NU,
-            NN,
-            EQ,
-            NE,
-            IN,
-            NI,
-            NU,
-            NN
+    public static final Set<ConditionType> OTHER$TYPE$SET = new HashSet<>(Arrays.asList(
+            $NU,
+            $NN,
+            $EQ,
+            $NE,
+            $IN,
+            $NI,
+            $NU,
+            $NN
     ));
-    private static final String OTHER_TYPE_INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(OTHER_TYPE_SET, ConditionType::info));
+    private static final String OTHER$TYPE$INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(OTHER$TYPE$SET, ConditionType::info));
 
 
     private void checkType(Class<?> type, String column) {
         if (Number.class.isAssignableFrom(type)) {
-            if (!NUMBER_TYPE_SET.contains(this)) {
-                throw new RuntimeException(column + ": " + NUMBER_TYPE_INFO);
+            if (!NUMBER$TYPE$SET.contains(this)) {
+                throw new RuntimeException(column + ": " + NUMBER$TYPE$INFO);
             }
         } else if (Date.class.isAssignableFrom(type)) {
-            if (!DATE_TYPE_SET.contains(this)) {
-                throw new RuntimeException(column + ": " + DATE_TYPE_INFO);
+            if (!DATE$TYPE$SET.contains(this)) {
+                throw new RuntimeException(column + ": " + DATE$TYPE$INFO);
             }
         } else if (String.class.isAssignableFrom(type)) {
-            if (!STRING_TYPE_SET.contains(this)) {
-                throw new RuntimeException(column + ": " + STRING_TYPE_INFO);
+            if (!STRING$TYPE$SET.contains(this)) {
+                throw new RuntimeException(column + ": " + STRING$TYPE$INFO);
             }
         } else {
-            if (!OTHER_TYPE_SET.contains(this)) {
-                throw new RuntimeException(column + ": " + OTHER_TYPE_INFO);
+            if (!OTHER$TYPE$SET.contains(this)) {
+                throw new RuntimeException(column + ": " + OTHER$TYPE$INFO);
             }
         }
     }
 
     private void checkValue(Class<?> type, String column, Object value, Integer strLen, int maxListCount) {
         if (QueryUtil.isNotNull(value)) {
-            if (MULTI_TYPE.contains(this)) {
+            if (MULTI$TYPE.contains(this)) {
                 if (value instanceof Collection<?>) {
                     int count = 0;
                     Collection<?> collection = (Collection<?>) value;

@@ -6,19 +6,25 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
+/** 定义别名 */
 public class ReqAlias implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 主表 */
     private String table;
 
+    /** 别名里的查询部分 */
+    private ReqAliasQuery query;
+
     /** 别名中入参里面设定不发起 SELECT COUNT(*) 查询. 别名中设定了此值将会覆盖入参上的值 */
     private Boolean notCount;
+
     /** 别名中入参里用到的表的关系. 如: [ [ "order", "inner", "orderAddress" ] , [ "order", "left", "orderItem" ] ]. 别名中设定了此值将会覆盖入参上的值 */
     private List<List<String>> relationList;
 
     /** 出参 */
     private ReqResult result;
+
     /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
     private ResultType type;
 
@@ -55,6 +61,13 @@ public class ReqAlias implements Serializable {
         this.table = table;
     }
 
+    public ReqAliasQuery getQuery() {
+        return query;
+    }
+    public void setQuery(ReqAliasQuery query) {
+        this.query = query;
+    }
+
     public Boolean getNotCount() {
         return notCount;
     }
@@ -83,26 +96,26 @@ public class ReqAlias implements Serializable {
         this.type = type;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ReqAlias reqAlias = (ReqAlias) o;
-        return Objects.equals(table, reqAlias.table) && Objects.equals(notCount, reqAlias.notCount)
-                && Objects.equals(relationList, reqAlias.relationList) && Objects.equals(result, reqAlias.result)
-                && type == reqAlias.type;
+        return Objects.equals(table, reqAlias.table) && Objects.equals(query, reqAlias.query)
+                && Objects.equals(notCount, reqAlias.notCount) && Objects.equals(relationList, reqAlias.relationList)
+                && Objects.equals(result, reqAlias.result) && type == reqAlias.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, notCount, relationList, result, type);
+        return Objects.hash(table, query, notCount, relationList, result, type);
     }
 
     @Override
     public String toString() {
         return "ReqAlias{" +
                 "table='" + table + '\'' +
+                ", query=" + query +
                 ", notCount=" + notCount +
                 ", relationList=" + relationList +
                 ", result=" + result +
