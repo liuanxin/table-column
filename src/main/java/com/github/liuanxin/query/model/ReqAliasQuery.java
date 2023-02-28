@@ -10,15 +10,19 @@ import java.util.Objects;
 /**
  * <pre>
  * name like '...%'
+ * and time >= '...'
+ * and time <= '...'
  * and ( gender = ... or age between ... and ... )
  * and ( province in ( ... ) or city like '%...%' )
- * and time >= ...
+ * and status = ...
  *
  *
  * {
  *   "operate": "and",
  *   "conditions": [
  *     { "name": "$start" },
+ *     { "_meta_name_": "startTime", "time": "$ge" },
+ *     { "_meta_name_": "endTime", "time": "$le" },
  *     {
  *       "operate": "or",
  *       "name": "x",
@@ -35,7 +39,7 @@ import java.util.Objects;
  *         { "city": "$fuzzy" }
  *       ]
  *     },
- *     { "time": "$ge" }
+ *     { "status": "$eq" }
  *   ]
  * }
  * </pre>
@@ -47,12 +51,18 @@ public class ReqAliasQuery implements Serializable {
     private String name;
     private List<Map<String, Object>> conditions;
 
-
     public OperateType getOperate() {
         return operate;
     }
     public void setOperate(OperateType operate) {
         this.operate = operate;
+    }
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
     }
 
     public List<Map<String, Object>> getConditions() {
@@ -67,11 +77,20 @@ public class ReqAliasQuery implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ReqAliasQuery that = (ReqAliasQuery) o;
-        return operate == that.operate && Objects.equals(conditions, that.conditions);
+        return operate == that.operate && Objects.equals(name, that.name) && Objects.equals(conditions, that.conditions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(operate, conditions);
+        return Objects.hash(operate, name, conditions);
+    }
+
+    @Override
+    public String toString() {
+        return "ReqAliasQuery{" +
+                "operate=" + operate +
+                ", name='" + name + '\'' +
+                ", conditions=" + conditions +
+                '}';
     }
 }

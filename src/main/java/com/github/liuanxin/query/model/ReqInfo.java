@@ -170,8 +170,9 @@ public class ReqInfo implements Serializable {
                     param.setPage(page);
                 }
                 Map<String, Object> paramMap = aliasQuery.getQuery();
-                if (QueryUtil.isNotEmpty(paramMap)) {
-                    param.setQuery(handleAliasQuery(paramMap, aliasParam.getQuery()));
+                ReqAliasQuery aliasQuery = aliasParam.getQuery();
+                if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(aliasQuery)) {
+                    param.setQuery(handleAliasQuery(paramMap, aliasQuery));
                 }
             }
         }
@@ -179,19 +180,13 @@ public class ReqInfo implements Serializable {
 
     /**
      * <pre>
-     * 如果数据是下面这样
-     * {
-     *   "name": "abc",
-     *   "x": { "gender": 1, "age": [ 18, 40 ] },
-     *   "y": { "province": [ "x", "y", "z" ], "city": "xx" },
-     *   "time": "$ge"
-     * }
-     *
-     * 模板是下面这样
+     * 模板
      * {
      *   "operate": "and",
      *   "conditions": [
      *     { "name": "$start" },
+     *     { "_meta_name_": "startTime", "time": "$ge" },
+     *     { "_meta_name_": "endTime", "time": "$le" },
      *     {
      *       "operate": "or",
      *       "name": "x",
@@ -208,15 +203,28 @@ public class ReqInfo implements Serializable {
      *         { "city": "$fuzzy" }
      *       ]
      *     },
-     *     { "time": "$ge" }
+     *     { "status": "$eq" }
      *   ]
      * }
      *
-     * 最终生成下面这样
+     * 数据
+     * {
+     *   "name": "abc",
+     *   "startTime": "xxxx-xx-xx xx:xx:xx",
+     *   "endTime": "yyyy-yy-yy yy:yy:yy",
+     *   "x": { "gender": 1, "age": [ 18, 40 ] },
+     *   "y": { "province": [ "x", "y", "z" ], "city": "xx" },
+     *   "status": 1
+     * }
+     *
+     *
+     * 最终生成
      * {
      *   "operate": "and",
      *   "conditions": [
      *     [ "name", "$start", "abc" ],
+     *     [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ],
+     *     [ "time", "$le", "yyyy-yy-yy yy:yy:yy" ],
      *     {
      *       "operate": "or",
      *       "conditions": [
@@ -231,14 +239,17 @@ public class ReqInfo implements Serializable {
      *         [ "city", "$fuzzy", "xx" ]
      *       ]
      *     },
-     *     [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ]
+     *     [ "status", "$ge", 1 ]
      *   ]
      * }
-     * 其对应的条件如下
+     *
+     * 其生成的查询是
      * name like 'abc%'
+     * and time >= 'xxxx-xx-xx xx:xx:xx'
+     * and time <= 'yyyy-yy-yy yy:yy:yy'
      * and ( gender = 1 or age between 18 and 40 )
      * and ( province in ( 'x', 'y', 'z' ) or city like '%xx%' )
-     * and time >= 'xxxx-xx-xx xx:xx:xx'
+     * and status = 1
      * </pre>
      */
     private ReqQuery handleAliasQuery(Map<String, Object> paramMap, ReqAliasQuery aliasQuery) {

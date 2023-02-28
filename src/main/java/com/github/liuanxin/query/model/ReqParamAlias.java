@@ -12,9 +12,11 @@ public class ReqParamAlias implements Serializable {
      * <pre>
      * {
      *   "name": "abc",
+     *   "startTime": "xxxx-xx-xx xx:xx:xx",
+     *   "endTime": "yyyy-yy-yy yy:yy:yy",
      *   "x": { "gender": 1, "age": [ 18, 40 ] },
      *   "y": { "province": [ "x", "y", "z" ], "city": "xx" },
-     *   "time": "$ge"
+     *   "status": 1
      * }
      * </pre>
      */
