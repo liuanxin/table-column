@@ -964,7 +964,12 @@ public class TableColumnTemplate implements InitializingBean {
             return null;
         }
 
-        req.handleAlias(requiredAlias, queryAliasMap);
+        boolean useAlias = req.handleAlias(requiredAlias, queryAliasMap);
+        if (useAlias) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("request-info after apply alias: ({})", QueryJsonUtil.toJson(req));
+            }
+        }
         req.checkTable(tcInfo);
 
         Set<String> paramTableSet = req.checkParam(notRequiredConditionOrPage, tcInfo, maxListCount);

@@ -1,9 +1,12 @@
 package com.github.liuanxin.query.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class QueryInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
