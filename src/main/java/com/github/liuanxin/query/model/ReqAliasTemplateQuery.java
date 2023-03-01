@@ -1,5 +1,6 @@
 package com.github.liuanxin.query.model;
 
+import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.enums.OperateType;
 import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QueryUtil;
@@ -49,7 +50,18 @@ public class ReqAliasTemplateQuery implements Serializable {
 
     private OperateType operate;
     private String name;
-    private List<Map<String, Object>> conditions;
+    private List<Object> conditions;
+
+    public ReqAliasTemplateQuery() {}
+    public ReqAliasTemplateQuery(OperateType operate, List<Object> conditions) {
+        this.operate = operate;
+        this.conditions = conditions;
+    }
+    public ReqAliasTemplateQuery(OperateType operate, String name, List<Object> conditions) {
+        this.operate = operate;
+        this.name = name;
+        this.conditions = conditions;
+    }
 
     public OperateType getOperate() {
         return operate;
@@ -65,10 +77,10 @@ public class ReqAliasTemplateQuery implements Serializable {
         this.name = name;
     }
 
-    public List<Map<String, Object>> getConditions() {
+    public List<Object> getConditions() {
         return conditions;
     }
-    public void setConditions(List<Map<String, Object>> conditions) {
+    public void setConditions(List<Object> conditions) {
         this.conditions = conditions;
     }
 
@@ -274,17 +286,18 @@ public class ReqAliasTemplateQuery implements Serializable {
     */
     private Map<String, Object> parse() {
         Map<String, Object> returnMap = new HashMap<>();
-        for (Map<String, Object> cond : conditions) {
-            if (QueryUtil.isNotEmpty(cond)) {
-                int size = cond.size();
+        for (Object cond : conditions) {
+            Map<String, Object> condition = QueryJsonUtil.convertData(cond);
+            if (QueryUtil.isNotNull(condition)) {
+                int size = condition.size();
                 if (size == 1) {
-                    returnMap.putAll(cond);
+                    returnMap.putAll(condition);
                 } else if (size == 2) {
-                    String metaNameKey = "_meta_name_";
-                    String metaName = QueryUtil.toStr(cond.get(metaNameKey));
+                    String metaNameKey = QueryConst.TEMPLATE_META_NAME;
+                    String metaName = QueryUtil.toStr(condition.get(metaNameKey));
                     if (QueryUtil.isNotEmpty(metaName)) {
                         String join = null;
-                        for (Map.Entry<String, Object> entry : cond.entrySet()) {
+                        for (Map.Entry<String, Object> entry : condition.entrySet()) {
                             if (!metaNameKey.equals(entry.getKey())) {
                                 join = entry.getKey() + ":" + entry.getValue();
                                 break;

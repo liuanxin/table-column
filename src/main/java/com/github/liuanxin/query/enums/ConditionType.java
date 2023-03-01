@@ -167,19 +167,12 @@ public enum ConditionType {
     };
 
 
-    @JsonValue
     private final String value;
     private final String msg;
 
     ConditionType(String value, String msg) {
         this.value = value;
         this.msg = msg;
-    }
-
-    public static void main(String[] args) {
-        for (ConditionType value : values()) {
-            System.out.printf("%5s : %10s  %s%n", value.name().toLowerCase(), value.getValue(), value.getMsg());
-        }
     }
 
     public String getValue() {
@@ -190,6 +183,7 @@ public enum ConditionType {
         return msg;
     }
 
+    @JsonValue
     public String value() {
         return name().toLowerCase();
     }
@@ -202,7 +196,10 @@ public enum ConditionType {
                 if (str.equalsIgnoreCase(e.name())) {
                     return e;
                 }
-                if (str.length() > 2 && str.toLowerCase().startsWith(e.name().toLowerCase())) {
+                if (str.equalsIgnoreCase(e.value)) {
+                    return e;
+                }
+                if (str.equals(e.msg)) {
                     return e;
                 }
             }

@@ -79,4 +79,6 @@ public final class QueryConst {
             "HH:mm:ss",
             "HH:mm"
     );
+
+    public static final String TEMPLATE_META_NAME = "_meta_name_";
 }

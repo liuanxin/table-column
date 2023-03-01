@@ -2,13 +2,18 @@ package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.JoinType;
 import com.github.liuanxin.query.enums.ResultType;
+import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QueryUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
 
 public class ReqInfo implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(ReqInfo.class);
 
     /** 查询别名(如果使用, 下面的 table param result type 将不再生效) */
     private String alias;
@@ -177,6 +182,11 @@ public class ReqInfo implements Serializable {
                         param.setQuery(query);
                     }
                 }
+            }
+            alias = null;
+            aliasQuery = null;
+            if (LOG.isInfoEnabled()) {
+                LOG.info("after apply alias: ({})", QueryJsonUtil.toJson(this));
             }
         }
     }

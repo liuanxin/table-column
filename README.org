@@ -34,14 +34,14 @@ public class TableColumnConfig {
 
     /** 设置查询别名 */
     @Bean
-    public Map<String, ReqAlias> queryAliasMap() {
+    public Map<String, ReqAliasTemplate> queryAliasMap() {
         Map<String, ReqAlias> aliasMap = new HashMap<>();
-        aliasMap.put("all-order", new ReqAlias("Order"));
+        aliasMap.put("all-order", new ReqAliasTemplate("Order"));
         aliasMap.put("order-address-item-log", orderAddressItemLogAlias());
         return aliasMap;
     }
 
-    private ReqAlias orderAddressItemLogAlias() {
+    private ReqAliasTemplate orderAddressItemLogAlias() {
         // 指定 订单表 的字段, 指定 订单地址表 订单项表 订单日志表 的字段, 查询 Order 时 distinct, 并指定查询时多张表之间的关联方式
         ReqResult result = new ReqResult(Arrays.asList(
                 "orderNo", "orderStatus", "amount", "desc", "createTime",
@@ -53,7 +53,7 @@ public class TableColumnConfig {
                 Arrays.asList("Order", "inner", "OrderAddress"),
                 Arrays.asList("Order", "left", "OrderItem")
         );
-        return new ReqAlias("Order", result, relationList);
+        return new ReqAliasTemplate("Order", result, relationList);
     }
 }
 #+END_SRC
