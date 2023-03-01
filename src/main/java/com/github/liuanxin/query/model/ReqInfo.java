@@ -172,7 +172,10 @@ public class ReqInfo implements Serializable {
                 Map<String, Object> paramMap = aliasQuery.getQuery();
                 ReqAliasTemplateQuery aliasTemplateQuery = aliasTemplate.getQuery();
                 if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(aliasTemplateQuery)) {
-                    param.setQuery(aliasTemplateQuery.handle(paramMap));
+                    ReqQuery query = aliasTemplateQuery.transfer(paramMap);
+                    if (QueryUtil.isNotNull(query)) {
+                        param.setQuery(query);
+                    }
                 }
             }
         }

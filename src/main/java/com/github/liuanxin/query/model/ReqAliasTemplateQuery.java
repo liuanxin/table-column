@@ -1,11 +1,11 @@
 package com.github.liuanxin.query.model;
 
 import com.github.liuanxin.query.enums.OperateType;
+import com.github.liuanxin.query.util.QueryJsonUtil;
+import com.github.liuanxin.query.util.QueryUtil;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <pre>
@@ -156,11 +156,11 @@ public class ReqAliasTemplateQuery implements Serializable {
      *         [ "city", "$fuzzy", "xx" ]
      *       ]
      *     },
-     *     [ "status", "$ge", 1 ]
+     *     [ "status", "$eq", 1 ]
      *   ]
      * }
      *
-     * 其生成的查询是
+     * 对应的查询是
      * name like 'abc%'
      * and time >= 'xxxx-xx-xx xx:xx:xx'
      * and time <= 'yyyy-yy-yy yy:yy:yy'
@@ -169,13 +169,149 @@ public class ReqAliasTemplateQuery implements Serializable {
      * and status = 1
      * </pre>
      */
-    public ReqQuery handle(Map<String, Object> paramMap) {
-        ReqQuery query = new ReqQuery();
+    public ReqQuery transfer(Map<String, Object> paramMap) {
+        Map<String, Object> condMap = parse();
+        if (QueryUtil.isEmpty(condMap)) {
+            return null;
+        }
+
+        List<Object> conditionList = new ArrayList<>();
         for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
             String key = entry.getKey();
-            Object value = entry.getValue();
+            if (QueryUtil.isNotEmpty(key)) {
+                Object cond = condMap.get(key);
+                if (QueryUtil.isNotNull(cond)) {
+                    Object condition = generateCondition(key, entry.getValue(), cond);
+                    if (QueryUtil.isNotNull(condition)) {
+                        conditionList.add(condition);
+                    }
+                }
+            }
         }
-        // todo
-        return query;
+        return new ReqQuery(operate, conditionList);
+    }
+
+    /**
+     * <pre>
+     * key:    name
+     * value:  abc
+     * cond:   $start
+     * return: [ "name", "$start", "abc" ]
+     *
+     * key:    startTime
+     * value:  xxxx-xx-xx xx:xx:xx
+     * cond:   time:$ge
+     * return: [ "time", "$ge", "xxxx-xx-xx xx:xx:xx" ]
+     *
+     * key:    y
+     * value:  { "province": [ "x", "y", "z" ], "city": "xx" }
+     * cond:   { "or": { "province": "$in", "city": "$fuzzy" } }
+     * return: { "operate": "or", "conditions": [ [ "province", "$in", [ "x", "y", "z" ] ], [ "city", "$fuzzy", "xx" ] ] }
+     * </pre>
+     */
+    private Object generateCondition(String key, Object value, Object cond) {
+        if (QueryUtil.isNotEmpty(key)) {
+            if (cond instanceof String) {
+                // $start    time:$ge
+                String[] arr = QueryUtil.toStr(cond).split(":");
+                int len = arr.length;
+                if (len > 0) {
+                    if (len == 1) {
+                        return QueryUtil.isNull(value) ? Arrays.asList(key, arr[0]) : Arrays.asList(key, arr[0], value);
+                    } else if (len == 2) {
+                        return QueryUtil.isNull(value) ? Arrays.asList(arr[0], arr[1]) : Arrays.asList(arr[0], arr[1], value);
+                    }
+                }
+            } else {
+                // { "province": [ "x", "y", "z" ], "city": "xx" }
+                Map<String, Object> data = QueryJsonUtil.convertData(value);
+                Map<String, Map<String, Object>> templateQuery = QueryJsonUtil.convertTemplateQuery(cond);
+                if (QueryUtil.isNotEmpty(templateQuery) && templateQuery.size() == 1) {
+                    for (Map.Entry<String, Map<String, Object>> entry : templateQuery.entrySet()) {
+                        // or
+                        OperateType type = OperateType.deserializer(entry.getKey());
+                        // { "province": "$in", "city": "$fuzzy" }
+                        Map<String, Object> composeMap = entry.getValue();
+                        if (QueryUtil.isNotNull(type) && QueryUtil.isNotEmpty(composeMap)) {
+                            List<Object> composeConditionList = new ArrayList<>();
+                            for (Map.Entry<String, Object> compose : composeMap.entrySet()) {
+                                // province    city
+                                String composeKey = compose.getKey();
+                                // $in    $fuzzy
+                                Object composeCond = compose.getValue();
+                                if (QueryUtil.isNotEmpty(composeKey) || QueryUtil.isNotNull(composeCond)) {
+                                    // [ "x", "y", "z" ]    xx
+                                    Object v = data.get(composeKey);
+                                    composeConditionList.add(generateCondition(composeKey, v, composeCond));
+                                }
+                            }
+                            return new ReqQuery(type, composeConditionList);
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    /**
+     * {
+     *   "name": "$start",
+     *   "startTime": "time:$ge",
+     *   "endTime": "time:$le",
+     *   "x": {
+     *     "or": {
+     *       "gender": "$eq",
+     *       "age": "$bet"
+     *     }
+     *   },
+     *   "y": {
+     *     "or": {
+     *       "province": "$in",
+     *       "city": "$fuzzy"
+     *     }
+     *   },
+     *   "status": "$eq"
+     * }
+    */
+    private Map<String, Object> parse() {
+        Map<String, Object> returnMap = new HashMap<>();
+        for (Map<String, Object> cond : conditions) {
+            if (QueryUtil.isNotEmpty(cond)) {
+                int size = cond.size();
+                if (size == 1) {
+                    returnMap.putAll(cond);
+                } else if (size == 2) {
+                    String metaNameKey = "_meta_name_";
+                    String metaName = QueryUtil.toStr(cond.get(metaNameKey));
+                    if (QueryUtil.isNotEmpty(metaName)) {
+                        String join = null;
+                        for (Map.Entry<String, Object> entry : cond.entrySet()) {
+                            if (!metaNameKey.equals(entry.getKey())) {
+                                join = entry.getKey() + ":" + entry.getValue();
+                                break;
+                            }
+                        }
+                        if (QueryUtil.isNotEmpty(join)) {
+                            returnMap.put(metaName, join);
+                        }
+                    }
+                } else {
+                    ReqAliasTemplateQuery templateQuery = QueryJsonUtil.convert(cond, ReqAliasTemplateQuery.class);
+                    if (QueryUtil.isNotNull(templateQuery)) {
+                        String composeName = templateQuery.name;
+                        String composeType = templateQuery.operate.name();
+                        if (QueryUtil.isNotEmpty(composeName) && QueryUtil.isNotEmpty(composeType)) {
+                            Map<String, Object> composeMap = templateQuery.parse();
+                            if (QueryUtil.isNotEmpty(composeMap)) {
+                                Map<String, Object> composeTypeMap = new HashMap<>();
+                                composeTypeMap.put(composeType, composeMap);
+                                returnMap.put(composeName, composeTypeMap);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return returnMap;
     }
 }
