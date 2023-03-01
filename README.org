@@ -35,25 +35,36 @@ public class TableColumnConfig {
     /** 设置查询别名 */
     @Bean
     public Map<String, ReqAliasTemplate> queryAliasMap() {
-        Map<String, ReqAlias> aliasMap = new HashMap<>();
-        aliasMap.put("all-order", new ReqAliasTemplate("Order"));
-        aliasMap.put("order-address-item-log", orderAddressItemLogAlias());
-        return aliasMap;
+        return Map.of(
+                "all-order", new ReqAliasTemplate("Order"),
+                "order-address-item-log", orderAddressItemLogAlias()
+        );
     }
 
     private ReqAliasTemplate orderAddressItemLogAlias() {
+        // 指定条件的表达式
+        ReqAliasTemplateQuery query = new ReqAliasTemplateQuery(OperateType.AND, List.of(
+                Map.of("id", ConditionType.$GT),
+                Map.of("orderNo", ConditionType.$NN),
+                Map.of(QueryConst.TEMPLATE_META_NAME, "startTime", "createTime", ConditionType.$GE),
+                Map.of(QueryConst.TEMPLATE_META_NAME, "endTime", "createTime", ConditionType.$LE),
+                new ReqAliasTemplateQuery(OperateType.OR, "x", List.of(
+                        Map.of("orderStatus", ConditionType.$EQ),
+                        Map.of("amount", ConditionType.$BET)
+                )),
+                Map.of("orderStatus", ConditionType.$IN),
+                Map.of("OrderItem.productName", ConditionType.$NE),
+                Map.of("OrderAddress.contact", ConditionType.$NE)
+        ));
         // 指定 订单表 的字段, 指定 订单地址表 订单项表 订单日志表 的字段, 查询 Order 时 distinct, 并指定查询时多张表之间的关联方式
-        ReqResult result = new ReqResult(Arrays.asList(
+        ReqResult result = new ReqResult(List.of(
                 "orderNo", "orderStatus", "amount", "desc", "createTime",
-                Map.of("address", Map.of("table", "OrderAddress", "columns", Arrays.asList("contact", "phone", "address"))),
-                Map.of("items", Map.of("table", "OrderItem", "columns", Arrays.asList("productName", "price", "number"))),
-                Map.of("logs", Map.of("table", "OrderLog", "columns", Arrays.asList("operator", "message", "time")))
+                Map.of("address", Map.of("table", "OrderAddress", "columns", List.of("contact", "phone", "address"))),
+                Map.of("items", Map.of("table", "OrderItem", "columns", List.of("productName", "price", "number"))),
+                Map.of("logs", Map.of("table", "OrderLog", "columns", List.of("operator", "message", "time")))
         ), true);
-        List<List<String>> relationList = Arrays.asList(
-                Arrays.asList("Order", "inner", "OrderAddress"),
-                Arrays.asList("Order", "left", "OrderItem")
-        );
-        return new ReqAliasTemplate("Order", result, relationList);
+        List<List<String>> relationList = List.of(List.of("Order", "inner", "OrderAddress"), List.of("Order", "left", "OrderItem"));
+        return new ReqAliasTemplate("Order", query, relationList, result);
     }
 }
 #+END_SRC
@@ -337,7 +348,7 @@ WHERE order_no IN ( 'xxx', 'yyy' )
 #+END_SRC
 
 表达式说明
-| 表达式   | 说明     | 对应 sql       |
+| 表达式   | 说明     | 对应 sql        |
 |---------+----------+---------------|
 | $nu     | 为空     | IS NULL        |
 | $nn     | 不为空   | IS NOT NULL    |
