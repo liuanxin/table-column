@@ -14,7 +14,6 @@ public class QueryJsonUtil {
     private static final TypeReference<Map<String, List<String>>> DATE_FORMAT_RESULT_TYPE = new TypeReference<Map<String, List<String>>>() {};
     private static final TypeReference<Map<String, Object>> DATA_RESULT_TYPE = new TypeReference<Map<String, Object>>() {};
     private static final TypeReference<List<Map<String, Object>>> DATA_LIST_RESULT_TYPE = new TypeReference<List<Map<String, Object>>>() {};
-    private static final TypeReference<Map<String, Map<String, Object>>> TEMPLATE_RESULT_TYPE = new TypeReference<Map<String, Map<String, Object>>>() {};
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -100,9 +99,5 @@ public class QueryJsonUtil {
 
     public static List<Map<String, Object>> convertDateList(Object obj) {
         return convertType(obj, DATA_LIST_RESULT_TYPE);
-    }
-
-    public static Map<String, Map<String, Object>> convertTemplateQuery(Object obj) {
-        return convertType(obj, TEMPLATE_RESULT_TYPE);
     }
 }

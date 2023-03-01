@@ -190,7 +190,6 @@ public class ReqAliasTemplateQuery implements Serializable {
         }
         return new ReqQuery(operate, conditionList);
     }
-
     /**
      * <pre>
      * key:    name
@@ -205,7 +204,7 @@ public class ReqAliasTemplateQuery implements Serializable {
      *
      * key:    y
      * value:  { "province": [ "x", "y", "z" ], "city": "xx" }
-     * cond:   { "or": { "province": "$in", "city": "$fuzzy" } }
+     * cond:   { "type": "or", "cons": { "province": "$in", "city": "$fuzzy" } }
      * return: { "operate": "or", "conditions": [ [ "province", "$in", [ "x", "y", "z" ] ], [ "city", "$fuzzy", "xx" ] ] }
      * </pre>
      */
@@ -225,28 +224,26 @@ public class ReqAliasTemplateQuery implements Serializable {
             } else {
                 // { "province": [ "x", "y", "z" ], "city": "xx" }
                 Map<String, Object> data = QueryJsonUtil.convertData(value);
-                Map<String, Map<String, Object>> templateQuery = QueryJsonUtil.convertTemplateQuery(cond);
-                if (QueryUtil.isNotEmpty(templateQuery) && templateQuery.size() == 1) {
-                    for (Map.Entry<String, Map<String, Object>> entry : templateQuery.entrySet()) {
-                        // or
-                        OperateType type = OperateType.deserializer(entry.getKey());
-                        // { "province": "$in", "city": "$fuzzy" }
-                        Map<String, Object> composeMap = entry.getValue();
-                        if (QueryUtil.isNotNull(type) && QueryUtil.isNotEmpty(composeMap)) {
-                            List<Object> composeConditionList = new ArrayList<>();
-                            for (Map.Entry<String, Object> compose : composeMap.entrySet()) {
-                                // province    city
-                                String composeKey = compose.getKey();
-                                // $in    $fuzzy
-                                Object composeCond = compose.getValue();
-                                if (QueryUtil.isNotEmpty(composeKey) || QueryUtil.isNotNull(composeCond)) {
-                                    // [ "x", "y", "z" ]    xx
-                                    Object v = data.get(composeKey);
-                                    composeConditionList.add(generateCondition(composeKey, v, composeCond));
-                                }
+                Map<String, Object> templateQuery = QueryJsonUtil.convertData(cond);
+                if (QueryUtil.isNotEmpty(templateQuery)) {
+                    // or
+                    OperateType type = OperateType.deserializer(templateQuery.get("type"));
+                    // { "province": "$in", "city": "$fuzzy" }
+                    Map<String, Object> composeMap = QueryJsonUtil.convertData(templateQuery.get("cons"));
+                    if (QueryUtil.isNotNull(type) && QueryUtil.isNotEmpty(composeMap)) {
+                        List<Object> composeConditionList = new ArrayList<>();
+                        for (Map.Entry<String, Object> compose : composeMap.entrySet()) {
+                            // province    city
+                            String composeKey = compose.getKey();
+                            // $in    $fuzzy
+                            Object composeCond = compose.getValue();
+                            if (QueryUtil.isNotEmpty(composeKey) || QueryUtil.isNotNull(composeCond)) {
+                                // [ "x", "y", "z" ]    xx
+                                Object composeValue = data.get(composeKey);
+                                composeConditionList.add(generateCondition(composeKey, composeValue, composeCond));
                             }
-                            return new ReqQuery(type, composeConditionList);
                         }
+                        return new ReqQuery(type, composeConditionList);
                     }
                 }
             }
@@ -259,13 +256,15 @@ public class ReqAliasTemplateQuery implements Serializable {
      *   "startTime": "time:$ge",
      *   "endTime": "time:$le",
      *   "x": {
-     *     "or": {
+     *     "type": "or",
+     *     "cons": {
      *       "gender": "$eq",
      *       "age": "$bet"
      *     }
      *   },
      *   "y": {
-     *     "or": {
+     *     "type": "or",
+     *     "cons": {
      *       "province": "$in",
      *       "city": "$fuzzy"
      *     }
@@ -304,7 +303,8 @@ public class ReqAliasTemplateQuery implements Serializable {
                             Map<String, Object> composeMap = templateQuery.parse();
                             if (QueryUtil.isNotEmpty(composeMap)) {
                                 Map<String, Object> composeTypeMap = new HashMap<>();
-                                composeTypeMap.put(composeType, composeMap);
+                                composeTypeMap.put("type", composeType);
+                                composeTypeMap.put("cons", composeMap);
                                 returnMap.put(composeName, composeTypeMap);
                             }
                         }
