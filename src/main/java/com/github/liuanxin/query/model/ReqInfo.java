@@ -1,5 +1,6 @@
 package com.github.liuanxin.query.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.github.liuanxin.query.enums.JoinType;
 import com.github.liuanxin.query.enums.ResultType;
 import com.github.liuanxin.query.util.QueryUtil;
@@ -7,6 +8,7 @@ import com.github.liuanxin.query.util.QueryUtil;
 import java.io.Serializable;
 import java.util.*;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ReqInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
