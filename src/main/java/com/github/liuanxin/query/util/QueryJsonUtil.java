@@ -1,5 +1,6 @@
 package com.github.liuanxin.query.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.liuanxin.query.model.ReqResult;
@@ -16,6 +17,9 @@ public class QueryJsonUtil {
     private static final TypeReference<List<Map<String, Object>>> DATA_LIST_RESULT_TYPE = new TypeReference<List<Map<String, Object>>>() {};
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    static {
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+    }
 
     public static String toJson(Object obj) {
         if (obj == null) {
