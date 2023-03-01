@@ -18,7 +18,7 @@ public class QueryJsonUtil {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     static {
-        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public static String toJson(Object obj) {
