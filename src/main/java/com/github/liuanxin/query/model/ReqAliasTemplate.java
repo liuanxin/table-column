@@ -4,6 +4,7 @@ import com.github.liuanxin.query.enums.ResultType;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /** 别名模板 */
@@ -15,6 +16,12 @@ public class ReqAliasTemplate implements Serializable {
 
     /** 别名里的查询部分 */
     private ReqAliasTemplateQuery query;
+
+    /** 别名里的默认排序信息. 如: { "字段": "asc", "关联表.字段", "desc" } */
+    private Map<String, String> sort;
+
+    /** 别名里的默认分页信息 [ 当前页, 每页行数 ]. 如: [ 1, 10 ] 表示查询第 1 页且查 10 条 */
+    private List<String> page;
 
     /** 别名中入参里面设定不发起 SELECT COUNT(*) 查询. 别名中设定了此值将会覆盖入参上的值 */
     private Boolean notCount;
@@ -55,6 +62,16 @@ public class ReqAliasTemplate implements Serializable {
         this.result = result;
         this.type = type;
     }
+    public ReqAliasTemplate(String table, ReqAliasTemplateQuery query, Map<String, String> sort, List<String> page,
+                            List<List<String>> relationList, ReqResult result, ResultType type) {
+        this.table = table;
+        this.query = query;
+        this.sort = sort;
+        this.page = page;
+        this.relationList = relationList;
+        this.result = result;
+        this.type = type;
+    }
 
 
     public String getTable() {
@@ -69,6 +86,20 @@ public class ReqAliasTemplate implements Serializable {
     }
     public void setQuery(ReqAliasTemplateQuery query) {
         this.query = query;
+    }
+
+    public Map<String, String> getSort() {
+        return sort;
+    }
+    public void setSort(Map<String, String> sort) {
+        this.sort = sort;
+    }
+
+    public List<String> getPage() {
+        return page;
+    }
+    public void setPage(List<String> page) {
+        this.page = page;
     }
 
     public Boolean getNotCount() {
@@ -103,22 +134,25 @@ public class ReqAliasTemplate implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReqAliasTemplate reqAliasTemplate = (ReqAliasTemplate) o;
-        return Objects.equals(table, reqAliasTemplate.table) && Objects.equals(query, reqAliasTemplate.query)
-                && Objects.equals(notCount, reqAliasTemplate.notCount) && Objects.equals(relationList, reqAliasTemplate.relationList)
-                && Objects.equals(result, reqAliasTemplate.result) && type == reqAliasTemplate.type;
+        ReqAliasTemplate that = (ReqAliasTemplate) o;
+        return Objects.equals(table, that.table) && Objects.equals(query, that.query)
+                && Objects.equals(sort, that.sort) && Objects.equals(page, that.page)
+                && Objects.equals(notCount, that.notCount) && Objects.equals(relationList, that.relationList)
+                && Objects.equals(result, that.result) && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, query, notCount, relationList, result, type);
+        return Objects.hash(table, query, sort, page, notCount, relationList, result, type);
     }
 
     @Override
     public String toString() {
-        return "ReqAlias{" +
+        return "ReqAliasTemplate{" +
                 "table='" + table + '\'' +
                 ", query=" + query +
+                ", sort=" + sort +
+                ", page=" + page +
                 ", notCount=" + notCount +
                 ", relationList=" + relationList +
                 ", result=" + result +

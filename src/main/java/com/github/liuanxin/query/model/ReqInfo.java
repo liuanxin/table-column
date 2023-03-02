@@ -150,7 +150,6 @@ public class ReqInfo implements Serializable {
                 this.type = type;
             }
 
-
             param = new ReqParam();
             Boolean notCount = aliasTemplate.getNotCount();
             if (QueryUtil.isNotNull(notCount)) {
@@ -161,20 +160,30 @@ public class ReqInfo implements Serializable {
                 param.setRelation(relationList);
             }
             if (QueryUtil.isNotNull(aliasQuery)) {
+                Map<String, Object> paramMap = aliasQuery.getQuery();
+                ReqAliasTemplateQuery templateQuery = aliasTemplate.getQuery();
+                if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(templateQuery)) {
+                    ReqQuery query = templateQuery.transfer(paramMap);
+                    if (QueryUtil.isNotNull(query)) {
+                        param.setQuery(query);
+                    }
+                }
                 Map<String, String> sort = aliasQuery.getSort();
                 if (QueryUtil.isNotEmpty(sort)) {
                     param.setSort(sort);
+                } else {
+                    Map<String, String> templateSort = aliasTemplate.getSort();
+                    if (QueryUtil.isNotEmpty(templateSort)) {
+                        param.setSort(templateSort);
+                    }
                 }
                 List<String> page = aliasQuery.getPage();
                 if (QueryUtil.isNotEmpty(page)) {
                     param.setPage(page);
-                }
-                Map<String, Object> paramMap = aliasQuery.getQuery();
-                ReqAliasTemplateQuery aliasTemplateQuery = aliasTemplate.getQuery();
-                if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(aliasTemplateQuery)) {
-                    ReqQuery query = aliasTemplateQuery.transfer(paramMap);
-                    if (QueryUtil.isNotNull(query)) {
-                        param.setQuery(query);
+                } else {
+                    List<String> templatePage = aliasTemplate.getPage();
+                    if (QueryUtil.isNotEmpty(templatePage)) {
+                        param.setPage(templatePage);
                     }
                 }
             }
