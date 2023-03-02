@@ -252,10 +252,15 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("insert sql: [{}]", printSql);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("insert sql: [{}]", printSql);
         }
-        return jdbcTemplate.update(insertSql, params.toArray());
+        long start = System.currentTimeMillis();
+        int flag = jdbcTemplate.update(insertSql, params.toArray());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("insert sql use time {} ms", (System.currentTimeMillis() - start));
+        }
+        return flag;
     }
 
     @Transactional
@@ -306,10 +311,14 @@ public class TableColumnTemplate implements InitializingBean {
             List<Object> params = new ArrayList<>();
             String batchInsertSql = tableInfo.generateBatchInsertMap(lt, generateNullField, params, printSql);
             if (QueryUtil.isNotEmpty(batchInsertSql)) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("batch insert-map sql: [{}]", printSql);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("batch insert-map sql: [{}]", printSql);
                 }
+                long start = System.currentTimeMillis();
                 flag += jdbcTemplate.update(batchInsertSql, params.toArray());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("batch insert-map sql use time {} ms", (System.currentTimeMillis() - start));
+                }
             }
         }
         return flag;
@@ -365,10 +374,15 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("insert sql: [{}]", printSql);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("insert sql: [{}]", printSql);
         }
-        return jdbcTemplate.update(insertSql, params.toArray());
+        long start = System.currentTimeMillis();
+        int flag = jdbcTemplate.update(insertSql, params.toArray());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("insert sql use time {} ms", (System.currentTimeMillis() - start));
+        }
+        return flag;
     }
 
     @Transactional
@@ -429,10 +443,14 @@ public class TableColumnTemplate implements InitializingBean {
             List<Object> params = new ArrayList<>();
             String batchInsertSql = table.generateBatchInsert(lt, generateNullField, params, printSql);
             if (QueryUtil.isNotEmpty(batchInsertSql)) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("batch insert sql: [{}]", printSql);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("batch insert sql: [{}]", printSql);
                 }
+                long start = System.currentTimeMillis();
                 flag += jdbcTemplate.update(batchInsertSql, params.toArray());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("batch insert sql use time {} ms", (System.currentTimeMillis() - start));
+                }
             }
         }
         return flag;
@@ -585,10 +603,15 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("delete sql: [{}]", printSql);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("delete sql: [{}]", printSql);
         }
-        return jdbcTemplate.update(deleteSql, params.toArray());
+        long start = System.currentTimeMillis();
+        int flag = jdbcTemplate.update(deleteSql, params.toArray());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("delete sql use time {} ms", (System.currentTimeMillis() - start));
+        }
+        return flag;
     }
 
 
@@ -650,10 +673,15 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("update-map sql: [{}]", printSql);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("update-map sql: [{}]", printSql);
         }
-        return jdbcTemplate.update(updateSql, params.toArray());
+        long start = System.currentTimeMillis();
+        int flag = jdbcTemplate.update(updateSql, params.toArray());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("update-map sql use time {} ms", (System.currentTimeMillis() - start));
+        }
+        return flag;
     }
 
     @Transactional
@@ -717,10 +745,15 @@ public class TableColumnTemplate implements InitializingBean {
             return 0;
         }
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("update sql: [{}]", printSql);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("update sql: [{}]", printSql);
         }
-        return jdbcTemplate.update(updateSql, params.toArray());
+        long start = System.currentTimeMillis();
+        int flag = jdbcTemplate.update(updateSql, params.toArray());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("update sql use time {} ms", (System.currentTimeMillis() - start));
+        }
+        return flag;
     }
 
 
@@ -966,8 +999,8 @@ public class TableColumnTemplate implements InitializingBean {
 
         boolean useAlias = req.handleAlias(requiredAlias, queryAliasMap);
         if (useAlias) {
-            if (LOG.isInfoEnabled()) {
-                LOG.info("request-info after apply alias: ({})", QueryJsonUtil.toJson(req));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("request-info after apply alias: ({})", QueryJsonUtil.toJson(req));
             }
         }
         req.checkTable(tcInfo);
@@ -1106,10 +1139,14 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private long queryCount(String countSql, List<Object> params, StringBuilder printSql) {
-        if (LOG.isInfoEnabled()) {
-            LOG.info("query count sql: [{}]", printSql);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("query count sql: [{}]", printSql);
         }
+        long start = System.currentTimeMillis();
         Long count = jdbcTemplate.queryForObject(countSql, Long.class, params.toArray());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("query count sql use time {} ms", (System.currentTimeMillis() - start));
+        }
         return QueryUtil.isNull(count) ? 0L : count;
     }
 
@@ -1124,10 +1161,14 @@ public class TableColumnTemplate implements InitializingBean {
             // SELECT id FROM ... WHERE .?. ORDER BY ... LIMIT ...
             String idPageSql = QuerySqlUtil.toIdPageSql(tcInfo, fromAndWhere,
                     fromAndWherePrint, mainTable, needAlias, param, params, hasDistinct, printSql);
-            if (LOG.isInfoEnabled()) {
-                LOG.info("query condition sql: [{}]", printSql);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("query condition sql: [{}]", printSql);
             }
+            long start = System.currentTimeMillis();
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(idPageSql, params.toArray());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("query condition sql use time {} ms", (System.currentTimeMillis() - start));
+            }
 
             // SELECT ... FROM .?. WHERE id IN (...)
             params.clear();
@@ -1191,7 +1232,11 @@ public class TableColumnTemplate implements InitializingBean {
         if (LOG.isInfoEnabled()) {
             LOG.info("sql: [{}]", printSql);
         }
+        long start = System.currentTimeMillis();
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("sql use time {} ms", (System.currentTimeMillis() - start));
+        }
         if (QueryUtil.isNotEmpty(dataList)) {
             String mainTableName = tcInfo.findTable(mainTable).getName();
             handleData(dataList, needAlias, mainTableName, result, force);
@@ -1290,10 +1335,14 @@ public class TableColumnTemplate implements InitializingBean {
             params.clear();
             StringBuilder printSql = new StringBuilder();
             String innerSql = QuerySqlUtil.toInnerSql(selectColumn, table, relationColumn, ids, params, printSql, logicDelete);
-            if (LOG.isInfoEnabled()) {
-                LOG.info("query inner sql: [{}]", printSql);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("query inner sql: [{}]", printSql);
             }
+            long start = System.currentTimeMillis();
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql, params.toArray());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("query inner sql use time {} ms", (System.currentTimeMillis() - start));
+            }
             if (QueryUtil.isNotEmpty(idList)) {
                 mapList.addAll(idList);
             }

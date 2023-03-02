@@ -144,7 +144,7 @@ public class QuerySqlUtil {
         // SELECT id FROM ... WHERE ... ORDER BY ... LIMIT ...
         return toAppendSql(tcInfo, fromAndWhere, fromAndWherePrint, mainTable, param, needAlias, idSelect, params, hasDistinct, printSql);
     }
-    public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String tables,
+    public static String toSelectWithIdSql(TableColumnInfo tcInfo, String mainTable, String fromSql,
                                            ReqResult result, List<Map<String, Object>> idList, boolean needAlias,
                                            boolean force, List<Object> params, StringBuilder printSql) {
         // SELECT ... FROM ... WHERE id IN (x, y, z)
@@ -175,9 +175,8 @@ public class QuerySqlUtil {
                 params.add(data);
             }
         }
-        printSql.append("SELECT ").append(selectColumn).append(" FROM ").append(tables)
-                .append(" WHERE ").append(idColumn).append(" IN (").append(print).append(")");
-        return "SELECT " + selectColumn + " FROM " + tables + " WHERE " + idColumn + " IN (" + sj + ")";
+        printSql.append("SELECT ").append(selectColumn).append(fromSql).append(" WHERE ").append(idColumn).append(" IN (").append(print).append(")");
+        return "SELECT " + selectColumn + fromSql + " WHERE " + idColumn + " IN (" + sj + ")";
     }
 
     public static String toInnerSql(String selectColumn, String table, String relationColumn, List<Object> relationIds,

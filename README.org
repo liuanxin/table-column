@@ -57,7 +57,7 @@ public class TableColumnConfig {
                 Map.of("OrderAddress.contact", ConditionType.$NE)
         ));
         // 指定默认的排序
-        Map<String, String> sort = Map.of("createTime", "desc", "id", "asc");
+        Map<String, String> sort = Map.of("createTime", "desc");
         // 指定默认的分页
         List<String> page = List.of("1");
         // 指定查询时多张表之间的关联方式
