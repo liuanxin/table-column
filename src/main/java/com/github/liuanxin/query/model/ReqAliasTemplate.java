@@ -62,15 +62,14 @@ public class ReqAliasTemplate implements Serializable {
         this.result = result;
         this.type = type;
     }
-    public ReqAliasTemplate(String table, ReqAliasTemplateQuery query, Map<String, String> sort, List<String> page,
-                            List<List<String>> relationList, ReqResult result, ResultType type) {
+    public ReqAliasTemplate(String table, ReqAliasTemplateQuery query, Map<String, String> sort,
+                            List<String> page, List<List<String>> relationList, ReqResult result) {
         this.table = table;
         this.query = query;
         this.sort = sort;
         this.page = page;
         this.relationList = relationList;
         this.result = result;
-        this.type = type;
     }
 
 
