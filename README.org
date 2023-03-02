@@ -42,7 +42,7 @@ public class TableColumnConfig {
     }
 
     private ReqAliasTemplate orderAddressItemLogAlias() {
-        // 指定条件的表达式
+        // 指定查询条件及其表达式
         ReqAliasTemplateQuery query = new ReqAliasTemplateQuery(OperateType.AND, List.of(
                 Map.of("id", ConditionType.$GT),
                 Map.of("orderNo", ConditionType.$NN),
@@ -56,15 +56,21 @@ public class TableColumnConfig {
                 Map.of("OrderItem.productName", ConditionType.$NE),
                 Map.of("OrderAddress.contact", ConditionType.$NE)
         ));
-        // 指定 订单表 的字段, 指定 订单地址表 订单项表 订单日志表 的字段, 查询 Order 时 distinct, 并指定查询时多张表之间的关联方式
+        // 指定默认的排序
+        Map<String, String> sort = Map.of("createTime", "desc", "id", "asc");
+        // 指定默认的分页
+        List<String> page = List.of("1");
+        // 指定查询时多张表之间的关联方式
+        List<List<String>> relationList = List.of(List.of("Order", "inner", "OrderAddress"), List.of("Order", "left", "OrderItem"));
+        // 指定返回字段: 订单表 + 订单地址表 订单项表 订单日志表, 查询 Order 时 distinct
         ReqResult result = new ReqResult(List.of(
                 "orderNo", "orderStatus", "amount", "desc", "createTime",
                 Map.of("address", Map.of("table", "OrderAddress", "columns", List.of("contact", "phone", "address"))),
                 Map.of("items", Map.of("table", "OrderItem", "columns", List.of("productName", "price", "number"))),
                 Map.of("logs", Map.of("table", "OrderLog", "columns", List.of("operator", "message", "time")))
         ), true);
-        List<List<String>> relationList = List.of(List.of("Order", "inner", "OrderAddress"), List.of("Order", "left", "OrderItem"));
-        return new ReqAliasTemplate("Order", query, relationList, result);
+        // return new ReqAliasTemplate("Order", query, relationList, result);
+        return new ReqAliasTemplate("Order", query, sort, page, relationList, result);
     }
 }
 #+END_SRC
