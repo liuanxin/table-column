@@ -133,9 +133,29 @@ public class QuerySqlUtil {
         String orderSql = param.generateOrderSql(mainTable, needAlias, tcInfo);
         StringBuilder pagePrint = new StringBuilder();
         String pageSql = param.generatePageSql(params, pagePrint);
-        String distinct = hasDistinct ? "DISTINCT " : "";
-        printSql.append("SELECT ").append(distinct).append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
-        return "SELECT " + distinct + selectColumn + fromAndWhere + orderSql + pageSql;
+        if (hasDistinct) {
+            StringBuilder appendOrder = new StringBuilder();
+            String os = orderSql.trim();
+            for (String order : os.substring("ORDER BY ".length()).split(",")) {
+                String or;
+                String str = order.toLowerCase();
+                if (str.endsWith(" asc")) {
+                    or = order.substring(0, order.length() - " asc".length());
+                } else if (str.endsWith(" desc")) {
+                    or = order.substring(0, order.length() - " desc".length());
+                } else {
+                    or = order;
+                }
+                if (!selectColumn.contains(or)) {
+                    appendOrder.append(", ").append(or.trim());
+                }
+            }
+            printSql.append("SELECT DISTINCT ").append(selectColumn).append(appendOrder).append(fromAndWherePrint).append(orderSql).append(pagePrint);
+            return "SELECT DISTINCT " + selectColumn + appendOrder + fromAndWhere + orderSql + pageSql;
+        } else {
+            printSql.append("SELECT ").append(selectColumn).append(fromAndWherePrint).append(orderSql).append(pagePrint);
+            return "SELECT " + selectColumn + fromAndWhere + orderSql + pageSql;
+        }
     }
 
     public static String toIdPageSql(TableColumnInfo tcInfo, String fromAndWhere, String fromAndWherePrint, String mainTable,
