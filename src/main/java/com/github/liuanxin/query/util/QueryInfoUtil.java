@@ -473,7 +473,8 @@ public class QueryInfoUtil {
             if (QueryUtil.isNotEmpty(tableInfoList)) {
                 sbd.append("@TableInfo(").append(String.join(", ", tableInfoList)).append(")\n");
             }
-            sbd.append("public class ").append(className).append(" {\n\n");
+            sbd.append("public class ").append(className).append(" implements Serializable {\n\n");
+            sbd.append("    private static final long serialVersionUID = 1L;\n");
             sbd.append(String.join("\n", fieldList));
             sbd.append("}\n");
 
