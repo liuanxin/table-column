@@ -382,6 +382,8 @@ public class QueryInfoUtil {
         Set<String> importSet = new TreeSet<>();
         Set<String> javaImportSet = new TreeSet<>();
         int success = 0;
+        String v = System.getProperty("java.version");
+        int version = QueryUtil.toInt(v.contains(".") ? v.substring(0, v.indexOf(".")) : v);
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             if (QueryUtil.isNotEmpty(tableSet) && !tableSet.contains(tableName.toLowerCase())) {
@@ -463,6 +465,10 @@ public class QueryInfoUtil {
                 importSet.add("import " + TableInfo.class.getName() + ";");
             }
 
+            if (version >= 14) {
+                javaImportSet.add("import java.io.Serial;");
+            }
+            javaImportSet.add("import java.io.Serializable;");
             sbd.append("package ").append(packagePath.replace("/", ".")).append(";\n\n");
             sbd.append(String.join("\n", importSet)).append("\n\n");
             sbd.append(String.join("\n", javaImportSet)).append("\n\n");
@@ -473,8 +479,11 @@ public class QueryInfoUtil {
             if (QueryUtil.isNotEmpty(tableInfoList)) {
                 sbd.append("@TableInfo(").append(String.join(", ", tableInfoList)).append(")\n");
             }
-            sbd.append("public class ").append(className).append(" implements Serializable {\n\n");
-            sbd.append("    private static final long serialVersionUID = 1L;\n");
+            sbd.append("public class ").append(className).append(" implements Serializable {\n");
+            if (version >= 14) {
+                sbd.append("    @Serial\n");
+            }
+            sbd.append("    private static final long serialVersionUID = 1L;\n\n");
             sbd.append(String.join("\n", fieldList));
             sbd.append("}\n");
 
