@@ -382,8 +382,7 @@ public class QueryInfoUtil {
         Set<String> importSet = new TreeSet<>();
         Set<String> javaImportSet = new TreeSet<>();
         int success = 0;
-        String v = System.getProperty("java.version");
-        int version = QueryUtil.toInt(v.contains(".") ? v.substring(0, v.indexOf(".")) : v);
+        int version = getVersion();
         for (Map<String, Object> tableInfo : tableList) {
             String tableName = QueryUtil.toStr(tableInfo.get("tn"));
             if (QueryUtil.isNotEmpty(tableSet) && !tableSet.contains(tableName.toLowerCase())) {
@@ -501,5 +500,17 @@ public class QueryInfoUtil {
         if (LOG.isInfoEnabled()) {
             LOG.info("write {} file success", success);
         }
+    }
+    private static int getVersion() {
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.")) {
+            version = version.substring(2, 3);
+        } else {
+            int dot = version.indexOf(".");
+            if (dot > 0) {
+                version = version.substring(0, dot);
+            }
+        }
+        return QueryUtil.toInt(version);
     }
 }
