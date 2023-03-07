@@ -42,15 +42,14 @@ public final class QueryLambdaUtil {
 
     private static Class<?> lambdaToClass(SerializedLambda lambda) {
         String className = lambda.getImplClass();
+        Class<?> clazz = CLASS_MAP.get(className);
+        if (QueryUtil.isNotNull(clazz)) {
+            return clazz;
+        }
         try {
-            Class<?> clazz = CLASS_MAP.get(className);
-            if (QueryUtil.isNotNull(clazz)) {
-                return clazz;
-            } else {
-                Class<?> useClazz = Class.forName(className.replace("/", "."));
-                CLASS_MAP.put(className, useClazz);
-                return useClazz;
-            }
+            Class<?> useClazz = Class.forName(className.replace("/", "."));
+            CLASS_MAP.put(className, useClazz);
+            return useClazz;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("no Class(" + className + ")", e);
         }
@@ -65,16 +64,15 @@ public final class QueryLambdaUtil {
         String className = clazz.getName();
         String fieldMethodName = methodName.substring(methodName.startsWith("is") ? 2 : 3);
         String fieldName = fieldMethodName.substring(0, 1).toLowerCase() + fieldMethodName.substring(1);
+        String key = className + "-->" + fieldName;
+        Field field = CLASS_FIELD_MAP.get(key);
+        if (QueryUtil.isNotNull(field)) {
+            return field;
+        }
         try {
-            String key = className + "-->" + fieldName;
-            Field field = CLASS_FIELD_MAP.get(key);
-            if (QueryUtil.isNotNull(field)) {
-                return field;
-            } else {
-                Field useField = clazz.getDeclaredField(fieldName);
-                CLASS_FIELD_MAP.put(key, useField);
-                return useField;
-            }
+            Field useField = clazz.getDeclaredField(fieldName);
+            CLASS_FIELD_MAP.put(key, useField);
+            return useField;
         } catch (NoSuchFieldException e) {
             throw new RuntimeException("Class(" + className + ") no field(" + fieldName + ")", e);
         }
