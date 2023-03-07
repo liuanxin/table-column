@@ -241,7 +241,7 @@ public class ReqAliasTemplateQuery implements Serializable {
                     // or
                     OperateType type = OperateType.deserializer(templateQuery.get("type"));
                     // { "province": "$in", "city": "$fuzzy" }
-                    Map<String, Object> composeMap = QueryJsonUtil.convertData(templateQuery.get("cons"));
+                    Map<String, Object> composeMap = QueryJsonUtil.convertData(templateQuery.get("cons")); // conditions
                     if (QueryUtil.isNotNull(type) && QueryUtil.isNotEmpty(composeMap)) {
                         List<Object> composeConditionList = new ArrayList<>();
                         for (Map.Entry<String, Object> compose : composeMap.entrySet()) {
@@ -317,7 +317,7 @@ public class ReqAliasTemplateQuery implements Serializable {
                             if (QueryUtil.isNotEmpty(composeMap)) {
                                 Map<String, Object> composeTypeMap = new HashMap<>();
                                 composeTypeMap.put("type", composeType);
-                                composeTypeMap.put("cons", composeMap);
+                                composeTypeMap.put("cons", composeMap); // conditions
                                 returnMap.put(composeName, composeTypeMap);
                             }
                         }
