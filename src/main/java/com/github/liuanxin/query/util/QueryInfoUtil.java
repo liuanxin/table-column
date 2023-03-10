@@ -148,6 +148,7 @@ public class QueryInfoUtil {
                     columnName = QueryUtil.fieldToColumnName(fieldName);
                     columnDesc = "";
                     columnAlias = QueryUtil.columnNameToFieldAlias(fieldName, tableName, aliasRule);
+                    // 默认主键列
                     primary = "id".equalsIgnoreCase(fieldName);
                     strLen = null;
                     notNull = false;
