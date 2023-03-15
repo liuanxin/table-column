@@ -151,7 +151,7 @@ public class QuerySqlUtil {
                 } else {
                     or = order;
                 }
-                if (!selectColumn.contains(or)) {
+                if (!selectColumn.contains(or.trim())) {
                     appendOrder.append(", ").append(or.trim());
                 }
             }
