@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.github.liuanxin.query.util.QuerySqlUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
 /**
@@ -238,7 +239,7 @@ public enum ConditionType {
         }
     }
     protected String generateMulti(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-        if (QueryUtil.isNull(value) || !MULTI$TYPE.contains(this) || !(value instanceof Collection<?>)) {
+        if (QueryUtil.isNull(value) || !MULTI_TYPE.contains(this) || !(value instanceof Collection<?>)) {
             return "";
         }
         Collection<?> c = (Collection<?>) value;
@@ -295,14 +296,14 @@ public enum ConditionType {
     }
 
 
-    private static final Set<ConditionType> MULTI$TYPE = new HashSet<>(Arrays.asList(
+    private static final Set<ConditionType> MULTI_TYPE = new HashSet<>(Arrays.asList(
             $IN,
             $NI,
             $BET,
             $NBE
     ));
     /** string: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(fuzzy)、不包含(nfuzzy)、开头(start)、不开头(nstart)、结尾(end)、不结尾(nend) */
-    private static final Set<ConditionType> STRING$TYPE$SET = new LinkedHashSet<>(Arrays.asList(
+    private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             $NU,
             $NN,
             $EQ,
@@ -316,11 +317,11 @@ public enum ConditionType {
             $END,
             $NEND
     ));
-    private static final String STRING$TYPE$INFO = String.format("String type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(STRING$TYPE$SET, ConditionType::info));
+    private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(STRING_TYPE_SET, ConditionType::info));
 
     /** number: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
-    private static final Set<ConditionType> NUMBER$TYPE$SET = new LinkedHashSet<>(Arrays.asList(
+    private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             $NU,
             $NN,
             $EQ,
@@ -334,11 +335,11 @@ public enum ConditionType {
             $BET,
             $NBE
     ));
-    private static final String NUMBER$TYPE$INFO = String.format("Number type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(NUMBER$TYPE$SET, ConditionType::info));
+    private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(NUMBER_TYPE_SET, ConditionType::info));
 
     /** date: 为空(nu)、不为空(NN)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
-    private static final Set<ConditionType> DATE$TYPE$SET = new LinkedHashSet<>(Arrays.asList(
+    private static final Set<ConditionType> DATE_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             $NU,
             $NN,
             $GT,
@@ -348,11 +349,11 @@ public enum ConditionType {
             $BET,
             $NBE
     ));
-    private static final String DATE$TYPE$INFO = String.format("Date type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(DATE$TYPE$SET, ConditionType::info));
+    private static final String DATE_TYPE_INFO = String.format("Date or Time type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(DATE_TYPE_SET, ConditionType::info));
 
     /**  非 string/number/date 类型: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
-    public static final Set<ConditionType> OTHER$TYPE$SET = new HashSet<>(Arrays.asList(
+    public static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
             $NU,
             $NN,
             $EQ,
@@ -362,33 +363,33 @@ public enum ConditionType {
             $NU,
             $NN
     ));
-    private static final String OTHER$TYPE$INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
-            QueryUtil.toStr(OTHER$TYPE$SET, ConditionType::info));
+    private static final String OTHER_TYPE_INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
+            QueryUtil.toStr(OTHER_TYPE_SET, ConditionType::info));
 
 
     private void checkType(Class<?> type, String column) {
         if (Number.class.isAssignableFrom(type)) {
-            if (!NUMBER$TYPE$SET.contains(this)) {
-                throw new RuntimeException(column + ": " + NUMBER$TYPE$INFO);
+            if (!NUMBER_TYPE_SET.contains(this)) {
+                throw new RuntimeException(column + ": " + NUMBER_TYPE_INFO);
             }
-        } else if (Date.class.isAssignableFrom(type)) {
-            if (!DATE$TYPE$SET.contains(this)) {
-                throw new RuntimeException(column + ": " + DATE$TYPE$INFO);
+        } else if (Date.class.isAssignableFrom(type) || TemporalAccessor.class.isAssignableFrom(type)) {
+            if (!DATE_TYPE_SET.contains(this)) {
+                throw new RuntimeException(column + ": " + DATE_TYPE_INFO);
             }
         } else if (String.class.isAssignableFrom(type)) {
-            if (!STRING$TYPE$SET.contains(this)) {
-                throw new RuntimeException(column + ": " + STRING$TYPE$INFO);
+            if (!STRING_TYPE_SET.contains(this)) {
+                throw new RuntimeException(column + ": " + STRING_TYPE_INFO);
             }
         } else {
-            if (!OTHER$TYPE$SET.contains(this)) {
-                throw new RuntimeException(column + ": " + OTHER$TYPE$INFO);
+            if (!OTHER_TYPE_SET.contains(this)) {
+                throw new RuntimeException(column + ": " + OTHER_TYPE_INFO);
             }
         }
     }
 
     private void checkValue(Class<?> type, String column, Object value, Integer strLen, int maxListCount) {
         if (QueryUtil.isNotNull(value)) {
-            if (MULTI$TYPE.contains(this)) {
+            if (MULTI_TYPE.contains(this)) {
                 if (value instanceof Collection<?>) {
                     int count = 0;
                     Collection<?> collection = (Collection<?>) value;
