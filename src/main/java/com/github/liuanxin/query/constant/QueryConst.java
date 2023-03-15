@@ -72,25 +72,39 @@ public final class QueryConst {
     public static final Integer DEFAULT_LIMIT = 10;
     public static final List<Integer> LIMIT_ONE = Arrays.asList(1, 1);
 
-    public static final String DEFAULT_YEAR_FORMAT = "yyyy";
-    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
-    public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    public static final List<String> DATE_PATTERN_LIST = Arrays.asList(
+    public static final List<String> DATE_TIME_PATTERN_LIST = Arrays.asList(
             DEFAULT_DATE_TIME_FORMAT,
             "yyyy-MM-dd HH:mm",
-            DEFAULT_DATE_FORMAT,
+            "yyyy-MM-dd HH",
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
             "yyyy-MM-dd'T'HH:mm:ss.SSS",
             "yyyy-MM-dd'T'HH:mm:ss SSS",
             "yyyy-MM-dd'T'HH:mm:ss",
             "yyyy/MM/dd HH:mm:ss",
             "yyyy/MM/dd HH:mm",
+            "yyyy/MM/dd HH"
+    );
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    public static final List<String> DATE_PATTERN_LIST = Arrays.asList(
+            DEFAULT_DATE_FORMAT,
+            "yyyy-MM",
             "yyyy/MM/dd",
+            "yyyy/MM"
+    );
+    public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
+    public static final List<String> TIME_PATTERN_LIST = Arrays.asList(
             DEFAULT_TIME_FORMAT,
-            DEFAULT_YEAR_FORMAT,
             "HH:mm"
     );
+    public static final String DEFAULT_YEAR_FORMAT = "yyyy";
+    public static final List<String> ALL_DATE_PATTERN_LIST = new ArrayList<>();
+    static {
+        ALL_DATE_PATTERN_LIST.addAll(DATE_TIME_PATTERN_LIST);
+        ALL_DATE_PATTERN_LIST.addAll(DATE_PATTERN_LIST);
+        ALL_DATE_PATTERN_LIST.addAll(TIME_PATTERN_LIST);
+        ALL_DATE_PATTERN_LIST.add(DEFAULT_YEAR_FORMAT);
+    }
 
     public static final String TEMPLATE_META_NAME = "_meta_name_";
 }

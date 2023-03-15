@@ -488,7 +488,7 @@ public class QueryUtil {
             return (Date) obj;
         }
         String source = obj.toString().trim();
-        for (String pattern : QueryConst.DATE_PATTERN_LIST) {
+        for (String pattern : QueryConst.ALL_DATE_PATTERN_LIST) {
             try {
                 Date date = new SimpleDateFormat(pattern).parse(source);
                 if (date != null) {
@@ -507,37 +507,44 @@ public class QueryUtil {
         if (obj instanceof TemporalAccessor) {
             return (TemporalAccessor) obj;
         }
+
         String source = obj.toString().trim();
-        for (String pattern : QueryConst.DATE_PATTERN_LIST) {
-            DateTimeFormatter formatter = getFormatter(pattern);
+        for (String pattern : QueryConst.DATE_TIME_PATTERN_LIST) {
             try {
-                LocalDateTime dateTime = formatter.parse(source, LocalDateTime::from);
+                LocalDateTime dateTime = getFormatter(pattern).parse(source, LocalDateTime::from);
                 if (dateTime != null) {
                     return dateTime;
                 }
             } catch (Exception ignore) {
             }
+        }
+
+        for (String pattern : QueryConst.DATE_PATTERN_LIST) {
             try {
-                LocalDate date = formatter.parse(source, LocalDate::from);
+                LocalDate date = getFormatter(pattern).parse(source, LocalDate::from);
                 if (date != null) {
                     return date;
                 }
             } catch (Exception ignore) {
             }
+        }
+
+        for (String pattern : QueryConst.TIME_PATTERN_LIST) {
             try {
-                LocalTime time = formatter.parse(source, LocalTime::from);
+                LocalTime time = getFormatter(pattern).parse(source, LocalTime::from);
                 if (time != null) {
                     return time;
                 }
             } catch (Exception ignore) {
             }
-            try {
-                Year year = formatter.parse(source, Year::from);
-                if (year != null) {
-                    return year;
-                }
-            } catch (Exception ignore) {
+        }
+
+        try {
+            Year year = getFormatter(QueryConst.DEFAULT_YEAR_FORMAT).parse(source, Year::from);
+            if (year != null) {
+                return year;
             }
+        } catch (Exception ignore) {
         }
         return null;
     }
