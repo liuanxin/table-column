@@ -326,7 +326,6 @@ public class QueryUtil {
     public static Object getFieldData(Class<?> clazz, String fieldName, Object obj) throws IllegalAccessException {
         Field field = getField(clazz, fieldName);
         if (isNotNull(field)) {
-            // noinspection deprecation
             boolean accessible = field.isAccessible();
             if (!accessible) {
                 field.setAccessible(true);
@@ -570,10 +569,6 @@ public class QueryUtil {
             throw new RuntimeException("unknown date type: " + date.getClass().getSimpleName());
         }
         return format(date, type, null);
-    }
-
-    public static LocalDateTime convertLocalDateTime(LocalDate date) {
-        return isNull(date) ? null : LocalDateTime.of(date, LocalTime.MIN);
     }
 
     public static LocalDateTime convertLocalDateTime(Date date) {
