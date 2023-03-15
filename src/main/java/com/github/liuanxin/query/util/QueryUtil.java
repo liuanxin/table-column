@@ -9,8 +9,12 @@ import com.github.liuanxin.query.model.TableColumnInfo;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,6 +31,23 @@ public class QueryUtil {
     private static final Map<String, AtomicInteger> COLUMN_ALIAS = new ConcurrentHashMap<>();
     private static final Map<String, Integer> COLUMN_ALIAS_INT_MAP = new ConcurrentHashMap<>();
     private static final Map<String, String> COLUMN_ALIAS_MAP = new ConcurrentHashMap<>();
+
+
+    private static final Map<String, DateTimeFormatter> FORMATTER_CACHE_MAP = new ConcurrentHashMap<>();
+
+    private static DateTimeFormatter getFormatter(String type) {
+        return FORMATTER_CACHE_MAP.computeIfAbsent(type, DateTimeFormatter::ofPattern);
+    }
+    private static DateTimeFormatter getFormatter(String type, String timezone) {
+        return FORMATTER_CACHE_MAP.computeIfAbsent(type, s -> {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(s);
+            TimeZone timeZone = TimeZone.getTimeZone(timezone);
+            if (isNotNull(timeZone)) {
+                formatter.withZone(timeZone.toZoneId());
+            }
+            return formatter;
+        });
+    }
 
 
     /** UserInfo --> user_info */
@@ -461,41 +482,57 @@ public class QueryUtil {
         }
     }
 
-    public static Date toDate(Object obj) {
+    public static LocalDateTime toLocalDateTime(Object obj) {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof Date) {
-            return (Date) obj;
+        if (obj instanceof LocalDateTime) {
+            return (LocalDateTime) obj;
         }
         for (String pattern : QueryConst.DATE_PATTERN_LIST) {
             try {
-                Date date = new SimpleDateFormat(pattern).parse(obj.toString().trim());
+                LocalDateTime date = getFormatter(pattern).parse(obj.toString().trim(), LocalDateTime::from);
                 if (date != null) {
                     return date;
                 }
-            } catch (ParseException ignore) {
+            } catch (Exception ignore) {
             }
         }
         return null;
     }
 
-    public static String formatDate(Date date, String pattern, String timezone) {
-        if (date == null) {
+    public static LocalDate toLocalDate(Object obj) {
+        if (obj == null) {
             return null;
         }
-        try {
-            SimpleDateFormat df = new SimpleDateFormat(pattern);
-            if (isNotEmpty(timezone)) {
-                df.setTimeZone(TimeZone.getTimeZone(timezone.trim()));
-            }
-            return df.format(date);
-        } catch (Exception e) {
-            return formatDate(date);
+        if (obj instanceof LocalDate) {
+            return (LocalDate) obj;
         }
+        for (String pattern : QueryConst.DATE_PATTERN_LIST) {
+            try {
+                LocalDate date = getFormatter(pattern).parse(obj.toString().trim(), LocalDate::from);
+                if (date != null) {
+                    return date;
+                }
+            } catch (Exception ignore) {
+            }
+        }
+        return null;
     }
-    public static String formatDate(Date date) {
-        return new SimpleDateFormat(QueryConst.DEFAULT_DATE_FORMAT).format(date);
+
+    public static String format(TemporalAccessor date, String type, String timezone) {
+        return (isNull(date) || isEmpty(type)) ? "" : getFormatter(type, timezone).format(date);
+    }
+    public static String format(TemporalAccessor date) {
+        return format(date, QueryConst.DEFAULT_DATE_FORMAT, null);
+    }
+
+    public static LocalDateTime convertLocalDateTime(LocalDate date) {
+        return isNull(date) ? null : LocalDateTime.of(date, LocalTime.MIN);
+    }
+
+    public static Date convertDate(LocalDateTime dateTime) {
+        return isNull(dateTime) ? null : Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static boolean isNull(Object obj) {

@@ -6,6 +6,8 @@ import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
 /**
@@ -579,10 +581,10 @@ public class ReqResult implements Serializable {
                         if (QueryUtil.isNotEmpty(str)) {
                             data.put(columnName, str);
                         }
-                    } else if (Date.class.isAssignableFrom(fieldType)) {
-                        Date date = QueryUtil.toDate(data.get(columnName));
+                    } else if (Date.class.isAssignableFrom(fieldType) || TemporalAccessor.class.isAssignableFrom(fieldType)) {
+                        LocalDateTime date = QueryUtil.toLocalDateTime(data.get(columnName));
                         if (QueryUtil.isNotNull(date)) {
-                            data.put(columnName, QueryUtil.formatDate(date));
+                            data.put(columnName, QueryUtil.format(date));
                         }
                     }
                 } else if (obj instanceof List<?>) {
@@ -598,7 +600,7 @@ public class ReqResult implements Serializable {
                     Object groupInfo = data.remove(group.generateAlias(useColumn));
                     if (QueryUtil.isNotNull(groupInfo)) {
                         String returnColumn = QueryUtil.toStr(groups.get(0));
-                        Date date = QueryUtil.toDate(groupInfo);
+                        LocalDateTime date = QueryUtil.toLocalDateTime(groupInfo);
                         if (QueryUtil.isNotNull(date)) {
                             String dateInfo = null;
                             int size = groups.size();
@@ -607,11 +609,11 @@ public class ReqResult implements Serializable {
                                 if (QueryUtil.isNotEmpty(values)) {
                                     String pattern = values.get(0);
                                     String timezone = (values.size() > 1) ? values.get(1) : null;
-                                    dateInfo = QueryUtil.formatDate(date, pattern, timezone);
+                                    dateInfo = QueryUtil.format(date, pattern, timezone);
                                 }
                             }
                             if (QueryUtil.isEmpty(dateInfo)) {
-                                dateInfo = QueryUtil.formatDate(date);
+                                dateInfo = QueryUtil.format(date);
                             }
                             data.put(returnColumn, dateInfo);
                         } else {
@@ -624,11 +626,11 @@ public class ReqResult implements Serializable {
                         for (Map.Entry<String, List<String>> entry : dateColumn.entrySet()) {
                             List<String> values = entry.getValue();
                             if (QueryUtil.isNotEmpty(values)) {
-                                Date date = QueryUtil.toDate(data.get(entry.getKey()));
+                                LocalDateTime date = QueryUtil.toLocalDateTime(data.get(entry.getKey()));
                                 if (QueryUtil.isNotNull(date)) {
                                     String pattern = values.get(0);
                                     String timezone = (values.size() > 1) ? values.get(1) : null;
-                                    data.put(entry.getKey(), QueryUtil.formatDate(date, pattern, timezone));
+                                    data.put(entry.getKey(), QueryUtil.format(date, pattern, timezone));
                                 }
                             }
                         }
