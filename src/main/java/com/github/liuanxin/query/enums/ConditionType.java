@@ -415,8 +415,7 @@ public enum ConditionType {
     private void checkValueType(Class<?> type, String column, Object value, Integer strLen) {
         Object obj = QuerySqlUtil.toValue(type, value);
         if (QueryUtil.isNull(obj)) {
-            throw new RuntimeException(String.format("column(%s) data(%s) has not %s type",
-                    column, value, type.getSimpleName().toLowerCase()));
+            throw new RuntimeException(String.format("column(%s) data(%s) has not %s type", column, value, type.getSimpleName()));
         }
         if (QueryUtil.isNotNull(strLen) && strLen > 0 && obj.toString().length() > strLen) {
             throw new RuntimeException(String.format("column(%s) data(%s) length can only be <= %s", column, value, strLen));

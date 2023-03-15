@@ -2,9 +2,9 @@ package com.github.liuanxin.query.constant;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.Year;
 import java.util.*;
 
@@ -34,7 +34,7 @@ public final class QueryConst {
         DB_TYPE_MAP.put("timestamp", LocalDateTime.class);
         DB_TYPE_MAP.put("datetime", LocalDateTime.class);
         DB_TYPE_MAP.put("date", LocalDate.class);
-        DB_TYPE_MAP.put("time", Time.class);
+        DB_TYPE_MAP.put("time", LocalTime.class);
         DB_TYPE_MAP.put("year", Year.class);
 
         DB_TYPE_MAP.put("decimal", BigDecimal.class);

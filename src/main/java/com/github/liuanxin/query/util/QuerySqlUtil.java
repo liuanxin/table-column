@@ -3,8 +3,7 @@ package com.github.liuanxin.query.util;
 import com.github.liuanxin.query.constant.QueryConst;
 import com.github.liuanxin.query.model.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
 public class QuerySqlUtil {
@@ -23,11 +22,9 @@ public class QuerySqlUtil {
         } else if (Number.class.isAssignableFrom(type)) {
             return QueryUtil.toDecimal(value);
         } else if (Date.class.isAssignableFrom(type)) {
-            return QueryUtil.convertDate(QueryUtil.toLocalDateTime(value));
-        } else if (LocalDate.class.isAssignableFrom(type)) {
+            return QueryUtil.toDate(value);
+        } else if (TemporalAccessor.class.isAssignableFrom(type)) {
             return QueryUtil.toLocalDate(value);
-        } else if (LocalDateTime.class.isAssignableFrom(type)) {
-            return QueryUtil.toLocalDateTime(value);
         } else {
             return value;
         }
@@ -42,7 +39,9 @@ public class QuerySqlUtil {
         } else if (Number.class.isAssignableFrom(type)) {
             return QueryUtil.toStr(QueryUtil.toDecimal(value));
         } else if (Date.class.isAssignableFrom(type)) {
-            return "'" + QueryUtil.format(QueryUtil.toLocalDateTime(value)) + "'";
+            return "'" + QueryUtil.format(QueryUtil.toDate(value)).replace("'", "''") + "'";
+        } else if (TemporalAccessor.class.isAssignableFrom(type)) {
+            return "'" + QueryUtil.format(QueryUtil.toLocalDate(value)).replace("'", "''") + "'";
         } else {
             return "'" + QueryUtil.toStr(value).replace("'", "''") + "'";
         }

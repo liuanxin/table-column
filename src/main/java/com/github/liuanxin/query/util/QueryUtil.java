@@ -9,10 +9,8 @@ import com.github.liuanxin.query.model.TableColumnInfo;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.text.SimpleDateFormat;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
@@ -482,16 +480,17 @@ public class QueryUtil {
         }
     }
 
-    public static LocalDateTime toLocalDateTime(Object obj) {
+    public static Date toDate(Object obj) {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof LocalDateTime) {
-            return (LocalDateTime) obj;
+        if (obj instanceof Date) {
+            return (Date) obj;
         }
+        String source = obj.toString().trim();
         for (String pattern : QueryConst.DATE_PATTERN_LIST) {
             try {
-                LocalDateTime date = getFormatter(pattern).parse(obj.toString().trim(), LocalDateTime::from);
+                Date date = new SimpleDateFormat(pattern).parse(source);
                 if (date != null) {
                     return date;
                 }
@@ -501,23 +500,50 @@ public class QueryUtil {
         return null;
     }
 
-    public static LocalDate toLocalDate(Object obj) {
+    public static TemporalAccessor toLocalDate(Object obj) {
         if (obj == null) {
             return null;
         }
         if (obj instanceof LocalDate) {
             return (LocalDate) obj;
         }
+        String source = obj.toString().trim();
         for (String pattern : QueryConst.DATE_PATTERN_LIST) {
+            DateTimeFormatter formatter = getFormatter(pattern);
             try {
-                LocalDate date = getFormatter(pattern).parse(obj.toString().trim(), LocalDate::from);
+                LocalDateTime dateTime = formatter.parse(source, LocalDateTime::from);
+                if (dateTime != null) {
+                    return dateTime;
+                }
+            } catch (Exception ignore) {
+            }
+            try {
+                LocalDate date = formatter.parse(source, LocalDate::from);
                 if (date != null) {
                     return date;
                 }
             } catch (Exception ignore) {
             }
+            try {
+                LocalTime time = formatter.parse(source, LocalTime::from);
+                if (time != null) {
+                    return time;
+                }
+            } catch (Exception ignore) {
+            }
+            try {
+                Year year = formatter.parse(source, Year::from);
+                if (year != null) {
+                    return year;
+                }
+            } catch (Exception ignore) {
+            }
         }
         return null;
+    }
+
+    public static String format(Date date) {
+        return format(convertLocalDateTime(date));
     }
 
     public static String format(TemporalAccessor date, String type, String timezone) {
@@ -531,8 +557,8 @@ public class QueryUtil {
         return isNull(date) ? null : LocalDateTime.of(date, LocalTime.MIN);
     }
 
-    public static Date convertDate(LocalDateTime dateTime) {
-        return isNull(dateTime) ? null : Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+    public static LocalDateTime convertLocalDateTime(Date date) {
+        return isNull(date) ? null : LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     }
 
     public static boolean isNull(Object obj) {

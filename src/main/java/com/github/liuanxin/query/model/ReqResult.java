@@ -6,7 +6,6 @@ import com.github.liuanxin.query.util.QueryJsonUtil;
 import com.github.liuanxin.query.util.QueryUtil;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
@@ -581,8 +580,13 @@ public class ReqResult implements Serializable {
                         if (QueryUtil.isNotEmpty(str)) {
                             data.put(columnName, str);
                         }
-                    } else if (Date.class.isAssignableFrom(fieldType) || TemporalAccessor.class.isAssignableFrom(fieldType)) {
-                        LocalDateTime date = QueryUtil.toLocalDateTime(data.get(columnName));
+                    } else if (Date.class.isAssignableFrom(fieldType)) {
+                        Date date = QueryUtil.toDate(data.get(columnName));
+                        if (QueryUtil.isNotNull(date)) {
+                            data.put(columnName, QueryUtil.format(date));
+                        }
+                    } else if (TemporalAccessor.class.isAssignableFrom(fieldType)) {
+                        TemporalAccessor date = QueryUtil.toLocalDate(data.get(columnName));
                         if (QueryUtil.isNotNull(date)) {
                             data.put(columnName, QueryUtil.format(date));
                         }
@@ -600,7 +604,7 @@ public class ReqResult implements Serializable {
                     Object groupInfo = data.remove(group.generateAlias(useColumn));
                     if (QueryUtil.isNotNull(groupInfo)) {
                         String returnColumn = QueryUtil.toStr(groups.get(0));
-                        LocalDateTime date = QueryUtil.toLocalDateTime(groupInfo);
+                        TemporalAccessor date = QueryUtil.toLocalDate(groupInfo);
                         if (QueryUtil.isNotNull(date)) {
                             String dateInfo = null;
                             int size = groups.size();
@@ -626,7 +630,7 @@ public class ReqResult implements Serializable {
                         for (Map.Entry<String, List<String>> entry : dateColumn.entrySet()) {
                             List<String> values = entry.getValue();
                             if (QueryUtil.isNotEmpty(values)) {
-                                LocalDateTime date = QueryUtil.toLocalDateTime(data.get(entry.getKey()));
+                                TemporalAccessor date = QueryUtil.toLocalDate(data.get(entry.getKey()));
                                 if (QueryUtil.isNotNull(date)) {
                                     String pattern = values.get(0);
                                     String timezone = (values.size() > 1) ? values.get(1) : null;
