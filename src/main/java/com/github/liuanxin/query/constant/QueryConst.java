@@ -72,18 +72,22 @@ public final class QueryConst {
     public static final Integer DEFAULT_LIMIT = 10;
     public static final List<Integer> LIMIT_ONE = Arrays.asList(1, 1);
 
-    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String DEFAULT_YEAR_FORMAT = "yyyy";
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
+    public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final List<String> DATE_PATTERN_LIST = Arrays.asList(
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
             "yyyy-MM-dd'T'HH:mm:ss",
             "yyyy/MM/dd HH:mm:ss",
             "yyyy/MM/dd HH:mm",
             "yyyy/MM/dd",
-            DEFAULT_DATE_FORMAT,
+            DEFAULT_DATE_TIME_FORMAT,
             "yyyy-MM-dd HH:mm",
-            "yyyy-MM-dd",
-            "HH:mm:ss",
-            "HH:mm"
+            DEFAULT_DATE_FORMAT,
+            DEFAULT_TIME_FORMAT,
+            "HH:mm",
+            DEFAULT_YEAR_FORMAT
     );
 
     public static final String TEMPLATE_META_NAME = "_meta_name_";

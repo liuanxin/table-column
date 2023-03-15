@@ -504,8 +504,8 @@ public class QueryUtil {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof LocalDate) {
-            return (LocalDate) obj;
+        if (obj instanceof TemporalAccessor) {
+            return (TemporalAccessor) obj;
         }
         String source = obj.toString().trim();
         for (String pattern : QueryConst.DATE_PATTERN_LIST) {
@@ -550,7 +550,19 @@ public class QueryUtil {
         return (isNull(date) || isEmpty(type)) ? "" : getFormatter(type, timezone).format(date);
     }
     public static String format(TemporalAccessor date) {
-        return format(date, QueryConst.DEFAULT_DATE_FORMAT, null);
+        String type;
+        if (date instanceof LocalDateTime) {
+            type = QueryConst.DEFAULT_DATE_TIME_FORMAT;
+        } else if (date instanceof LocalDate) {
+            type = QueryConst.DEFAULT_DATE_FORMAT;
+        } else if (date instanceof LocalTime) {
+            type = QueryConst.DEFAULT_TIME_FORMAT;
+        } else if (date instanceof Year) {
+            type = QueryConst.DEFAULT_YEAR_FORMAT;
+        } else {
+            throw new RuntimeException("unknown date type: " + date.getClass().getSimpleName());
+        }
+        return format(date, type, null);
     }
 
     public static LocalDateTime convertLocalDateTime(LocalDate date) {
