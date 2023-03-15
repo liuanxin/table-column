@@ -77,17 +77,19 @@ public final class QueryConst {
     public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final List<String> DATE_PATTERN_LIST = Arrays.asList(
+            DEFAULT_DATE_TIME_FORMAT,
+            "yyyy-MM-dd HH:mm",
+            DEFAULT_DATE_FORMAT,
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss SSS",
             "yyyy-MM-dd'T'HH:mm:ss",
             "yyyy/MM/dd HH:mm:ss",
             "yyyy/MM/dd HH:mm",
             "yyyy/MM/dd",
-            DEFAULT_DATE_TIME_FORMAT,
-            "yyyy-MM-dd HH:mm",
-            DEFAULT_DATE_FORMAT,
             DEFAULT_TIME_FORMAT,
-            "HH:mm",
-            DEFAULT_YEAR_FORMAT
+            DEFAULT_YEAR_FORMAT,
+            "HH:mm"
     );
 
     public static final String TEMPLATE_META_NAME = "_meta_name_";
