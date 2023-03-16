@@ -538,24 +538,30 @@ public class QueryUtil {
             }
         }
 
-        try {
-            Year year = getFormatter(QueryConst.DEFAULT_YEAR_FORMAT).parse(source, Year::from);
-            if (year != null) {
-                return year;
+        for (String pattern : QueryConst.YEAR_PATTERN_LIST) {
+            try {
+                Year year = getFormatter(pattern).parse(source, Year::from);
+                if (year != null) {
+                    return year;
+                }
+            } catch (Exception ignore) {
             }
-        } catch (Exception ignore) {
         }
         return null;
     }
 
     public static String format(Date date) {
-        return format(convertLocalDateTime(date));
+        return isNull(date) ? "" : format(LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()));
     }
 
     public static String format(TemporalAccessor date, String type, String timezone) {
         return (isNull(date) || isEmpty(type)) ? "" : getFormatter(type, timezone).format(date);
     }
     public static String format(TemporalAccessor date) {
+        if (isNull(date)) {
+            return "";
+        }
+
         String type;
         if (date instanceof LocalDateTime) {
             type = QueryConst.DEFAULT_DATE_TIME_FORMAT;
@@ -569,10 +575,6 @@ public class QueryUtil {
             throw new RuntimeException("unknown date type: " + date.getClass().getSimpleName());
         }
         return format(date, type, null);
-    }
-
-    public static LocalDateTime convertLocalDateTime(Date date) {
-        return isNull(date) ? null : LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     }
 
     public static boolean isNull(Object obj) {

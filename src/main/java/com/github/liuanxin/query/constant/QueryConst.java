@@ -98,12 +98,16 @@ public final class QueryConst {
             "HH:mm"
     );
     public static final String DEFAULT_YEAR_FORMAT = "yyyy";
+    public static final List<String> YEAR_PATTERN_LIST = Arrays.asList(
+            DEFAULT_YEAR_FORMAT,
+            "yy"
+    );
     public static final List<String> ALL_DATE_PATTERN_LIST = new ArrayList<>();
     static {
         ALL_DATE_PATTERN_LIST.addAll(DATE_TIME_PATTERN_LIST);
         ALL_DATE_PATTERN_LIST.addAll(DATE_PATTERN_LIST);
         ALL_DATE_PATTERN_LIST.addAll(TIME_PATTERN_LIST);
-        ALL_DATE_PATTERN_LIST.add(DEFAULT_YEAR_FORMAT);
+        ALL_DATE_PATTERN_LIST.addAll(YEAR_PATTERN_LIST);
     }
 
     public static final String TEMPLATE_META_NAME = "_meta_name_";
