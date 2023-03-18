@@ -258,7 +258,7 @@ public class TableColumnTemplate implements InitializingBean {
         long start = System.currentTimeMillis();
         int flag = jdbcTemplate.update(insertSql, params.toArray());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("insert sql use time {} ms, change {}", (System.currentTimeMillis() - start), flag);
+            LOG.debug("insert sql use time {} ms, change({})", (System.currentTimeMillis() - start), flag);
         }
         return flag;
     }
@@ -317,7 +317,7 @@ public class TableColumnTemplate implements InitializingBean {
                 long start = System.currentTimeMillis();
                 int update = jdbcTemplate.update(batchInsertSql, params.toArray());
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("batch insert-map sql use time {} ms, change {}", (System.currentTimeMillis() - start), update);
+                    LOG.debug("batch insert-map sql use time {} ms, change({})", (System.currentTimeMillis() - start), update);
                 }
                 flag += update;
             }
@@ -381,7 +381,7 @@ public class TableColumnTemplate implements InitializingBean {
         long start = System.currentTimeMillis();
         int flag = jdbcTemplate.update(insertSql, params.toArray());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("insert sql use time {} ms, change {}", (System.currentTimeMillis() - start), flag);
+            LOG.debug("insert sql use time {} ms, change({})", (System.currentTimeMillis() - start), flag);
         }
         return flag;
     }
@@ -450,7 +450,7 @@ public class TableColumnTemplate implements InitializingBean {
                 long start = System.currentTimeMillis();
                 int update = jdbcTemplate.update(batchInsertSql, params.toArray());
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("batch insert sql use time {} ms, change {}", (System.currentTimeMillis() - start), update);
+                    LOG.debug("batch insert sql use time {} ms, change({})", (System.currentTimeMillis() - start), update);
                 }
                 flag += update;
             }
@@ -611,7 +611,7 @@ public class TableColumnTemplate implements InitializingBean {
         long start = System.currentTimeMillis();
         int flag = jdbcTemplate.update(deleteSql, params.toArray());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("delete sql use time {} ms, change {}", (System.currentTimeMillis() - start), flag);
+            LOG.debug("delete sql use time {} ms, change({})", (System.currentTimeMillis() - start), flag);
         }
         return flag;
     }
@@ -681,7 +681,7 @@ public class TableColumnTemplate implements InitializingBean {
         long start = System.currentTimeMillis();
         int flag = jdbcTemplate.update(updateSql, params.toArray());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("update-map sql use time {} ms, change {}", (System.currentTimeMillis() - start), flag);
+            LOG.debug("update-map sql use time {} ms, change({})", (System.currentTimeMillis() - start), flag);
         }
         return flag;
     }
@@ -753,7 +753,7 @@ public class TableColumnTemplate implements InitializingBean {
         long start = System.currentTimeMillis();
         int flag = jdbcTemplate.update(updateSql, params.toArray());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("update sql use time {} ms, change {}", (System.currentTimeMillis() - start), flag);
+            LOG.debug("update sql use time {} ms, change({})", (System.currentTimeMillis() - start), flag);
         }
         return flag;
     }
@@ -1147,7 +1147,7 @@ public class TableColumnTemplate implements InitializingBean {
         long start = System.currentTimeMillis();
         Long count = jdbcTemplate.queryForObject(countSql, Long.class, params.toArray());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("query count sql use time {} ms, count {}", (System.currentTimeMillis() - start), count);
+            LOG.debug("query count sql use time {} ms, count({})", (System.currentTimeMillis() - start), count);
         }
         return QueryUtil.isNull(count) ? 0L : count;
     }
@@ -1169,7 +1169,7 @@ public class TableColumnTemplate implements InitializingBean {
             long start = System.currentTimeMillis();
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(idPageSql, params.toArray());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("query condition sql use time {} ms, size {}", (System.currentTimeMillis() - start), idList.size());
+                LOG.debug("query condition sql use time {} ms, size({})", (System.currentTimeMillis() - start), idList.size());
             }
 
             // SELECT ... FROM .?. WHERE id IN (...)
@@ -1237,7 +1237,7 @@ public class TableColumnTemplate implements InitializingBean {
         long start = System.currentTimeMillis();
         List<Map<String, Object>> dataList = jdbcTemplate.queryForList(mainSql, params.toArray());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("sql use time {} ms, size {}", (System.currentTimeMillis() - start), dataList.size());
+            LOG.debug("sql use time {} ms, size({})", (System.currentTimeMillis() - start), dataList.size());
         }
         if (QueryUtil.isNotEmpty(dataList)) {
             String mainTableName = tcInfo.findTable(mainTable).getName();
@@ -1343,7 +1343,7 @@ public class TableColumnTemplate implements InitializingBean {
             long start = System.currentTimeMillis();
             List<Map<String, Object>> idList = jdbcTemplate.queryForList(innerSql, params.toArray());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("query inner sql use time {} ms, size {}", (System.currentTimeMillis() - start), idList.size());
+                LOG.debug("query inner sql use time {} ms, size({})", (System.currentTimeMillis() - start), idList.size());
             }
             if (QueryUtil.isNotEmpty(idList)) {
                 mapList.addAll(idList);
