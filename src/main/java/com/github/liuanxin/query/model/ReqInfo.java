@@ -125,73 +125,73 @@ public class ReqInfo implements Serializable {
         if (requiredAlias && QueryUtil.isEmpty(alias)) {
             throw new RuntimeException("request: required request alias");
         }
-        if (QueryUtil.isNotEmpty(alias)) {
-            if (QueryUtil.isNotEmpty(table) || QueryUtil.isNotNull(param) || QueryUtil.isNotNull(result) || QueryUtil.isNotNull(type)) {
-                throw new RuntimeException("request: if use alias, just need alias + aliasQuery");
-            }
-            if (QueryUtil.isEmpty(requestAliasMap)) {
-                throw new RuntimeException("request: no define request alias");
-            }
-            ReqAliasTemplate aliasTemplate = requestAliasMap.get(alias);
-            if (QueryUtil.isNull(aliasTemplate)) {
-                throw new RuntimeException("request: no request alias(" + alias + ") info");
-            }
-
-            String table = aliasTemplate.getTable();
-            if (QueryUtil.isNotEmpty(table)) {
-                this.table = table;
-            }
-            ReqResult result = aliasTemplate.getResult();
-            if (QueryUtil.isNotNull(result)) {
-                this.result = result;
-            }
-            ResultType type = aliasTemplate.getType();
-            if (QueryUtil.isNotNull(type)) {
-                this.type = type;
-            }
-
-            param = new ReqParam();
-            Boolean notCount = aliasTemplate.getNotCount();
-            if (QueryUtil.isNotNull(notCount)) {
-                param.setNotCount(notCount);
-            }
-            List<List<String>> relationList = aliasTemplate.getRelationList();
-            if (QueryUtil.isNotEmpty(relationList)) {
-                param.setRelation(relationList);
-            }
-            if (QueryUtil.isNotNull(aliasQuery)) {
-                Map<String, Object> paramMap = aliasQuery.getQuery();
-                ReqAliasTemplateQuery templateQuery = aliasTemplate.getQuery();
-                if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(templateQuery)) {
-                    ReqQuery query = templateQuery.transfer(paramMap);
-                    if (QueryUtil.isNotNull(query)) {
-                        param.setQuery(query);
-                    }
-                }
-                Map<String, String> sort = aliasQuery.getSort();
-                if (QueryUtil.isNotEmpty(sort)) {
-                    param.setSort(sort);
-                } else {
-                    Map<String, String> templateSort = aliasTemplate.getSort();
-                    if (QueryUtil.isNotEmpty(templateSort)) {
-                        param.setSort(templateSort);
-                    }
-                }
-                List<String> page = aliasQuery.getPage();
-                if (QueryUtil.isNotEmpty(page)) {
-                    param.setPage(page);
-                } else {
-                    List<String> templatePage = aliasTemplate.getPage();
-                    if (QueryUtil.isNotEmpty(templatePage)) {
-                        param.setPage(templatePage);
-                    }
-                }
-            }
-            alias = null;
-            aliasQuery = null;
-            return true;
+        if (QueryUtil.isEmpty(requestAliasMap)) {
+            throw new RuntimeException("request: no define request alias");
         }
-        return false;
+        if (QueryUtil.isEmpty(alias)) {
+            return false;
+        }
+        ReqAliasTemplate aliasTemplate = requestAliasMap.get(alias);
+        if (QueryUtil.isNull(aliasTemplate)) {
+            throw new RuntimeException("request: no request alias(" + alias + ") info");
+        }
+        if (QueryUtil.isNotEmpty(table) || QueryUtil.isNotNull(param) || QueryUtil.isNotNull(result) || QueryUtil.isNotNull(type)) {
+            throw new RuntimeException("request: if use alias, just need alias + aliasQuery");
+        }
+
+        String table = aliasTemplate.getTable();
+        if (QueryUtil.isNotEmpty(table)) {
+            this.table = table;
+        }
+        ReqResult result = aliasTemplate.getResult();
+        if (QueryUtil.isNotNull(result)) {
+            this.result = result;
+        }
+        ResultType type = aliasTemplate.getType();
+        if (QueryUtil.isNotNull(type)) {
+            this.type = type;
+        }
+
+        param = new ReqParam();
+        Boolean notCount = aliasTemplate.getNotCount();
+        if (QueryUtil.isNotNull(notCount)) {
+            param.setNotCount(notCount);
+        }
+        List<List<String>> relationList = aliasTemplate.getRelationList();
+        if (QueryUtil.isNotEmpty(relationList)) {
+            param.setRelation(relationList);
+        }
+        if (QueryUtil.isNotNull(aliasQuery)) {
+            Map<String, Object> paramMap = aliasQuery.getQuery();
+            ReqAliasTemplateQuery templateQuery = aliasTemplate.getQuery();
+            if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(templateQuery)) {
+                ReqQuery query = templateQuery.transfer(paramMap);
+                if (QueryUtil.isNotNull(query)) {
+                    param.setQuery(query);
+                }
+            }
+            Map<String, String> sort = aliasQuery.getSort();
+            if (QueryUtil.isNotEmpty(sort)) {
+                param.setSort(sort);
+            } else {
+                Map<String, String> templateSort = aliasTemplate.getSort();
+                if (QueryUtil.isNotEmpty(templateSort)) {
+                    param.setSort(templateSort);
+                }
+            }
+            List<String> page = aliasQuery.getPage();
+            if (QueryUtil.isNotEmpty(page)) {
+                param.setPage(page);
+            } else {
+                List<String> templatePage = aliasTemplate.getPage();
+                if (QueryUtil.isNotEmpty(templatePage)) {
+                    param.setPage(templatePage);
+                }
+            }
+        }
+        alias = null;
+        aliasQuery = null;
+        return true;
     }
 
 
