@@ -112,19 +112,19 @@ query:
   table-prefix:
   # 设置为 true 时查询表及字段信息将返回空, 比如只在生产环境设置成 true, 默认是 false.
   has-not-return-info:
-  # 设置为 true 时, 查询只能使用别名, 默认是 false.
+  # 设置为 true 时, 查询只能基于别名, 默认是 false.
   required-alias:
   # 设置为 true 时, 查询可以不需要有条件或分页, 默认是 false.
   not-required-condition-or-page:
-  # 表名 字段名 生成别名的规则(比如表名是 t_user_info, 字段是 user_name):
-  #   Standard(表 UserInfo  字段 userName, 不设置则默认是此值)
-  #   Horizontal(表 User-Info  字段 user-name)
-  #   Under(表 User_Info  字段 user_name)
-  #   Letter(表 A-B...Z-AA...ZZ  字段 a-b...z-aa...zz)
-  #   Number(表 100001-100002..., 字段: 1-2...)
+  # 表名 字段名 生成别名的规则(比如表名: t_user_info, 字段: user_name):
+  #   Standard(表: UserInfo,  字段: userName, 不设置则默认是此值)
+  #   Horizontal(表: User-Info,  字段: user-name)
+  #   Under(表: User_Info,  字段: user_name)
+  #   Letter(表: A-B...Z-AA...ZZ,  字段: a-b...z-aa...zz)
+  #   Number(表: 100001-100002...,  字段: 1-2...)
   #   Same(一致)
-  #   Lower(小写)
-  #   Upper(大写)
+  #   Lower(表: user_info,  字段: user_name)
+  #   Upper(表: USER_INFO,  字段: USER_NAME)
   alias-generate-rule:
   # 当要请求的分页数据(page * limit)大于当前值时, sql 查询将会拆分成 2 条, 先只查 id 再用 id 查具体的数据, 默认是 10000.
   deep-max-page-size:
@@ -279,6 +279,20 @@ query:
       }
     ],
     "distinct": true /* true 表示将查询数据去重, 不设置则默认是 false */
+  }
+}
+#+END_SRC
+
+请求 ~POST /query-order-address-item-log~ 与上面的 ~POST /table-column~ 结果一致, 查询规则和返回字段都在别名中配置, 接口只关注参数即可
+#+BEGIN_SRC json5
+{
+  "req" : {
+    "query" : {
+      "id" : 0,
+      "orderNo": 1,
+      "startTime": "2020-01-01"
+    },
+    "page": [2000]
   }
 }
 #+END_SRC
