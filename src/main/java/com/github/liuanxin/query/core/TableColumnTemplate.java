@@ -990,6 +990,13 @@ public class TableColumnTemplate implements InitializingBean {
         return dynamicQuery(req, true);
     }
 
+    public Object dynamicQuery(String alias, ReqInfo req) {
+        if (QueryUtil.isNotNull(req) && QueryUtil.isNotEmpty(alias)) {
+            req.setAlias(alias);
+        }
+        return dynamicQuery(req, false);
+    }
+
     public Object dynamicQuery(ReqInfo req) {
         return dynamicQuery(req, false);
     }

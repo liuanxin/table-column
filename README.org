@@ -92,6 +92,14 @@ public class TableColumnController {
     public Object query(@RequestBody ReqInfo req) {
         return tableColumnTemplate.dynamicQuery(req);
     }
+
+    @PostMapping("/query-{alias}")
+    public Object query(@PathVariable("alias") String alias, @RequestBody ReqInfo req) {
+        if (req != null) {
+            req.setAlias(alias);
+        }
+        return tableColumnTemplate.dynamicQuery(req);
+    }
 }
 #+END_SRC
 
@@ -353,7 +361,9 @@ WHERE order_no IN ( 'xxx', 'yyy' )
 }
 #+END_SRC
 
-表达式说明
+
+** 表达式说明
+
 | 表达式(忽略大小写) | 说明     | 对应 sql       |
 |-----------------+---------+----------------|
 | $nu             | 为空     | IS NULL        |
