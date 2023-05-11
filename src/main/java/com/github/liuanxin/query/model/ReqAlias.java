@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class ReqParamAlias implements Serializable {
+public class ReqAlias implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -53,7 +53,7 @@ public class ReqParamAlias implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReqParamAlias that = (ReqParamAlias) o;
+        ReqAlias that = (ReqAlias) o;
         return Objects.equals(query, that.query) && Objects.equals(sort, that.sort) && Objects.equals(page, that.page);
     }
 

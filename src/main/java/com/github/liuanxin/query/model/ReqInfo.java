@@ -13,7 +13,7 @@ public class ReqInfo implements Serializable {
     /** 查询别名(如果使用, 下面的 table param result type 将不再生效) */
     private String alias;
     /** 使用别名时的查询条件 */
-    private ReqParamAlias aliasQuery;
+    private ReqAlias req;
 
     // 如果使用别名只需要上面的两个参数, 如果不用别名则使用下面的四个参数
 
@@ -58,11 +58,11 @@ public class ReqInfo implements Serializable {
         this.alias = alias;
     }
 
-    public ReqParamAlias getAliasQuery() {
-        return aliasQuery;
+    public ReqAlias getReq() {
+        return req;
     }
-    public void setAliasQuery(ReqParamAlias aliasQuery) {
-        this.aliasQuery = aliasQuery;
+    public void setReq(ReqAlias req) {
+        this.req = req;
     }
 
     public String getTable() {
@@ -98,21 +98,21 @@ public class ReqInfo implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ReqInfo reqInfo = (ReqInfo) o;
-        return Objects.equals(alias, reqInfo.alias) && Objects.equals(aliasQuery, reqInfo.aliasQuery)
+        return Objects.equals(alias, reqInfo.alias) && Objects.equals(req, reqInfo.req)
                 && Objects.equals(table, reqInfo.table) && Objects.equals(param, reqInfo.param)
                 && Objects.equals(result, reqInfo.result) && type == reqInfo.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, aliasQuery, table, param, result, type);
+        return Objects.hash(alias, req, table, param, result, type);
     }
 
     @Override
     public String toString() {
         return "ReqInfo{" +
                 "alias='" + alias + '\'' +
-                ", aliasQuery=" + aliasQuery +
+                ", req=" + req +
                 ", table='" + table + '\'' +
                 ", param=" + param +
                 ", result=" + result +
@@ -161,8 +161,8 @@ public class ReqInfo implements Serializable {
         if (QueryUtil.isNotEmpty(relationList)) {
             param.setRelation(relationList);
         }
-        if (QueryUtil.isNotNull(aliasQuery)) {
-            Map<String, Object> paramMap = aliasQuery.getQuery();
+        if (QueryUtil.isNotNull(req)) {
+            Map<String, Object> paramMap = req.getQuery();
             ReqAliasTemplateQuery templateQuery = aliasTemplate.getQuery();
             if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(templateQuery)) {
                 ReqQuery query = templateQuery.transfer(paramMap);
@@ -170,7 +170,7 @@ public class ReqInfo implements Serializable {
                     param.setQuery(query);
                 }
             }
-            Map<String, String> sort = aliasQuery.getSort();
+            Map<String, String> sort = req.getSort();
             if (QueryUtil.isNotEmpty(sort)) {
                 param.setSort(sort);
             } else {
@@ -179,7 +179,7 @@ public class ReqInfo implements Serializable {
                     param.setSort(templateSort);
                 }
             }
-            List<String> page = aliasQuery.getPage();
+            List<String> page = req.getPage();
             if (QueryUtil.isNotEmpty(page)) {
                 param.setPage(page);
             } else {
@@ -190,7 +190,7 @@ public class ReqInfo implements Serializable {
             }
         }
         alias = null;
-        aliasQuery = null;
+        req = null;
         return true;
     }
 
