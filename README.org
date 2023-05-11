@@ -42,13 +42,14 @@ public class TableColumnConfig {
     }
 
     private ReqAliasTemplate orderAddressItemLogAlias() {
-        // 指定查询条件及其表达式
+        /* 指定查询条件及其表达式 */
         ReqAliasTemplateQuery query = new ReqAliasTemplateQuery(OperateType.AND, List.of(
                 Map.of("id", ConditionType.$GT),
                 Map.of("orderNo", ConditionType.$NN),
                 Map.of(QueryConst.TEMPLATE_META_NAME, "startTime", "createTime", ConditionType.$GE),
                 Map.of(QueryConst.TEMPLATE_META_NAME, "endTime", "createTime", ConditionType.$LE),
-                new ReqAliasTemplateQuery(OperateType.OR, "x", List.of(
+                /* 这里的 xxx 表示分组, 参数的时候如果有分组会用到 */
+                new ReqAliasTemplateQuery(OperateType.OR, "xxx", List.of(
                         Map.of("orderStatus", ConditionType.$EQ),
                         Map.of("amount", ConditionType.$BET)
                 )),
@@ -236,14 +237,14 @@ query:
     "query": {      /* 查询条件 */
       /* "operate": "下面的条件拼接时的表达式, 并且(and) 和 或者(or) 两种, 不设置则默认是 and.", */
       "conditions": [
-        [ "orderNo", "$nn(表达式, 见下面的说明)" ],      /* 无值 */
+        [ "id", "$nn(表达式, 见下面的说明)" ],      /* 无值 */
         [ "orderNo", "$eq", "x" ],                    /* 单值(长度不能超过上面的 maxLength 值) */
         [ "orderStatus", "$in", [ "0", "1", "2" ] ],  /* 多值(长度不能超过 query.max-list-count 设置的值) */
         [ "amount", "$bet", [ "10", "1000.5" ] ],
         [ "OrderItem.productName", "$fuzzy", "xx" ],  /* 子表 */
         [ "OrderLog.operator", "$start", "xxx" ],     /* 子表 */
         {
-          "operate": "or", /* 嵌套条件(用 AND 拼上面的条件, 用 OR 拼下面的条件) */
+          "operate": "or", /* 嵌套条件( orderStatus = 3 OR OrderLog.time >= "2020-01-01" ) */
           "conditions": [
             [ "orderStatus", "$eq", "3" ],
             [ "OrderLog.time", "$bet", [ "2020-01-01" ] ]
@@ -283,16 +284,21 @@ query:
 }
 #+END_SRC
 
-请求 ~POST /query-order-address-item-log~ 与上面的 ~POST /table-column~ 结果一致, 查询规则和返回字段都在别名中配置, 接口只关注参数即可
+请求 ~POST /query-order-address-item-log~ 将使用别名中配置的规则, 接口只关注参数即可
 #+BEGIN_SRC json5
 {
   "req" : {
     "query" : {
-      "id" : 0,
-      "orderNo": 1,
-      "startTime": "2020-01-01"
+      "id" : null, /* 任意值(null "" 1 0 均可), 只要有这个项就行. 对应上面的 $nn 条件 */
+      "orderNo": "x",
+      "createTime": [ "2020-01-01", "2020-02-01" ],
+      "xxx": { "orderStatus": "3", "amount": [ "100.50", "200" ] } /* xxx 跟别名模板中的分组名对应 */
+      "orderStatus": [ 1, 2, 3 ],
+      "OrderItem.productName": "xx",
+      "OrderAddress.contact": "xxx",
     },
-    "page": [2000]
+    "sort": { "id": "desc" } /* 排序, 忽略则使用别名中设置的值 */
+    "page": [ 2, 10 ] /* 分页, 忽略则使用别名中设置的值 */
   }
 }
 #+END_SRC

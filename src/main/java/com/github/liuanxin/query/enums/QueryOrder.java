@@ -39,6 +39,6 @@ public enum QueryOrder {
     }
     public static String toSql(String order) {
         QueryOrder des = deserializer(order);
-        return (QueryUtil.isNull(des) || des == ASC) ? "" : (" " + DESC.name());
+        return (QueryUtil.isNull(des) || des == ASC) ? (" " + ASC.name()) : (" " + DESC.name());
     }
 }
