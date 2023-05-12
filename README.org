@@ -96,10 +96,7 @@ public class TableColumnController {
 
     @PostMapping("/query-{alias}")
     public Object query(@PathVariable("alias") String alias, @RequestBody ReqInfo req) {
-        if (req != null) {
-            req.setAlias(alias);
-        }
-        return tableColumnTemplate.dynamicQuery(req);
+        return tableColumnTemplate.dynamicQuery(alias, req);
     }
 }
 #+END_SRC
