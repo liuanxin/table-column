@@ -26,6 +26,10 @@ import java.util.*;
  *   between
  *
  * string:
+ *   >
+ *   >=
+ *   <
+ *   <=
  *   like
  *   not like
  * </pre>
@@ -239,7 +243,7 @@ public enum ConditionType {
         }
     }
     protected String generateMulti(String column, Class<?> type, Object value, List<Object> params, StringBuilder printSql) {
-        if (QueryUtil.isNull(value) || !MULTI_TYPE.contains(this) || !(value instanceof Collection<?>)) {
+        if (QueryUtil.isNull(value) || !MULTI_TYPE_SET.contains(this) || !(value instanceof Collection<?>)) {
             return "";
         }
         Collection<?> c = (Collection<?>) value;
@@ -296,13 +300,32 @@ public enum ConditionType {
     }
 
 
-    private static final Set<ConditionType> MULTI_TYPE = new HashSet<>(Arrays.asList(
+    private static final Set<ConditionType> MULTI_TYPE_SET = new HashSet<>(Arrays.asList(
             $IN,
             $NI,
             $BET,
             $NBE
     ));
-    /** string: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、包含(fuzzy)、不包含(nfuzzy)、开头(start)、不开头(nstart)、结尾(end)、不结尾(nend) */
+
+    /**
+     * string:
+     *   为空(nu)
+     *   不为空(NN)
+     *   等于(eq)
+     *   不等于(ne)
+     *   包含(in)
+     *   不包含(ni)
+     *   大于(gt)
+     *   大于等于(ge)
+     *   小于(lt)
+     *   小于等于(le)
+     *   包含(fuzzy)
+     *   不包含(nfuzzy)
+     *   开头(start)
+     *   不开头(nstart)
+     *   结尾(end)
+     *   不结尾(nend)
+     */
     private static final Set<ConditionType> STRING_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             $NU,
             $NN,
@@ -310,6 +333,10 @@ public enum ConditionType {
             $NE,
             $IN,
             $NI,
+            $GT,
+            $GE,
+            $LT,
+            $LE,
             $FUZZY,
             $NFUZZY,
             $START,
@@ -320,7 +347,21 @@ public enum ConditionType {
     private static final String STRING_TYPE_INFO = String.format("String type can only be used in 「%s」 conditions",
             QueryUtil.toStr(STRING_TYPE_SET, ConditionType::info));
 
-    /** number: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
+    /**
+     * number:
+     *   为空(nu)
+     *   不为空(NN)
+     *   等于(eq)
+     *   不等于(ne)
+     *   包含(in)
+     *   不包含(ni)
+     *   大于(gt)
+     *   大于等于(ge)
+     *   小于(lt)
+     *   小于等于(le)
+     *   区间(bet)
+     *   不在区间(nbe)
+     */
     private static final Set<ConditionType> NUMBER_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             $NU,
             $NN,
@@ -338,7 +379,17 @@ public enum ConditionType {
     private static final String NUMBER_TYPE_INFO = String.format("Number type can only be used in 「%s」 conditions",
             QueryUtil.toStr(NUMBER_TYPE_SET, ConditionType::info));
 
-    /** date: 为空(nu)、不为空(NN)、大于(gt)、大于等于(ge)、小于(lt)、小于等于(le)、区间(bet)、不在区间(nbe) */
+    /**
+     * date:
+     *   为空(nu)
+     *   不为空(NN)
+     *   大于(gt)
+     *   大于等于(ge)
+     *   小于(lt)
+     *   小于等于(le)
+     *   区间(bet)
+     *   不在区间(nbe)
+     */
     private static final Set<ConditionType> DATE_TYPE_SET = new LinkedHashSet<>(Arrays.asList(
             $NU,
             $NN,
@@ -352,16 +403,22 @@ public enum ConditionType {
     private static final String DATE_TYPE_INFO = String.format("Date or Time type can only be used in 「%s」 conditions",
             QueryUtil.toStr(DATE_TYPE_SET, ConditionType::info));
 
-    /**  非 string/number/date 类型: 为空(nu)、不为空(NN)、等于(eq)、不等于(ne)、包含(in)、不包含(ni)、为空(nu)、不为空(nn) */
+    /**
+     * 非 string/number/date 类型:
+     *   为空(nu)
+     *   不为空(NN)
+     *   等于(eq)
+     *   不等于(ne)
+     *   包含(in)
+     *   不包含(ni)
+     */
     public static final Set<ConditionType> OTHER_TYPE_SET = new HashSet<>(Arrays.asList(
             $NU,
             $NN,
             $EQ,
             $NE,
             $IN,
-            $NI,
-            $NU,
-            $NN
+            $NI
     ));
     private static final String OTHER_TYPE_INFO = String.format("Non(String, Number, Date) type can only be used in 「%s」 conditions",
             QueryUtil.toStr(OTHER_TYPE_SET, ConditionType::info));
@@ -389,7 +446,7 @@ public enum ConditionType {
 
     private void checkValue(Class<?> type, String column, Object value, Integer strLen, int maxListCount) {
         if (QueryUtil.isNotNull(value)) {
-            if (MULTI_TYPE.contains(this)) {
+            if (MULTI_TYPE_SET.contains(this)) {
                 if (value instanceof Collection<?>) {
                     int count = 0;
                     Collection<?> collection = (Collection<?>) value;
