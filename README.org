@@ -23,7 +23,6 @@ public class TableColumnConfig {
     /** 设置表关联关系 */
     @Bean
     public List<TableColumnRelation> tableRelationList() {
-        // return new ArrayList<>();
         return List.of(
                 // 主表表名, 主表字段, 跟子表的关系(一对一, 一对多, 多对多), 子表表名, 子表字段
                 new TableColumnRelation("t_order", "order_no", TableRelationType.ONE_TO_ONE, "t_order_address", "order_no"),

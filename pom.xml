@@ -11,7 +11,7 @@
 
     <groupId>com.github.liuanxin</groupId>
     <artifactId>table-column</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <description>operate MySQL/MariaDB table column, dynamic with frontend</description>
 
     <developers>
