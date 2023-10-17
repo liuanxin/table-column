@@ -187,7 +187,7 @@ public class TableColumnTemplate implements InitializingBean {
                 for (TableColumn tc : table.getColumnMap().values()) {
                     String columnName = tc.getName();
                     if (!columnName.equals(table.getLogicColumn()) || force) {
-                        String type = tc.getFieldType().getSimpleName();
+                        String type = QueryConst.TYPE_MAP.get(tc.getFieldType());
                         Integer maxLength = tc.getStrLen();
                         TableColumnRelation relation = tcInfo.findRelationByChild(table.getName(), columnName);
                         String relationTable, relationColumn;

@@ -41,6 +41,24 @@ public final class QueryConst {
         DB_TYPE_MAP.put("float", Float.class);
         DB_TYPE_MAP.put("double", Double.class);
     }
+    public static final Map<Class<?>, String> TYPE_MAP = new HashMap<>();
+    static {
+        TYPE_MAP.put(Integer.class, "int");
+        TYPE_MAP.put(Boolean.class, "boolean");
+        TYPE_MAP.put(Long.class, "int");
+
+        TYPE_MAP.put(String.class, "string");
+
+        TYPE_MAP.put(LocalDateTime.class, "date-time");
+        TYPE_MAP.put(LocalDate.class, "date");
+        TYPE_MAP.put(LocalTime.class, "time");
+        TYPE_MAP.put(Year.class, "year");
+
+        TYPE_MAP.put(BigDecimal.class, "number");
+        TYPE_MAP.put(Float.class, "number");
+        TYPE_MAP.put(Double.class, "number");
+
+    }
     public static final Set<Class<?>> SERIALIZE_STR_SET = new HashSet<>(Arrays.asList(
             Long.class, BigInteger.class, BigDecimal.class, Float.class, Double.class
     ));

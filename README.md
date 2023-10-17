@@ -141,7 +141,56 @@ query:
   logic-delete-long-value:
 ```
 
-请求 `GET /table-column` 将会返回表及字段的结构数据(如果想要此接口不返回数据, 配置 `query.has-not-return-info = true` 即可), 比如
+比如有如下表
+```sql
+create table `t_order` (
+  `id` bigint unsigned not null auto_increment,
+  `order_no` varchar(32) not null comment '订单号',
+  `order_status` int unsigned not null default '0' comment '订单状态(0.用户已创建待支付, 1.用户已支付待商户发货, 2.商户已发货待用户签收, 3.用户已签收待确认完结, 4.已完结)',
+  `amount` decimal(20,2) unsigned not null default '0.00' comment '订单金额',
+  `desc` varchar(32) not null default '' comment '备注',
+  `create_time` datetime(6) not null default current_timestamp(6) comment '创建时间',
+  `update_time` datetime(6) not null default current_timestamp(6) on update current_timestamp(6) comment '更新时间',
+  `deleted` int unsigned not null default '0' comment '0.未删除, 非 0.已删除',
+  primary key (`id`),
+  unique key `uk_order_no` (`order_no`,`deleted`)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='订单';
+
+create table `t_order_address` (
+  `id` bigint unsigned not null auto_increment,
+  `order_no` varchar(32) not null default '' comment '订单号',
+  `contact` varchar(16) not null default '' comment '联系人',
+  `phone` varchar(16) not null default '' comment '联系电话',
+  `address` varchar(128) not null default '' comment '联系人地址',
+  `create_time` datetime(6) not null default current_timestamp(6) comment '创建时间',
+  `update_time` datetime(6) not null default current_timestamp(6) on update current_timestamp(6) comment '更新时间',
+  `deleted` bigint unsigned not null default '0' comment '0.未删除, 非 0.已删除',
+  primary key (`id`),
+  unique key `uk_order_no` (`order_no`,`deleted`)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='订单地址';
+
+create table `t_order_item` (
+  `id` bigint unsigned not null auto_increment,
+  `order_no` varchar(32) not null default '' comment '订单号',
+  `product_name` varchar(32) not null default '' comment '商品名',
+  `price` decimal(20,2) unsigned not null default '0.00' comment '商品价格',
+  `number` int unsigned not null default '0' comment '商品数量',
+  primary key (`id`),
+  key `idx_order_no` (`order_no`)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='订单项(商品)';
+
+create table `t_order_log` (
+  `id` bigint unsigned not null auto_increment,
+  `order_no` varchar(32) not null default '' comment '订单号',
+  `operator` varchar(32) not null default '' comment '操作人',
+  `message` text comment '操作内容',
+  `time` datetime(6) not null default current_timestamp(6) comment '创建时间',
+  `deleted` tinyint(1) not null default '0' comment '0.未删除, 1.已删除',
+  primary key (`id`),
+  key `idx_order_no` (`order_no`)
+) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='订单日志';
+```
+请求 `GET /table-column` 将会返回表及字段的结构数据(如果想要此接口不返回数据, 配置 `query.has-not-return-info = true` 即可), 
 ```json5
 [
   {
@@ -150,40 +199,120 @@ query:
     "columnList": [
       {
         "name": "id",
-        "type": "Long"
+        "type": "int"
       },
       {
         "name": "orderNo",
         "desc": "订单号",
-        "type": "String",
+        "type": "string",
         "writeRequired": true,
         "maxLength": 32
       },
       {
         "name": "orderStatus",
         "desc": "订单状态(0.用户已创建待支付, 1.用户已支付待商户发货, 2.商户已发货待用户签收, 3.用户已签收待确认完结, 4.已完结)",
-        "type": "Integer"
+        "type": "int"
       },
       {
         "name": "amount",
         "desc": "订单金额",
-        "type": "BigDecimal"
+        "type": "number"
       },
       {
         "name": "desc",
         "desc": "备注",
-        "type": "String",
+        "type": "string",
         "maxLength": 32
       },
       {
         "name": "createTime",
         "desc": "创建时间",
-        "type": "Date"
+        "type": "date-time"
       },
       {
         "name": "updateTime",
         "desc": "更新时间",
-        "type": "Date"
+        "type": "date-time"
+      }
+    ]
+  },
+  {
+    "name": "OrderAddress",
+    "desc": "订单地址",
+    "columnList": [
+      {
+        "name": "id",
+        "type": "int"
+      },
+      {
+        "name": "orderNo",
+        "desc": "订单号",
+        "type": "string",
+        "maxLength": 32,
+        "relationTable": "Order",
+        "relationColumn": "orderNo"
+      },
+      {
+        "name": "contact",
+        "desc": "联系人",
+        "type": "string",
+        "maxLength": 16
+      },
+      {
+        "name": "phone",
+        "desc": "联系电话",
+        "type": "string",
+        "maxLength": 16
+      },
+      {
+        "name": "address",
+        "desc": "联系人地址",
+        "type": "string",
+        "maxLength": 128
+      },
+      {
+        "name": "createTime",
+        "desc": "创建时间",
+        "type": "date-time"
+      },
+      {
+        "name": "updateTime",
+        "desc": "更新时间",
+        "type": "date-time"
+      }
+    ]
+  },
+  {
+    "name": "OrderItem",
+    "desc": "订单项(商品)",
+    "columnList": [
+      {
+        "name": "id",
+        "type": "int"
+      },
+      {
+        "name": "orderNo",
+        "desc": "订单号",
+        "type": "string",
+        "maxLength": 32,
+        "relationTable": "Order",
+        "relationColumn": "orderNo"
+      },
+      {
+        "name": "productName",
+        "desc": "商品名",
+        "type": "string",
+        "maxLength": 32
+      },
+      {
+        "name": "price",
+        "desc": "商品价格",
+        "type": "number"
+      },
+      {
+        "name": "number",
+        "desc": "商品数量",
+        "type": "int"
       }
     ]
   },
@@ -193,12 +322,12 @@ query:
     "columnList": [
       {
         "name": "id",
-        "type": "Long"
+        "type": "int"
       },
       {
         "name": "orderNo",
         "desc": "订单号",
-        "type": "String",
+        "type": "string",
         "maxLength": 32,
         "relationTable": "Order",
         "relationColumn": "orderNo"
@@ -206,19 +335,19 @@ query:
       {
         "name": "operator",
         "desc": "操作人",
-        "type": "String",
+        "type": "string",
         "maxLength": 32
       },
       {
         "name": "message",
         "desc": "操作内容",
-        "type": "String",
+        "type": "string",
         "maxLength": 65535
       },
       {
         "name": "time",
         "desc": "创建时间",
-        "type": "Date"
+        "type": "date-time"
       }
     ]
   }
@@ -233,7 +362,7 @@ query:
     "query": {      /* 查询条件 */
       /* "operate": "下面的条件拼接时的表达式, 并且(and) 和 或者(or) 两种, 不设置则默认是 and.", */
       "conditions": [
-        [ "id", "$nn(表达式, 见下面的说明)" ],      /* 无值 */
+        [ "id", "$nn(表达式, 见下面的说明)" ],           /* 无值 */
         [ "orderNo", "$eq", "x" ],                    /* 单值(长度不能超过上面的 maxLength 值) */
         [ "orderStatus", "$in", [ "0", "1", "2" ] ],  /* 多值(长度不能超过 query.max-list-count 设置的值) */
         [ "amount", "$bet", [ "10", "1000.5" ] ],
@@ -249,7 +378,7 @@ query:
       ]
     },
     "sort": { "createTime": "desc",  "OrderLog.operator": "asc" },
-    "page": [ 2, 20 ] /* 分页查询, 如果省略第 2 个参数如 [ 2 ] 则等同于 [ 2, 10 ] */
+    "page": [ 2, 20 ],  /* 分页查询, 如果省略第 2 个参数如 [ 2 ] 则等同于 [ 2, 10 ] */
     "relation": [ [ "Order(主表)", "inner(连接类型, 有 left inner right 三种)", "OrderItem(子表)" ],  [ "Order", "inner", "OrderLog" ] ] # 当上面的 conditions 有多个表时需要
   },
   "result": {
