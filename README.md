@@ -1,21 +1,21 @@
 
-** 说明
+## 说明
 
 由前端在接口中定义查询参数及返回结果, 服务端无需生成任何 model dao service 等, 自动处理数据查询并组装数据, 可以极大的简化后端代码量
 
-** 使用
+## 使用
 
 添加引用
-#+BEGIN_SRC xml
+```xml
 <dependency>
     <groupId>com.github.liuanxin</groupId>
     <artifactId>table-column</artifactId>
     <version>???</version>
 </dependency>
-#+END_SRC
+```
 
 添加配置
-#+BEGIN_SRC java
+```java
 /** 表关联关系及别名都没有, 可以无需此文件, 查询时就只能基于单表 */
 @Configuration
 public class TableColumnConfig {
@@ -73,10 +73,10 @@ public class TableColumnConfig {
         return new ReqAliasTemplate("Order", query, sort, page, relationList, result);
     }
 }
-#+END_SRC
+```
 
 添加以下 mapping
-#+BEGIN_SRC java
+```java
 @RestController
 @RequiredArgsConstructor
 public class TableColumnController {
@@ -98,10 +98,10 @@ public class TableColumnController {
         return tableColumnTemplate.dynamicQuery(alias, req);
     }
 }
-#+END_SRC
+```
 
 相关的配置中下
-#+BEGIN_SRC yaml
+```yaml
 query:
   # 存放关联表的类的包地址, 多个用英文逗号隔开.
   scan-packages:
@@ -139,10 +139,10 @@ query:
   logic-delete-int-value:
   # 用来做逻辑删除的字段类型是 bigint 时的值, 比如设置成 id, 实体上的字段标了 @LogicDelete 则以注解为主.
   logic-delete-long-value:
-#+END_SRC
+```
 
-请求 ~GET /table-column~ 将会返回表及字段的结构数据(如果想要此接口不返回数据, 配置 ~query.has-not-return-info = true~ 即可), 比如
-#+BEGIN_SRC json5
+请求 `GET /table-column` 将会返回表及字段的结构数据(如果想要此接口不返回数据, 配置 `query.has-not-return-info = true` 即可), 比如
+```json5
 [
   {
     "name": "Order",
@@ -223,10 +223,10 @@ query:
     ]
   }
 ]
-#+END_SRC
+```
 
-请求 ~POST /table-column~ 时, 将会自动处理数据查询并组装数据, 其入参示例如下
-#+BEGIN_SRC json5
+请求 `POST /table-column` 时, 将会自动处理数据查询并组装数据, 其入参示例如下
+```json5
 {
   "table": "Order", /* 表名 */
   "param": {
@@ -278,10 +278,10 @@ query:
     "distinct": true /* true 表示将查询数据去重, 不设置则默认是 false */
   }
 }
-#+END_SRC
+```
 
-请求 ~POST /query-order-address-item-log~ 将使用别名中配置的规则, 接口只关注参数即可
-#+BEGIN_SRC json5
+请求 `POST /query-order-address-item-log` 将使用别名中配置的规则, 接口只关注参数即可
+```json5
 {
   "req" : {
     "query" : {
@@ -297,10 +297,10 @@ query:
     "page": [ 2, 10 ] /* 分页, 忽略则使用别名中设置的值 */
   }
 }
-#+END_SRC
+```
 
-最终会生成如下 ~sql~
-#+BEGIN_SRC sql
+最终会生成如下 `sql`
+```sql
 /* 如果没有分页查询入参(page)则不会生成此 sql */
 SELECT COUNT(DISTINCT `Order`.id)
 FROM t_order `Order` INNER JOIN t_order_item OrderItem ON ... INNER JOIN t_order_log OrderLog ON ...
@@ -335,10 +335,10 @@ WHERE order_no IN ( 'xxx', 'yyy' )
 SELECT order_no, operator, message, time
 FROM t_order_log
 WHERE order_no IN ( 'xxx', 'yyy' )
-#+END_SRC
+```
 
 返回数据如下
-#+BEGIN_SRC json5
+```json5
 {
   "count": 123,
   "list": [ /* 如果没有分页查询入参(page)则返回的是此数组 */
@@ -375,28 +375,30 @@ WHERE order_no IN ( 'xxx', 'yyy' )
     { ... }
   ]
 }
-#+END_SRC
+```
 
 
-** 表达式说明
+## 表达式说明
 
-| 表达式(忽略大小写) | 说明     | 对应 sql       |
-|-----------------+---------+----------------|
-| $nu             | 为空     | IS NULL        |
-| $nn             | 不为空   | IS NOT NULL    |
-| $eq             | 等于     | =              |
-| $ne             | 不等于   | <>             |
-| $in             | 包含     | IN             |
-| $ni             | 不包含   | NOT IN         |
-| $bet            | 区间     | BETWEEN        |
-| $nbe            | 不在区间  | NOT BETWEEN    |
-| $gt             | 大于     | >              |
-| $ge             | 大于等于  | >=             |
-| $lt             | 小于     | <              |
-| $le             | 小于等于  | <=             |
-| $fuzzy          | 模糊     | LIKE '%x%'     |
-| $nfuzzy         | 不模糊   | NOT LIKE '%x%' |
-| $start          | 开头     | LIKE 'x%'      |
-| $nstart         | 不开头   | NOT LIKE 'x%'  |
-| $end            | 结尾     | LIKE '%x'      |
-| $nend           | 不结尾   | NOT LIKE '%x'  |
+| 表达式(忽略大小写) | 说明      | 对应 sql       |
+| :------------------ | :--------:| -------------: |
+| $nu                 | 为空      | IS NULL        |
+| $nn                 | 不为空    | IS NOT NULL    |
+| $eq                 | 等于      | =              |
+| $ne                 | 不等于    | <>             |
+| $in                 | 包含      | IN             |
+| $ni                 | 不包含    | NOT IN         |
+| $bet                | 区间      | BETWEEN        |
+| $nbe                | 不在区间  | NOT BETWEEN    |
+| $gt                 | 大于      | >              |
+| $ge                 | 大于等于  | >=             |
+| $lt                 | 小于      | <              |
+| $le                 | 小于等于  | <=             |
+| $fuzzy              | 模糊      | LIKE '%x%'     |
+| $nfuzzy             | 不模糊    | NOT LIKE '%x%' |
+| $start              | 开头      | LIKE 'x%'      |
+| $nstart             | 不开头    | NOT LIKE 'x%'  |
+| $end                | 结尾      | LIKE '%x'      |
+| $nend               | 不结尾    | NOT LIKE '%x'  |
+
+-----
