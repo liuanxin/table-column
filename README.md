@@ -153,7 +153,7 @@ create table `t_order` (
   `update_time` datetime(6) not null default current_timestamp(6) on update current_timestamp(6) comment '更新时间',
   `deleted` int unsigned not null default '0' comment '0.未删除, 非 0.已删除',
   primary key (`id`),
-  unique key `uk_order_no` (`order_no`,`deleted`)
+  unique key `uk_order_no` (`order_no`, `deleted`)  /* 逻辑删除标识做为唯一索引的一部分 */
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='订单';
 
 create table `t_order_address` (
@@ -166,7 +166,7 @@ create table `t_order_address` (
   `update_time` datetime(6) not null default current_timestamp(6) on update current_timestamp(6) comment '更新时间',
   `deleted` bigint unsigned not null default '0' comment '0.未删除, 非 0.已删除',
   primary key (`id`),
-  unique key `uk_order_no` (`order_no`,`deleted`)
+  unique key `uk_order_no` (`order_no`, `deleted`)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='订单地址';
 
 create table `t_order_item` (
@@ -187,7 +187,7 @@ create table `t_order_log` (
   `time` datetime(6) not null default current_timestamp(6) comment '创建时间',
   `deleted` tinyint(1) not null default '0' comment '0.未删除, 1.已删除',
   primary key (`id`),
-  key `idx_order_no` (`order_no`)
+  key `idx_order_no` (`order_no`)  /* 有逻辑删除标识, 但无需唯一索引 */
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_unicode_ci comment='订单日志';
 ```
 请求 `GET /table-column` 将会返回表及字段的结构数据(如果想要此接口不返回数据, 配置 `query.has-not-return-info = true` 即可), 
