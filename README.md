@@ -107,6 +107,8 @@ query:
   scan-packages:
   # 当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀(比如 t_ 开头).
   table-prefix:
+  # 当关联表的类上没有标注解, 将类名转换成表名时, 表的后缀(比如 _table 结尾).
+  table-suffix:
   # 设置为 true 时查询表及字段信息将返回空, 比如只在生产环境设置成 true, 默认是 false.
   has-not-return-info:
   # 设置为 true 时, 查询只能基于别名, 默认是 false.

@@ -95,12 +95,12 @@ public final class QueryLambdaUtil {
     }
 
     public static <T> String toTableName(SupplierSerialize<T> supplier) {
-        return toTableName("", toClass(supplier));
+        return toTableName("", toClass(supplier), "");
     }
-    public static <T> String toTableName(String tablePrefix, SupplierSerialize<T> supplier) {
-        return toTableName(tablePrefix, toClass(supplier));
+    public static <T> String toTableName(String tablePrefix, SupplierSerialize<T> supplier, String tableSuffix) {
+        return toTableName(tablePrefix, toClass(supplier), tableSuffix);
     }
-    private static String toTableName(String tablePrefix, Class<?> clazz) {
+    private static String toTableName(String tablePrefix, Class<?> clazz, String tableSuffix) {
         TableIgnore tableIgnore = clazz.getAnnotation(TableIgnore.class);
         if (QueryUtil.isNotNull(tableIgnore) && tableIgnore.value()) {
             return "";
@@ -113,13 +113,13 @@ public final class QueryLambdaUtil {
                 return tableName;
             }
         }
-        return QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
+        return QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName(), tableSuffix);
     }
     public static <T> String toTableName(FunctionSerialize<T, ?> function) {
-        return toTableName("", toClass(function));
+        return toTableName("", toClass(function), "");
     }
-    public static <T> String toTableName(String tablePrefix, FunctionSerialize<T, ?> function) {
-        return toTableName(tablePrefix, toClass(function));
+    public static <T> String toTableName(String tablePrefix, FunctionSerialize<T, ?> function, String tableSuffix) {
+        return toTableName(tablePrefix, toClass(function), tableSuffix);
     }
 
     public static <T> String toColumnName(SupplierSerialize<T> supplier) {
@@ -151,7 +151,7 @@ public final class QueryLambdaUtil {
     public static <T> String toColumnAndAlias(SupplierSerialize<T> supplier) {
         return toColumnAndAlias(toField(supplier));
     }
-    public static <T> String toColumnAndAlias(Field field) {
+    public static String toColumnAndAlias(Field field) {
         ColumnInfo columnInfo = toColumnInfo(field);
         String columnName = toColumnName(field, columnInfo);
         if (QueryUtil.isNotNull(columnInfo)) {

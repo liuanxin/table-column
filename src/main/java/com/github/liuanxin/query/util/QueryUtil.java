@@ -49,7 +49,7 @@ public class QueryUtil {
 
 
     /** UserInfo --> user_info */
-    public static String classToTableName(String tablePrefix, String className) {
+    public static String classToTableName(String tablePrefix, String className, String tableSuffix) {
         StringBuilder sbd = new StringBuilder();
         char[] chars = className.toCharArray();
         int len = chars.length;
@@ -64,7 +64,7 @@ public class QueryUtil {
                 sbd.append(c);
             }
         }
-        return toStr(tablePrefix) + sbd;
+        return toStr(tablePrefix) + sbd + toStr(tableSuffix);
     }
 
     /** userName --> user_name */

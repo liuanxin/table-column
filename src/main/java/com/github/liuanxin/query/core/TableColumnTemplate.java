@@ -32,6 +32,9 @@ public class TableColumnTemplate implements InitializingBean {
     @Value("${query.table-prefix:}")
     private String tablePrefix;
 
+    @Value("${query.table-suffix:}")
+    private String tableSuffix;
+
     @Value("${query.has-not-return-info:false}")
     private boolean hasNotReturnInfo;
 
@@ -86,7 +89,7 @@ public class TableColumnTemplate implements InitializingBean {
         if (QueryUtil.isEmpty(scanPackages)) {
             loadDatabase();
         } else {
-            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, aliasGenerateRule, scanPackages, tableRelationList,
+            tcInfo = QueryInfoUtil.infoWithScan(tablePrefix, tableSuffix, aliasGenerateRule, scanPackages, tableRelationList,
                     logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
             if (QueryUtil.isNull(tcInfo)) {
                 throw new RuntimeException(String.format("class not found in(%s)", scanPackages));

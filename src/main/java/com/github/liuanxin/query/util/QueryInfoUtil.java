@@ -32,13 +32,13 @@ public class QueryInfoUtil {
     private static final MetadataReaderFactory READER = new CachingMetadataReaderFactory(RESOLVER);
 
 
-    public static TableColumnInfo infoWithScan(String tablePrefix, AliasGenerateRule aliasRule, String classPackages,
-                                               List<TableColumnRelation> relationList,
+    public static TableColumnInfo infoWithScan(String tablePrefix, String tableSuffix, AliasGenerateRule aliasRule,
+                                               String classPackages, List<TableColumnRelation> relationList,
                                                String globalLogicColumn, String globalLogicValue,
                                                String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                                String globalLogicDeleteLongValue) {
         Set<Class<?>> classes = scanPackage(classPackages);
-        return infoWithClass(tablePrefix, aliasRule, classes, relationList,
+        return infoWithClass(tablePrefix, tableSuffix, aliasRule, classes, relationList,
                 globalLogicColumn, globalLogicValue, globalLogicDeleteBooleanValue,
                 globalLogicDeleteIntValue, globalLogicDeleteLongValue);
     }
@@ -72,8 +72,8 @@ public class QueryInfoUtil {
         return set;
     }
 
-    private static TableColumnInfo infoWithClass(String tablePrefix, AliasGenerateRule aliasRule, Set<Class<?>> classes,
-                                                 List<TableColumnRelation> relationList,
+    private static TableColumnInfo infoWithClass(String tablePrefix, String tableSuffix, AliasGenerateRule aliasRule,
+                                                 Set<Class<?>> classes, List<TableColumnRelation> relationList,
                                                  String globalLogicColumn, String globalLogicValue,
                                                  String globalLogicDeleteBooleanValue, String globalLogicDeleteIntValue,
                                                  String globalLogicDeleteLongValue) {
@@ -100,7 +100,7 @@ public class QueryInfoUtil {
                 tableName = tableInfo.value();
                 tableDesc = tableInfo.desc();
             } else {
-                tableName = QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName());
+                tableName = QueryUtil.classToTableName(tablePrefix, clazz.getSimpleName(), tableSuffix);
                 tableAlias = QueryUtil.tableNameToClassAlias(tablePrefix, tableName, aliasRule);
                 tableDesc = "";
             }

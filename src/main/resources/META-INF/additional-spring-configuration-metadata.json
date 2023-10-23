@@ -15,6 +15,13 @@
       "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的前缀(比如 t_ 开头)."
     },
     {
+      "name": "query.table-suffix",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "sourceType": "com.github.liuanxin.query.core.TableColumnTemplate",
+      "description": "当关联表的类上没有标注解, 将类名转换成表名时, 表的后缀(比如 _table 结尾)."
+    },
+    {
       "name": "query.has-not-return-info",
       "type": "java.lang.Boolean",
       "defaultValue": "false",
