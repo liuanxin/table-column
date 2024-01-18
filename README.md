@@ -100,7 +100,7 @@ public class TableColumnController {
 }
 ```
 
-相关的配置中下
+相关的配置如下
 ```yaml
 query:
   # 存放关联表的类的包地址, 多个用英文逗号隔开.
@@ -356,7 +356,7 @@ create table `t_order_log` (
 ]
 ```
 
-请求 `POST /table-column` 时, 将会自动处理数据查询并组装数据, 其入参示例如下
+请求 `POST /table-column` 时, 将会自动处理数据查询并组装数据, 其入参(条件和响应都在下面定义)示例如下
 ```json5
 {
   "table": "Order", /* 表名 */
@@ -411,7 +411,7 @@ create table `t_order_log` (
 }
 ```
 
-请求 `POST /query-order-address-item-log` 将使用别名中配置的规则, 接口只关注参数即可
+请求 `POST /query-order-address-item-log` 将使用别名中配置的规则, 前端只关注条件参数即可
 ```json5
 {
   "req" : {
