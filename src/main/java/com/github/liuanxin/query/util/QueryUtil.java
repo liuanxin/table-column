@@ -399,6 +399,11 @@ public class QueryUtil {
         return isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase());
     }
 
+    public static boolean toBool(Object obj, boolean defaultBoolean) {
+        Boolean bool = toBoolean(obj);
+        return isNotNull(obj) ? Boolean.TRUE.equals(bool) : defaultBoolean;
+    }
+
     public static Boolean toBoolean(Object obj) {
         if (isNotNull(obj)) {
             String str = obj.toString().trim().toLowerCase();

@@ -21,33 +21,23 @@ public class ReqInfo implements Serializable {
     private String table;
     /** 入参 */
     private ReqParam param;
-    /** 出参 */
-    private ReqResult result;
     /** 出参类型(用在非分页查询), 对象(obj)还是数组(arr), 如果是对象则会在查询上拼 LIMIT 1 条件, 不设置则是数组 */
     private ResultType type;
+    /** 出参 */
+    private ReqResult result;
 
     public ReqInfo() {}
-    public ReqInfo(ReqParam param, String table, ResultType type) {
-        this.table = table;
-        this.type = type;
-        this.param = param;
-    }
-    public ReqInfo(ReqParam param, String table) {
-        this.table = table;
-        this.param = param;
-    }
-    public ReqInfo(String alias, ReqParam param, String table, ReqResult result, ResultType type) {
+
+    public ReqInfo(String alias, ReqAlias req) {
         this.alias = alias;
-        this.param = param;
-        this.table = table;
-        this.result = result;
-        this.type = type;
+        this.req = req;
     }
-    public ReqInfo(String table, ReqResult result, ResultType type, ReqParam param) {
-        this.param = param;
+
+    public ReqInfo(String table, ReqParam param, ResultType type, ReqResult result) {
         this.table = table;
-        this.result = result;
+        this.param = param;
         this.type = type;
+        this.result = result;
     }
 
 
@@ -79,18 +69,18 @@ public class ReqInfo implements Serializable {
         this.param = param;
     }
 
-    public ReqResult getResult() {
-        return result;
-    }
-    public void setResult(ReqResult result) {
-        this.result = result;
-    }
-
     public ResultType getType() {
         return type;
     }
     public void setType(ResultType type) {
         this.type = type;
+    }
+
+    public ReqResult getResult() {
+        return result;
+    }
+    public void setResult(ReqResult result) {
+        this.result = result;
     }
 
     @Override
@@ -100,12 +90,12 @@ public class ReqInfo implements Serializable {
         ReqInfo reqInfo = (ReqInfo) o;
         return Objects.equals(alias, reqInfo.alias) && Objects.equals(req, reqInfo.req)
                 && Objects.equals(table, reqInfo.table) && Objects.equals(param, reqInfo.param)
-                && Objects.equals(result, reqInfo.result) && type == reqInfo.type;
+                && type == reqInfo.type && Objects.equals(result, reqInfo.result);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, req, table, param, result, type);
+        return Objects.hash(alias, req, table, param, type, result);
     }
 
     @Override
@@ -115,8 +105,8 @@ public class ReqInfo implements Serializable {
                 ", req=" + req +
                 ", table='" + table + '\'' +
                 ", param=" + param +
-                ", result=" + result +
                 ", type=" + type +
+                ", result=" + result +
                 '}';
     }
 

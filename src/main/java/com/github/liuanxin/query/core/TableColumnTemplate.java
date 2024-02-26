@@ -135,26 +135,14 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
-    public void generateModel(String targetPath, String packagePath) {
-        generateModel("", targetPath, packagePath, false, "");
-    }
-    public void generateModel(String tables, String targetPath, String packagePath) {
-        generateModel(tables, targetPath, packagePath, false, "");
-    }
-    public void generateModel(String tables, String targetPath, String packagePath, String modelSuffix) {
-        generateModel(tables, targetPath, packagePath, false, modelSuffix);
-    }
-    public void generateModel(String tables, String targetPath, String packagePath, boolean generateComment) {
-        generateModel(tables, targetPath, packagePath, generateComment, "");
-    }
     public void generateModel(String tables, String targetPath, String packagePath,
-                              boolean generateComment, String modelSuffix) {
+                              boolean generateComment, String modelPrefix, String modelSuffix) {
         List<Map<String, Object>> tableList = new ArrayList<>();
         List<Map<String, Object>> tableColumnList = new ArrayList<>();
         loadDatabase(tableList, tableColumnList);
         Set<String> tableSet = handleTable(tables);
-        QueryInfoUtil.generateModel(tableSet, targetPath, packagePath, modelSuffix, aliasGenerateRule,
-                tablePrefix, generateComment, tableList, tableColumnList);
+        QueryInfoUtil.generateModel(tableSet, targetPath, packagePath, modelPrefix, modelSuffix,
+                aliasGenerateRule, tablePrefix, generateComment, tableList, tableColumnList);
     }
 
     private Set<String> handleTable(String tables) {
@@ -176,6 +164,7 @@ public class TableColumnTemplate implements InitializingBean {
     public List<QueryInfo> info(String tables) {
         return info(tables, false);
     }
+    /** @param force if table has logic field(with deleted), return filed info if this value is true */
     private List<QueryInfo> info(String tables, boolean force) {
         if (hasNotReturnInfo) {
             return Collections.emptyList();
@@ -853,7 +842,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         ReqQuery query = ReqQuery.buildId(tableInfo.idWhere(false), id);
-        ReqInfo req = new ReqInfo(new ReqParam(query), tableInfo.getAlias(), ResultType.OBJ);
+        ReqInfo req = new ReqInfo(tableInfo.getAlias(), new ReqParam(query), ResultType.OBJ, null);
         return QueryJsonUtil.convertData(dynamicQuery(req, force));
     }
     public Map<String, Object> queryById(String table, Serializable id) {
@@ -880,7 +869,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         ReqQuery query = ReqQuery.buildIds(tableInfo.idWhere(false), ids);
-        ReqInfo req = new ReqInfo(new ReqParam(query), tableInfo.getAlias());
+        ReqInfo req = new ReqInfo(tableInfo.getAlias(), new ReqParam(query), null, null);
         return QueryJsonUtil.convertDateList(dynamicQuery(req, force));
     }
     public List<Map<String, Object>> queryByIds(String table, List<Serializable> ids) {
@@ -904,7 +893,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         ReqQuery query = ReqQuery.buildId(table.idWhere(false), id);
-        ReqInfo req = new ReqInfo(new ReqParam(query), table.getAlias(), ResultType.OBJ);
+        ReqInfo req = new ReqInfo(table.getAlias(), new ReqParam(query), ResultType.OBJ, null);
         return QueryJsonUtil.convert(dynamicQuery(req, force), clazz);
     }
     public <T> T queryById(Class<T> clazz, Serializable id) {
@@ -928,7 +917,7 @@ public class TableColumnTemplate implements InitializingBean {
         }
 
         ReqQuery query = ReqQuery.buildIds(table.idWhere(false), ids);
-        ReqInfo req = new ReqInfo(new ReqParam(query), table.getAlias());
+        ReqInfo req = new ReqInfo(table.getAlias(), new ReqParam(query), null, null);
         return QueryJsonUtil.convertList(dynamicQuery(req, force), clazz);
     }
     public <T> List<T> queryByIds(Class<T> clazz, List<Serializable> ids) {
@@ -956,7 +945,7 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     private long handleCount(Table table, ReqQuery query, boolean force) {
-        ReqInfo req = new ReqInfo(new ReqParam(query), table.getAlias());
+        ReqInfo req = new ReqInfo(table.getAlias(), new ReqParam(query), null, null);
         req.setResult(new ReqResult(Arrays.asList(QueryConst.COUNT_ALIAS, "count", "*")));
         Map<String, Object> data = QueryUtil.first(QueryJsonUtil.convertDateList(dynamicQuery(req, force)));
         return QueryUtil.isNotEmpty(data) ? QueryUtil.toLong(data.get(QueryConst.COUNT_ALIAS)) : 0;
@@ -968,6 +957,9 @@ public class TableColumnTemplate implements InitializingBean {
 
     public <T> long forceQueryCount(Class<T> clazz, ReqQuery query) {
         return queryCount(clazz, query, true);
+    }
+    public <T> long queryCount(Class<T> clazz, ReqQuery query) {
+        return queryCount(clazz, query, false);
     }
     private <T> long queryCount(Class<T> clazz, ReqQuery query, boolean force) {
         if (QueryUtil.isNull(clazz) || QueryUtil.isNull(query)) {
@@ -984,26 +976,14 @@ public class TableColumnTemplate implements InitializingBean {
 
         return handleCount(table, query, force);
     }
-    public <T> long queryCount(Class<T> clazz, ReqQuery query) {
-        return queryCount(clazz, query, false);
-    }
 
 
     public Object forceDynamicQuery(ReqInfo req) {
         return dynamicQuery(req, true);
     }
-
-    public Object dynamicQuery(String alias, ReqInfo req) {
-        if (QueryUtil.isNotNull(req) && QueryUtil.isNotEmpty(alias)) {
-            req.setAlias(alias);
-        }
-        return dynamicQuery(req, false);
-    }
-
     public Object dynamicQuery(ReqInfo req) {
         return dynamicQuery(req, false);
     }
-
     private Object dynamicQuery(ReqInfo req, boolean force) {
         if (QueryUtil.isNull(req)) {
             return null;

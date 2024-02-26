@@ -16,7 +16,7 @@
 
 添加配置
 ```java
-/** 表关联关系及别名都没有, 可以无需此文件, 查询时就只能基于单表 */
+/** 可以不加此配置, 如果想要使用表关联则设置 tableRelationList, 如果想要使用别名则设置 queryAliasMap */
 @Configuration
 public class TableColumnConfig {
 
@@ -76,25 +76,65 @@ public class TableColumnConfig {
 ```
 
 添加以下 mapping
+
 ```java
+import java.util.Collections;
+
+/** 对外提供查询的接口 */
 @RestController
 @RequiredArgsConstructor
 public class TableColumnController {
 
     private final TableColumnTemplate tableColumnTemplate;
 
+    /** 当表结构有调整, 可以使用此接口重刷相关信息, 如果在线上使用请限制只能本机或局域网访问 */
+    @PostMapping("/refresh-table-column")
+    public Integer info(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        if (("127.0.0.1".equals(ip) || ip.startsWith("192.") || ip.startsWith("172."))) {
+            return tableColumnTemplate.refreshWithDatabase(tables) ? 1 : 0;
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * 如果对实体类过份依赖, 没有总感觉没有安全感, 可以使用此接口来生成
+     * 
+     * @param tables 表名, 多个用英文逗号隔开, 空则表示全部表
+     * @param targetPath 生成的目标地址
+     * @param packagePath 包名
+     * @param generateComment 是否生成注释, 默认是
+     * @param modelPrefix 生成实体时的前缀
+     * @param modelSuffix 生成实体时的后缀
+     */
+    @PostMapping("/generate-model")
+    public Integer info(String tables, String targetPath, String packagePath,
+                        Boolean generateComment, String modelPrefix, String modelSuffix) {
+        String ip = request.getRemoteAddr();
+        if (("127.0.0.1".equals(ip) || ip.startsWith("192.") || ip.startsWith("172."))) {
+            tableColumnTemplate.generateModel(tables, targetPath, packagePath, generateComment, modelPrefix, modelSuffix);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /** 查询各表及字段的相关说明 */
     @GetMapping("/table-column")
     public List<QueryInfo> info(String tables) {
         return tableColumnTemplate.info(tables);
     }
 
+    /** 动态查询, 请求数据及返回结果在 ReqInfo 中定义(只使用 table param type result 四项) */
     @PostMapping("/table-column")
     public Object query(@RequestBody ReqInfo req) {
         return tableColumnTemplate.dynamicQuery(req);
     }
 
-    @PostMapping("/query-{alias}")
-    public Object query(@PathVariable("alias") String alias, @RequestBody ReqInfo req) {
+    /** 使用别名的动态查询, 请求及返回在上面的 queryAliasMap 中定义, 实际查询时在 ReqInfo 的 alias 和 ReqAlias 定义 */
+    @PostMapping("/query-alias")
+    public Object queryAlias(@RequestBody ReqInfo req) {
         return tableColumnTemplate.dynamicQuery(alias, req);
     }
 }

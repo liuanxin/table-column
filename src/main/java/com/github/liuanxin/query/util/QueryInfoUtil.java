@@ -362,7 +362,7 @@ public class QueryInfoUtil {
     }
 
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath,
-                                     String modelSuffix, AliasGenerateRule aliasRule,
+                                     String modelPrefix, String modelSuffix, AliasGenerateRule aliasRule,
                                      String tablePrefix, boolean generateComment,
                                      List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
         File packageDir = new File(targetPath.replace(".", "/"), packagePath.replace(".", "/"));
@@ -392,7 +392,7 @@ public class QueryInfoUtil {
             sbd.setLength(0);
             importSet.clear();
             javaImportSet.clear();
-            String className = QueryUtil.tableNameToClass(tablePrefix, tableName) + QueryUtil.toStr(modelSuffix);
+            String className = QueryUtil.toStr(modelPrefix) + QueryUtil.tableNameToClass(tablePrefix, tableName) + QueryUtil.toStr(modelSuffix);
             String tableDesc = QueryUtil.toStr(tableInfo.get("tc"));
             String tableAlias = QueryUtil.tableNameToClassAlias(tablePrefix, tableName, aliasRule);
 
