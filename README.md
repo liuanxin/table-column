@@ -117,13 +117,13 @@ public class TableColumnController {
     }
 
     /** 动态查询, 请求数据及返回结果在 ReqInfo 中定义(只使用 table param type result 四项) */
-    @PostMapping("/tc-query")
+    @PostMapping("/query")
     public Object query(@RequestBody ReqInfo req) {
         return tableColumnTemplate.dynamicQuery(req);
     }
 
     /** 使用别名的动态查询, 请求及返回在上面的 queryAliasMap 中定义, 实际查询时在 ReqInfo 的 alias 和 ReqAlias 定义 */
-    @PostMapping("/tc-query-{alias}")
+    @PostMapping("/query-{alias}")
     public Object queryAlias(@PathVariable("alias") String alias, @RequestBody ReqAlias req) {
         return tableColumnTemplate.dynamicQuery(alias, req);
     }
@@ -386,7 +386,7 @@ create table `t_order_log` (
 ]
 ```
 
-请求 `POST /tc-query` 时, 将会自动处理数据查询并组装数据, 其入参(条件和响应都在下面定义)示例如下
+请求 `POST /query` 时, 将会自动处理数据查询并组装数据, 其入参(条件和响应都在下面定义)示例如下
 ```json5
 {
   "table": "Order", /* 表名 */
@@ -441,7 +441,7 @@ create table `t_order_log` (
 }
 ```
 
-请求 `POST /tc-query-order-address-item-log` 将使用别名中配置的规则, 前端只关注条件参数即可
+请求 `POST /query-order-address-item-log` 将使用别名中配置的规则, 前端只关注条件参数即可
 ```json5
 {
   "query" : {
