@@ -85,7 +85,7 @@ public class ReqAlias implements Serializable {
             throw new RuntimeException("request: required request alias");
         }
         if (QueryUtil.isEmpty(requestAliasMap)) {
-            throw new RuntimeException("request: no define request alias");
+            throw new RuntimeException("request: no define alias info");
         }
         ReqAliasTemplate aliasTemplate = requestAliasMap.get(alias);
         if (QueryUtil.isNull(aliasTemplate)) {

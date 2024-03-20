@@ -1010,20 +1010,16 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
     public Object forceDynamicQuery(ReqInfo req) {
-        checkAlias();
-        return dynamicQuery(req, true);
-    }
-    public Object dynamicQuery(ReqInfo req) {
-        checkAlias();
-        return dynamicQuery(req, false);
-    }
-    private void checkAlias() {
         if (requiredAlias) {
             throw new RuntimeException("request: required request alias");
         }
-        if (QueryUtil.isEmpty(queryAliasMap)) {
-            throw new RuntimeException("request: no define alias info");
+        return dynamicQuery(req, true);
+    }
+    public Object dynamicQuery(ReqInfo req) {
+        if (requiredAlias) {
+            throw new RuntimeException("request: required request alias");
         }
+        return dynamicQuery(req, false);
     }
     private Object dynamicQuery(ReqInfo req, boolean force) {
         if (QueryUtil.isNull(req)) {
