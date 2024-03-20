@@ -87,17 +87,6 @@ public class TableColumnController {
 
     private final TableColumnTemplate tableColumnTemplate;
 
-    /** 当表结构有调整, 可以使用此接口重刷相关信息, 如果在线上使用请限制只能本机或局域网访问 */
-    @PostMapping("/refresh-table-column")
-    public Integer info(HttpServletRequest request) {
-        String ip = request.getRemoteAddr();
-        if (("127.0.0.1".equals(ip) || ip.startsWith("192.") || ip.startsWith("172."))) {
-            return tableColumnTemplate.refreshWithDatabase(tables) ? 1 : 0;
-        } else {
-            return -1;
-        }
-    }
-
     /**
      * 如果对实体类过份依赖, 没有总感觉没有安全感, 可以使用此接口来生成
      * 
@@ -111,13 +100,14 @@ public class TableColumnController {
     @PostMapping("/generate-model")
     public Integer info(String tables, String targetPath, String packagePath,
                         Boolean generateComment, String modelPrefix, String modelSuffix) {
-        String ip = request.getRemoteAddr();
-        if (("127.0.0.1".equals(ip) || ip.startsWith("192.") || ip.startsWith("172."))) {
-            tableColumnTemplate.generateModel(tables, targetPath, packagePath, generateComment, modelPrefix, modelSuffix);
-            return 1;
-        } else {
-            return 0;
-        }
+        tableColumnTemplate.generateModel(tables, targetPath, packagePath, generateComment, modelPrefix, modelSuffix);
+        return 1;
+    }
+
+    /** 当表结构有调整, 可以使用此接口重刷相关信息, 如果在线上使用请限制只能本机或局域网访问 */
+    @PostMapping("/table-column")
+    public Integer info() {
+        return tableColumnTemplate.refreshWithDatabase(tables) ? 1 : 0;
     }
 
     /** 查询各表及字段的相关说明 */
@@ -127,14 +117,14 @@ public class TableColumnController {
     }
 
     /** 动态查询, 请求数据及返回结果在 ReqInfo 中定义(只使用 table param type result 四项) */
-    @PostMapping("/table-column")
+    @PostMapping("/tc-query")
     public Object query(@RequestBody ReqInfo req) {
         return tableColumnTemplate.dynamicQuery(req);
     }
 
     /** 使用别名的动态查询, 请求及返回在上面的 queryAliasMap 中定义, 实际查询时在 ReqInfo 的 alias 和 ReqAlias 定义 */
-    @PostMapping("/query-alias")
-    public Object queryAlias(@RequestBody ReqInfo req) {
+    @PostMapping("/tc-query-{alias}")
+    public Object queryAlias(@PathVariable("alias") String alias, @RequestBody ReqAlias req) {
         return tableColumnTemplate.dynamicQuery(alias, req);
     }
 }
@@ -396,7 +386,7 @@ create table `t_order_log` (
 ]
 ```
 
-请求 `POST /table-column` 时, 将会自动处理数据查询并组装数据, 其入参(条件和响应都在下面定义)示例如下
+请求 `POST /tc-query` 时, 将会自动处理数据查询并组装数据, 其入参(条件和响应都在下面定义)示例如下
 ```json5
 {
   "table": "Order", /* 表名 */
@@ -451,22 +441,20 @@ create table `t_order_log` (
 }
 ```
 
-请求 `POST /query-order-address-item-log` 将使用别名中配置的规则, 前端只关注条件参数即可
+请求 `POST /tc-query-order-address-item-log` 将使用别名中配置的规则, 前端只关注条件参数即可
 ```json5
 {
-  "req" : {
-    "query" : {
-      "id" : 1,
-      "orderNo": null, /* 任意值(null "" 1 0 均可), 只要有这个项就行. 对应上面的 $nn 条件 */
-      "createTime": [ "2020-01-01", "2020-02-01" ],
-      "xxx": { "orderStatus": "3", "amount": [ "100.50", "200" ] } /* xxx 跟别名模板中的分组名对应 */
-      "orderStatus": [ 1, 2, 3 ],
-      "OrderItem.productName": "xx",
-      "OrderAddress.contact": "xxx"
-    },
-    "sort": { "id": "desc" }, /* 排序, 忽略则使用别名中设置的值 */
-    "page": [ 2, 10 ] /* 分页, 忽略则使用别名中设置的值 */
-  }
+  "query" : {
+    "id" : 1,
+    "orderNo": null, /* 任意值(null "" 1 0 均可), 只要有这个项就行. 对应上面的 $nn 条件 */
+    "createTime": [ "2020-01-01", "2020-02-01" ],
+    "xxx": { "orderStatus": "3", "amount": [ "100.50", "200" ] } /* xxx 跟别名模板中的分组名对应 */
+    "orderStatus": [ 1, 2, 3 ],
+    "OrderItem.productName": "xx",
+    "OrderAddress.contact": "xxx"
+  },
+  "sort": { "id": "desc" }, /* 排序, 忽略则使用别名中设置的值 */
+  "page": [ 2, 10 ] /* 分页, 忽略则使用别名中设置的值 */
 }
 ```
 

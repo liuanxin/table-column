@@ -10,13 +10,6 @@ import java.util.*;
 public class ReqInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 查询别名(如果使用, 下面的 table param result type 将不再生效) */
-    private String alias;
-    /** 使用别名时的查询条件 */
-    private ReqAlias req;
-
-    // 如果使用别名只需要上面的两个参数, 如果不用别名则使用下面的四个参数
-
     /** 主表 */
     private String table;
     /** 入参 */
@@ -26,13 +19,8 @@ public class ReqInfo implements Serializable {
     /** 出参 */
     private ReqResult result;
 
+
     public ReqInfo() {}
-
-    public ReqInfo(String alias, ReqAlias req) {
-        this.alias = alias;
-        this.req = req;
-    }
-
     public ReqInfo(String table, ReqParam param, ResultType type, ReqResult result) {
         this.table = table;
         this.param = param;
@@ -40,20 +28,6 @@ public class ReqInfo implements Serializable {
         this.result = result;
     }
 
-
-    public String getAlias() {
-        return alias;
-    }
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    public ReqAlias getReq() {
-        return req;
-    }
-    public void setReq(ReqAlias req) {
-        this.req = req;
-    }
 
     public String getTable() {
         return table;
@@ -88,100 +62,23 @@ public class ReqInfo implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ReqInfo reqInfo = (ReqInfo) o;
-        return Objects.equals(alias, reqInfo.alias) && Objects.equals(req, reqInfo.req)
-                && Objects.equals(table, reqInfo.table) && Objects.equals(param, reqInfo.param)
+        return Objects.equals(table, reqInfo.table) && Objects.equals(param, reqInfo.param)
                 && type == reqInfo.type && Objects.equals(result, reqInfo.result);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, req, table, param, type, result);
+        return Objects.hash(table, param, type, result);
     }
 
     @Override
     public String toString() {
         return "ReqInfo{" +
-                "alias='" + alias + '\'' +
-                ", req=" + req +
                 ", table='" + table + '\'' +
                 ", param=" + param +
                 ", type=" + type +
                 ", result=" + result +
                 '}';
-    }
-
-
-    public boolean handleAlias(boolean requiredAlias, Map<String, ReqAliasTemplate> requestAliasMap) {
-        if (requiredAlias && QueryUtil.isEmpty(alias)) {
-            throw new RuntimeException("request: required request alias");
-        }
-        if (QueryUtil.isEmpty(requestAliasMap)) {
-            throw new RuntimeException("request: no define request alias");
-        }
-        if (QueryUtil.isEmpty(alias)) {
-            return false;
-        }
-        ReqAliasTemplate aliasTemplate = requestAliasMap.get(alias);
-        if (QueryUtil.isNull(aliasTemplate)) {
-            throw new RuntimeException("request: no request alias(" + alias + ") info");
-        }
-        if (QueryUtil.isNotEmpty(table) || QueryUtil.isNotNull(param) || QueryUtil.isNotNull(result) || QueryUtil.isNotNull(type)) {
-            throw new RuntimeException("request: if use alias, just need alias + aliasQuery");
-        }
-
-        String table = aliasTemplate.getTable();
-        if (QueryUtil.isNotEmpty(table)) {
-            this.table = table;
-        }
-        ReqResult result = aliasTemplate.getResult();
-        if (QueryUtil.isNotNull(result)) {
-            this.result = result;
-        }
-        ResultType type = aliasTemplate.getType();
-        if (QueryUtil.isNotNull(type)) {
-            this.type = type;
-        }
-
-        param = new ReqParam();
-        Boolean notCount = aliasTemplate.getNotCount();
-        if (QueryUtil.isNotNull(notCount)) {
-            param.setNotCount(notCount);
-        }
-        List<List<String>> relationList = aliasTemplate.getRelationList();
-        if (QueryUtil.isNotEmpty(relationList)) {
-            param.setRelation(relationList);
-        }
-        if (QueryUtil.isNotNull(req)) {
-            Map<String, Object> paramMap = req.getQuery();
-            ReqAliasTemplateQuery templateQuery = aliasTemplate.getQuery();
-            if (QueryUtil.isNotEmpty(paramMap) && QueryUtil.isNotNull(templateQuery)) {
-                ReqQuery query = templateQuery.transfer(paramMap);
-                if (QueryUtil.isNotNull(query)) {
-                    param.setQuery(query);
-                }
-            }
-            Map<String, String> sort = req.getSort();
-            if (QueryUtil.isNotEmpty(sort)) {
-                param.setSort(sort);
-            } else {
-                Map<String, String> templateSort = aliasTemplate.getSort();
-                if (QueryUtil.isNotEmpty(templateSort)) {
-                    param.setSort(templateSort);
-                }
-            }
-            List<String> page = req.getPage();
-            if (QueryUtil.isNotEmpty(page)) {
-                param.setPage(page);
-            } else {
-                List<String> templatePage = aliasTemplate.getPage();
-                if (QueryUtil.isNotEmpty(templatePage)) {
-                    param.setPage(templatePage);
-                }
-            }
-        }
-        alias = null;
-        req = null;
-        return true;
     }
 
 

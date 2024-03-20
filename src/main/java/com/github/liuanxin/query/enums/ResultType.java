@@ -9,11 +9,9 @@ public enum ResultType {
     OBJ("实体");
 
     private final String msg;
-
     ResultType(String msg) {
         this.msg = msg;
     }
-
     public String getMsg() {
         return msg;
     }

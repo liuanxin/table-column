@@ -978,23 +978,52 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public Object forceDynamicQuery(String alias, ReqAlias req) {
+        return dynamicQuery(alias, req, true);
+    }
+    public Object dynamicQuery(String alias, ReqAlias req) {
+        return dynamicQuery(alias, req, false);
+    }
+    private Object dynamicQuery(String alias, ReqAlias req, boolean force) {
+        if (QueryUtil.isEmpty(alias) || QueryUtil.isNull(req)) {
+            return null;
+        }
+
+        ReqInfo reqInfo = req.handleAlias(alias, queryAliasMap);
+        if (QueryUtil.isNull(reqInfo)) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("alias({} + {}) parse to null", alias, QueryJsonUtil.toJson(req));
+            }
+            return null;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("alias({} + {}) parse to ({})", alias, QueryJsonUtil.toJson(req), QueryJsonUtil.toJson(reqInfo));
+        }
+        return dynamicQuery(reqInfo, force);
+    }
+
     public Object forceDynamicQuery(ReqInfo req) {
+        checkAlias();
         return dynamicQuery(req, true);
     }
     public Object dynamicQuery(ReqInfo req) {
+        checkAlias();
         return dynamicQuery(req, false);
+    }
+    private void checkAlias() {
+        if (requiredAlias) {
+            throw new RuntimeException("request: required request alias");
+        }
+        if (QueryUtil.isEmpty(queryAliasMap)) {
+            throw new RuntimeException("request: no define alias info");
+        }
     }
     private Object dynamicQuery(ReqInfo req, boolean force) {
         if (QueryUtil.isNull(req)) {
             return null;
         }
 
-        boolean useAlias = req.handleAlias(requiredAlias, queryAliasMap);
-        if (useAlias) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("request-info after apply alias: ({})", QueryJsonUtil.toJson(req));
-            }
-        }
         req.checkTable(tcInfo);
 
         Set<String> paramTableSet = req.checkParam(notRequiredConditionOrPage, tcInfo, maxListCount);

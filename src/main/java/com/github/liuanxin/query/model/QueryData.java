@@ -294,22 +294,22 @@ public class QueryData implements Serializable {
 
     public ReqInfo toQueryCount(TableColumnInfo tcInfo) {
         ReqParam param = new ReqParam(query, toRelation(tcInfo));
-        return new ReqInfo(toTableAlias(tcInfo), toCountResult(), ResultType.OBJ, param);
+        return new ReqInfo(toTableAlias(tcInfo), param, ResultType.OBJ, toCountResult());
     }
 
     public ReqInfo toQueryObj(TableColumnInfo tcInfo) {
         ReqParam param = new ReqParam(query, sortMap, toRelation(tcInfo));
-        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.OBJ, param);
+        return new ReqInfo(toTableAlias(tcInfo), param, ResultType.OBJ, toResult());
     }
 
     public ReqInfo toQueryList(TableColumnInfo tcInfo) {
         ReqParam param = new ReqParam(query, sortMap, toRelation(tcInfo), pageList, true);
-        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.ARR, param);
+        return new ReqInfo(toTableAlias(tcInfo), param, ResultType.ARR, toResult());
     }
 
     public ReqInfo toQueryPage(TableColumnInfo tcInfo) {
         ReqParam param = new ReqParam(query, sortMap, toRelation(tcInfo), pageList);
-        return new ReqInfo(toTableAlias(tcInfo), toResult(), ResultType.ARR,  param);
+        return new ReqInfo(toTableAlias(tcInfo), param, ResultType.ARR, toResult());
     }
 
 
