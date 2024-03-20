@@ -135,6 +135,12 @@ public class TableColumnTemplate implements InitializingBean {
     }
 
 
+    public void generateModel(String targetPath, String packagePath) {
+        generateModel("", targetPath, packagePath, true, "", "");
+    }
+    public void generateModel(String tables, String targetPath, String packagePath) {
+        generateModel(tables, targetPath, packagePath, true, "", "");
+    }
     public void generateModel(String tables, String targetPath, String packagePath,
                               boolean generateComment, String modelPrefix, String modelSuffix) {
         List<Map<String, Object>> tableList = new ArrayList<>();
