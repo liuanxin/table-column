@@ -494,6 +494,12 @@ public class TableColumnTemplate implements InitializingBean {
 
 
     @Transactional
+    public int deleteData(Object obj) {
+        // todo
+        return 1;
+    }
+
+    @Transactional
     public int forceDeleteById(String table, Serializable id) {
         return deleteById(table, id, true);
     }
@@ -650,6 +656,12 @@ public class TableColumnTemplate implements InitializingBean {
         return flag;
     }
 
+
+    @Transactional
+    public int updateData(Object obj) {
+        // todo
+        return 1;
+    }
 
     @Transactional
     public int updateById(String table, Map<String, Object> updateObj, Serializable id) {
