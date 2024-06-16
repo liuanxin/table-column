@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.util.*;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "DuplicatedCode", "rawtypes"})
 public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
@@ -208,6 +208,42 @@ public class TableColumnTemplate implements InitializingBean {
         return queryList;
     }
 
+
+
+    @Transactional
+    public boolean insertData(Object data) {
+        Map<String, Object> dataMap = QueryJsonUtil.convertData(data);
+        if (QueryUtil.isEmpty(dataMap)) {
+            throw new RuntimeException("insert dynamic data: data error");
+        }
+
+        for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
+            String values = QueryJsonUtil.toJson(entry.getValue());
+            if (QueryUtil.isNotEmpty(values)) {
+                String table = entry.getKey();
+                if (values.startsWith("{") && values.endsWith("}")) {
+                    Map<String, Object> map = QueryJsonUtil.convertData(values);
+                    if (QueryUtil.isEmpty(map)) {
+                        return false;
+                    }
+                    addData(table, map);
+                } else if (values.startsWith("[") && values.endsWith("]")) {
+                    List<Map<String, Object>> list = QueryJsonUtil.convertDataList(values);
+                    if (QueryUtil.isEmpty(list)) {
+                        return false;
+                    }
+
+                    for (Map<String, Object> obj : list) {
+                        addData(table, obj);
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    private void addData(String table, Map<String, Object> data) {
+        // todo
+    }
 
     @Transactional
     public int insert(String table, Map<String, Object> data) {
@@ -804,7 +840,7 @@ public class TableColumnTemplate implements InitializingBean {
         return query(req, true);
     }
     private List<Map<String, Object>> query(QueryData req, boolean force) {
-        return QueryJsonUtil.convertDateList(dynamicQuery(req.toQueryList(tcInfo), force));
+        return QueryJsonUtil.convertDataList(dynamicQuery(req.toQueryList(tcInfo), force));
     }
     public List<Map<String, Object>> query(QueryData req) {
         return query(req, false);
@@ -876,7 +912,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         ReqQuery query = ReqQuery.buildIds(tableInfo.idWhere(false), ids);
         ReqInfo req = new ReqInfo(tableInfo.getAlias(), new ReqParam(query), null, null);
-        return QueryJsonUtil.convertDateList(dynamicQuery(req, force));
+        return QueryJsonUtil.convertDataList(dynamicQuery(req, force));
     }
     public List<Map<String, Object>> queryByIds(String table, List<Serializable> ids) {
         return queryByIds(table, ids, false);
@@ -953,7 +989,7 @@ public class TableColumnTemplate implements InitializingBean {
     private long handleCount(Table table, ReqQuery query, boolean force) {
         ReqInfo req = new ReqInfo(table.getAlias(), new ReqParam(query), null, null);
         req.setResult(new ReqResult(Arrays.asList(QueryConst.COUNT_ALIAS, "count", "*")));
-        Map<String, Object> data = QueryUtil.first(QueryJsonUtil.convertDateList(dynamicQuery(req, force)));
+        Map<String, Object> data = QueryUtil.first(QueryJsonUtil.convertDataList(dynamicQuery(req, force)));
         return QueryUtil.isNotEmpty(data) ? QueryUtil.toLong(data.get(QueryConst.COUNT_ALIAS)) : 0;
     }
 

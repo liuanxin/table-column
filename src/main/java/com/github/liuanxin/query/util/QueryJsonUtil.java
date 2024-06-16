@@ -27,12 +27,11 @@ public class QueryJsonUtil {
         }
         if (obj instanceof String) {
             return (String) obj;
-        } else {
-            try {
-                return OBJECT_MAPPER.writeValueAsString(obj);
-            } catch (Exception ignore) {
-                return null;
-            }
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(obj);
+        } catch (Exception ignore) {
+            return null;
         }
     }
 
@@ -101,7 +100,7 @@ public class QueryJsonUtil {
         return convertType(obj, DATA_RESULT_TYPE);
     }
 
-    public static List<Map<String, Object>> convertDateList(Object obj) {
+    public static List<Map<String, Object>> convertDataList(Object obj) {
         return convertType(obj, DATA_LIST_RESULT_TYPE);
     }
 }
