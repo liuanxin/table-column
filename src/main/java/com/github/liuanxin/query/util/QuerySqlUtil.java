@@ -8,6 +8,52 @@ import java.util.*;
 
 public class QuerySqlUtil {
 
+    public static String getTableSql(String dialect) {
+        if ("postgresql".equalsIgnoreCase(dialect)) {
+            // relname 是 pg_class 中表的名称, description 是 pg_description 中的注释内容, relkind = 'r' 表示普通表 (regular table)
+            // NOT IN 用于排除系统模式, 获取当前数据库中所有用户创建的表
+            return "SELECT c.relname AS tn, d.description AS tc " +
+                    "FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace " +
+                    "LEFT JOIN pg_description d ON d.objoid = c.oid AND d.objsubid = 0 " +
+                    "WHERE c.relkind = 'r' AND n.nspname NOT IN ('pg_catalog', 'information_schema')";
+        } else /* if ("mysql".equalsIgnoreCase(dialect)) */ {
+            return "SELECT `TABLE_NAME` tn, `TABLE_COMMENT` tc " +
+                    "FROM `information_schema`.`TABLES` " +
+                    "WHERE `TABLE_SCHEMA` = DATABASE()";
+        }
+    }
+
+    public static String getColumnSql(String dialect) {
+        if ("postgresql".equalsIgnoreCase(dialect)) {
+            return "SELECT " +
+                    "    c.table_name AS tn, c.column_name AS cn, c.data_type AS ct, d.description AS cc, " +
+                    "    CASE WHEN pk.is_primary_key IS NOT NULL THEN 'PRI' ELSE '' END AS ck, " +
+                    "    c.character_maximum_length AS cml, c.is_nullable AS ine, " +
+                    "    CASE WHEN a.attidentity = 'a' or a.attidentity = 'd' or (c.column_default IS NOT NULL AND c.column_default LIKE 'nextval(%') THEN 'auto_increment' ELSE '' END AS ext, " +
+                    "    c.column_default AS cd " +
+                    "FROM information_schema.columns c " +
+                    "JOIN pg_catalog.pg_class tbl ON tbl.relname = c.table_name AND tbl.relkind = 'r' " +
+                    "JOIN pg_catalog.pg_attribute a ON a.attrelid = tbl.oid AND a.attname = c.column_name " +
+                    "LEFT JOIN pg_catalog.pg_description d ON d.objoid = tbl.oid AND d.objsubid = c.ordinal_position " +
+                    "LEFT JOIN ( " +
+                    "    SELECT kcu.table_schema, kcu.table_name, kcu.column_name, 'PRI' AS is_primary_key " +
+                    "    FROM information_schema.table_constraints tc JOIN information_schema.key_column_usage kcu " +
+                    "    ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema AND tc.table_name = kcu.table_name " +
+                    "    WHERE tc.constraint_type = 'PRIMARY KEY' " +
+                    ") pk ON pk.table_schema = c.table_schema AND pk.table_name = c.table_name AND pk.column_name = c.column_name " +
+                    "WHERE c.table_schema NOT IN ('pg_catalog', 'information_schema') " +
+                    "ORDER BY c.table_name, c.ordinal_position";
+        } else /* if ("mysql".equalsIgnoreCase(dialect)) */ {
+            // ck 是 PRI 则表示是主键列, ext 是 auto_increment 表示是自增列, cd 是列的默认值(目前用来判断此列是否有默认值)
+            return "SELECT `TABLE_NAME` tn, `COLUMN_NAME` cn, `COLUMN_TYPE` ct, " +
+                    "`COLUMN_COMMENT` cc, `COLUMN_KEY` ck, `CHARACTER_MAXIMUM_LENGTH` cml, " +
+                    "`IS_NULLABLE` ine, `EXTRA` ext, `COLUMN_DEFAULT` cd " +
+                    "FROM `information_schema`.`COLUMNS` " +
+                    "WHERE `TABLE_SCHEMA` = DATABASE() " +
+                    "ORDER BY `TABLE_NAME`, `ORDINAL_POSITION`";
+        }
+    }
+
     public static String toSqlField(String field) {
         return MysqlKeyWordUtil.hasKeyWord(field) || QueryUtil.isLong(field) ? ("`" + field + "`") : field;
     }

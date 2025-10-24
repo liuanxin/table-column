@@ -10,17 +10,6 @@ import java.util.*;
 
 public final class QueryConst {
 
-    public static final String DB_SQL = "SELECT DATABASE()";
-    public static final String TABLE_SQL = "SELECT `TABLE_NAME` tn, `TABLE_COMMENT` tc" +
-            " FROM `information_schema`.`TABLES`" +
-            " WHERE `TABLE_SCHEMA` = ?";
-    public static final String COLUMN_SQL = "SELECT `TABLE_NAME` tn, `COLUMN_NAME` cn, `COLUMN_TYPE` ct," +
-            " `COLUMN_COMMENT` cc, `COLUMN_KEY` ck, `CHARACTER_MAXIMUM_LENGTH` cml," +
-            " `IS_NULLABLE` ine, `EXTRA` ext, `COLUMN_DEFAULT` cd" +
-            " FROM `information_schema`.`COLUMNS`" +
-            " WHERE `TABLE_SCHEMA` = ?" +
-            " ORDER BY `TABLE_NAME`, `ORDINAL_POSITION`";
-
     public static final Map<String, Class<?>> DB_TYPE_MAP = new LinkedHashMap<>();
     static {
         DB_TYPE_MAP.put("tinyint(1) unsigned", Integer.class);

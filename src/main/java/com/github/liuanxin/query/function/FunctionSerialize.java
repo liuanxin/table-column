@@ -22,5 +22,4 @@ import java.util.function.Function;
  * }
  * </pre>
  */
-public interface FunctionSerialize<T, R> extends Function<T, R>, Serializable {
-}
+public interface FunctionSerialize<T, R> extends Function<T, R>, Serializable {}

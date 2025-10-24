@@ -282,8 +282,7 @@ public class QueryInfoUtil {
         Map<String, String> aliasMap = new HashMap<>();
         Map<String, Table> tableMap = new LinkedHashMap<>();
 
-        Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
-        tableColumnListToMap(tableColumnList, tableColumnMap);
+        Map<String, List<Map<String, Object>>> tableColumnMap = tableColumnListToMap(tableColumnList);
 
         Set<String> tableNameSet = new HashSet<>();
         Set<String> tableAliasSet = new HashSet<>();
@@ -351,14 +350,15 @@ public class QueryInfoUtil {
         return new TableColumnInfo(aliasMap, new HashMap<>(), tableMap);
     }
 
-    private static void tableColumnListToMap(List<Map<String, Object>> tableColumnList,
-                                             Map<String, List<Map<String, Object>>> tableColumnMap) {
+    private static Map<String, List<Map<String, Object>>> tableColumnListToMap(List<Map<String, Object>> tableColumnList) {
+        Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
         if (QueryUtil.isNotEmpty(tableColumnList)) {
             for (Map<String, Object> tableColumn : tableColumnList) {
                 String key = QueryUtil.toStr(tableColumn.get("tn"));
                 tableColumnMap.computeIfAbsent(key, (k) -> new ArrayList<>()).add(tableColumn);
             }
         }
+        return tableColumnMap;
     }
 
     public static void generateModel(Set<String> tableSet, String targetPath, String packagePath,
@@ -376,8 +376,7 @@ public class QueryInfoUtil {
             }
         }
 
-        Map<String, List<Map<String, Object>>> tableColumnMap = new HashMap<>();
-        tableColumnListToMap(tableColumnList, tableColumnMap);
+        Map<String, List<Map<String, Object>>> tableColumnMap = tableColumnListToMap(tableColumnList);
 
         StringBuilder sbd = new StringBuilder();
         Set<String> importSet = new TreeSet<>();

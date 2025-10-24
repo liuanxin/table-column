@@ -15,13 +15,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.sql.SQLException;
 import java.util.*;
 
-@SuppressWarnings({"unchecked", "DuplicatedCode", "rawtypes"})
+@SuppressWarnings({"unchecked", "DuplicatedCode"})
 public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
@@ -104,15 +106,33 @@ public class TableColumnTemplate implements InitializingBean {
         tcInfo = QueryInfoUtil.infoWithDb(tablePrefix, aliasGenerateRule, tableList, tableColumnList,
                 logicDeleteColumn, logicValue, logicDeleteBooleanValue, logicDeleteIntValue, logicDeleteLongValue);
     }
+
+    private String getDatabaseDialect() {
+        try {
+            return jdbcTemplate.execute((java.sql.Connection connection) -> {
+                try {
+                    return connection.getMetaData().getDatabaseProductName();
+                } catch (SQLException e) {
+                    throw new RuntimeException("无法获取数据库元数据", e);
+                }
+            });
+        } catch (DataAccessException e) {
+            if (LOG.isErrorEnabled()) {
+                LOG.error("get db dialect exception", e);
+            }
+            return "UNKNOWN";
+        }
+    }
+    @SuppressWarnings("SqlSourceToSinkFlow")
     private void loadDatabase(List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
-        String dbName = jdbcTemplate.queryForObject(QueryConst.DB_SQL, String.class);
+        String dbDialect = getDatabaseDialect();
         // table_name, table_comment
-        List<Map<String, Object>> tmpTableList = jdbcTemplate.queryForList(QueryConst.TABLE_SQL, dbName);
+        List<Map<String, Object>> tmpTableList = jdbcTemplate.queryForList(QuerySqlUtil.getTableSql(dbDialect));
         if (QueryUtil.isNotEmpty(tmpTableList)) {
             tableList.addAll(tmpTableList);
         }
-        // table_name, column_name, column_type, column_comment, has_pri, varchar_length
-        List<Map<String, Object>> tmpColumnList = jdbcTemplate.queryForList(QueryConst.COLUMN_SQL, dbName);
+        // table_name, column_name, column_type, column_comment, column_key, varchar_length, is_null, is_auto_increment, has_defaut
+        List<Map<String, Object>> tmpColumnList = jdbcTemplate.queryForList(QuerySqlUtil.getColumnSql(dbDialect));
         if (QueryUtil.isNotEmpty(tmpColumnList)) {
             tableColumnList.addAll(tmpColumnList);
         }

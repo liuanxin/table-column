@@ -399,11 +399,6 @@ public class QueryUtil {
         return isNotNull(obj) && QueryConst.TRUE_SET.contains(obj.toString().toLowerCase());
     }
 
-    public static boolean toBool(Object obj, boolean defaultBoolean) {
-        Boolean bool = toBoolean(obj);
-        return isNotNull(obj) ? Boolean.TRUE.equals(bool) : defaultBoolean;
-    }
-
     public static Boolean toBoolean(Object obj) {
         if (isNotNull(obj)) {
             String str = obj.toString().trim().toLowerCase();
@@ -515,40 +510,28 @@ public class QueryUtil {
         String source = obj.toString().trim();
         for (String pattern : QueryConst.DATE_TIME_PATTERN_LIST) {
             try {
-                LocalDateTime dateTime = getFormatter(pattern).parse(source, LocalDateTime::from);
-                if (dateTime != null) {
-                    return dateTime;
-                }
+                return getFormatter(pattern).parse(source, LocalDateTime::from);
             } catch (Exception ignore) {
             }
         }
 
         for (String pattern : QueryConst.DATE_PATTERN_LIST) {
             try {
-                LocalDate date = getFormatter(pattern).parse(source, LocalDate::from);
-                if (date != null) {
-                    return date;
-                }
+                return getFormatter(pattern).parse(source, LocalDate::from);
             } catch (Exception ignore) {
             }
         }
 
         for (String pattern : QueryConst.TIME_PATTERN_LIST) {
             try {
-                LocalTime time = getFormatter(pattern).parse(source, LocalTime::from);
-                if (time != null) {
-                    return time;
-                }
+                return getFormatter(pattern).parse(source, LocalTime::from);
             } catch (Exception ignore) {
             }
         }
 
         for (String pattern : QueryConst.YEAR_PATTERN_LIST) {
             try {
-                Year year = getFormatter(pattern).parse(source, Year::from);
-                if (year != null) {
-                    return year;
-                }
+                return getFormatter(pattern).parse(source, Year::from);
             } catch (Exception ignore) {
             }
         }
@@ -615,7 +598,7 @@ public class QueryUtil {
             return true;
         }
         String trim = str.trim().toLowerCase();
-        return "".equals(trim) || "null".equals(trim) /* || "nil".equals(trim) */ || "undefined".equals(trim);
+        return trim.isEmpty() || "null".equals(trim) /* || "nil".equals(trim) */ || "undefined".equals(trim);
     }
     public static boolean isNotEmpty(String obj) {
         return !isEmpty(obj);
