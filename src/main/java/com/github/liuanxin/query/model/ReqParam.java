@@ -161,7 +161,7 @@ public class ReqParam implements Serializable {
         }
 
         if (needQueryPage()) {
-            String index = (page.size() > 0) ? page.get(0) : null;
+            String index = page.isEmpty() ? null : page.get(0);
             if (QueryUtil.isNotLong(index) || QueryUtil.toInt(index) <= 0) {
                 throw new RuntimeException("param page: index error, int and required > 0");
             }

@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.*;
 
-@SuppressWarnings({"unchecked", "DuplicatedCode"})
+@SuppressWarnings({"unchecked", "DuplicatedCode", "SqlSourceToSinkFlow"})
 public class TableColumnTemplate implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(TableColumnTemplate.class);
@@ -123,7 +123,6 @@ public class TableColumnTemplate implements InitializingBean {
             return "UNKNOWN";
         }
     }
-    @SuppressWarnings("SqlSourceToSinkFlow")
     private void loadDatabase(List<Map<String, Object>> tableList, List<Map<String, Object>> tableColumnList) {
         String dbDialect = getDatabaseDialect();
         // table_name, table_comment
@@ -217,7 +216,7 @@ public class TableColumnTemplate implements InitializingBean {
                             relationTable = tb.getAlias();
                             relationColumn = tb.getColumnMap().get(relation.getOneColumn()).getAlias();
                         }
-                        boolean needValue = tc.isNotNull() && !tc.isHasDefault();
+                        boolean needValue = tc.isNotNull() && tc.notDefault();
                         columnList.add(new QueryColumn(tc.getAlias(), tc.getDesc(), type,
                                 (needValue ? true : null), maxLength, relationTable, relationColumn));
                     }
@@ -283,7 +282,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         Set<String> needCheckColumnSet = new HashSet<>();
         for (TableColumn tc : tableInfo.getColumnMap().values()) {
-            if (tc.isNotNull() && !tc.isHasDefault()) {
+            if (tc.isNotNull() && tc.notDefault()) {
                 needCheckColumnSet.add(tc.getAlias());
             }
         }
@@ -340,7 +339,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         Set<String> needCheckColumnSet = new HashSet<>();
         for (TableColumn tc : tableInfo.getColumnMap().values()) {
-            if (tc.isNotNull() && !tc.isHasDefault()) {
+            if (tc.isNotNull() && tc.notDefault()) {
                 needCheckColumnSet.add(tc.getAlias());
             }
         }
@@ -398,7 +397,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         Set<String> needCheckFieldSet = new HashSet<>();
         for (TableColumn tc : table.getColumnMap().values()) {
-            if (tc.isNotNull() && !tc.isHasDefault()) {
+            if (tc.isNotNull() && tc.notDefault()) {
                 needCheckFieldSet.add(tc.getFieldName());
             }
         }
@@ -464,7 +463,7 @@ public class TableColumnTemplate implements InitializingBean {
 
         Set<String> needCheckFieldSet = new HashSet<>();
         for (TableColumn tc : table.getColumnMap().values()) {
-            if (tc.isNotNull() && !tc.isHasDefault()) {
+            if (tc.isNotNull() && tc.notDefault()) {
                 needCheckFieldSet.add(tc.getFieldName());
             }
         }

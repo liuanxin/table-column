@@ -50,7 +50,7 @@ public class QueryInfoUtil {
 
         Set<Class<?>> set = new LinkedHashSet<>();
         for (String cp : classPackages.split(",")) {
-            String path = QueryUtil.isNull(cp) ? null : cp.trim();
+            String path = cp.trim();
             if (QueryUtil.isNotEmpty(path)) {
                 try {
                     String location = String.format("classpath*:**/%s/**/*.class", path.replace(".", "/"));

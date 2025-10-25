@@ -87,6 +87,9 @@ public class TableColumn implements Serializable {
         this.notNull = notNull;
     }
 
+    public boolean notDefault() {
+        return !hasDefault;
+    }
     public boolean isHasDefault() {
         return hasDefault;
     }
